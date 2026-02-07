@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode & Decode Online — base64.dev</title>
+<meta name="description" content="The fastest, cleanest Base64 encoder and decoder for developers. Auto-detect, image support, URL-safe mode, keyboard shortcuts. No ads, no tracking.">
+<meta name="keywords" content="base64, base64 encode, base64 decode, base64 encoder, base64 decoder, base64 online, base64 converter, base64 image, data uri, base64 url safe">
+<meta name="author" content="base64.dev">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/">
+<meta property="og:title" content="Base64 Encode & Decode Online — base64.dev">
+<meta property="og:description" content="The fastest Base64 tool for developers. Auto-detect encode/decode, image support, URL-safe mode, keyboard shortcuts. No ads.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 Encode & Decode Online — base64.dev">
+<meta name="twitter:description" content="The fastest Base64 tool for developers. Auto-detect, image support, URL-safe, keyboard shortcuts. No ads.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "base64.dev",
+  "url": "https://base64.dev",
+  "description": "The fastest, cleanest Base64 encoder and decoder for developers. Auto-detect, image support, URL-safe mode, keyboard shortcuts.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Base64 encode and decode",
+    "Auto-detect encode vs decode",
+    "Image to Base64 data URI",
+    "File to Base64",
+    "URL-safe Base64 (RFC 4648)",
+    "Keyboard shortcuts",
+    "Dark and light mode",
+    "No ads or tracking"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Base64 encoding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64 is a binary-to-text encoding scheme that represents binary data as ASCII characters. It uses a set of 64 characters (A-Z, a-z, 0-9, +, /) to encode data, making it safe for transport over text-based protocols like HTTP, email (MIME), and JSON/XML." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I encode text to Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste your text into the input field on base64.dev and the tool will automatically encode it to Base64. You can also press Cmd/Ctrl+Enter to force encoding. In JavaScript, use btoa() for encoding and atob() for decoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode Base64 to text?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste your Base64 string into the input field and base64.dev will auto-detect it and decode it instantly. You can also press Cmd/Ctrl+Shift+Enter to force decoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is URL-safe Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "URL-safe Base64 (defined in RFC 4648) replaces '+' with '-' and '/' with '_', and removes padding '=' characters. This makes the encoded string safe for use in URLs and filenames without additional encoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I convert an image to Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Switch to Image mode on base64.dev and drop your image file. The tool will convert it to a Base64 data URI (data:image/png;base64,...) that you can use directly in HTML img tags or CSS background properties." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" }]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-primary:#0a0a0b; --bg-secondary:#111113; --bg-tertiary:#18181b;
+  --bg-elevated:#1e1e22; --border:#27272a; --border-focus:#3f3f46;
+  --text-primary:#fafafa; --text-secondary:#a1a1aa; --text-tertiary:#71717a;
+  --accent:#22d3ee; --accent-dim:rgba(34,211,238,0.12);
+  --green:#4ade80; --green-dim:rgba(74,222,128,0.12);
+  --orange:#fb923c; --red:#f87171;
+  --font-mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
+  --font-sans:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+  --radius:8px; --radius-lg:12px;
+}
+html.light {
+  --bg-primary:#fafafa; --bg-secondary:#f4f4f5; --bg-tertiary:#e4e4e7;
+  --bg-elevated:#fff; --border:#d4d4d8; --border-focus:#a1a1aa;
+  --text-primary:#09090b; --text-secondary:#52525b; --text-tertiary:#a1a1aa;
+  --accent:#0891b2; --accent-dim:rgba(8,145,178,0.08);
+  --green:#16a34a; --green-dim:rgba(22,163,74,0.08);
+  --orange:#ea580c; --red:#dc2626;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@supports(-webkit-touch-callout:none){textarea{font-size:max(16px,1em)}}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-sans);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:.3;pointer-events:none;z-index:0}
+.container{max-width:960px;margin:0 auto;padding:0 24px;width:100%;position:relative;z-index:1}
+header{padding:32px 0 0}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:flex;align-items:baseline;text-decoration:none}
+.logo-name{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text-primary);letter-spacing:-.5px}
+.logo-tld{color:var(--accent)}
+.header-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:16px}
+.icon-btn:hover{border-color:var(--border-focus);color:var(--text-primary);background:var(--bg-tertiary)}
+.tagline{font-size:14px;color:var(--text-tertiary);margin-top:6px}
+.mode-bar{margin-top:28px;display:flex;gap:2px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:3px;width:fit-content;scrollbar-width:none;-ms-overflow-style:none}
+.mode-bar::-webkit-scrollbar{display:none}
+.mode-tab{font-family:var(--font-mono);font-size:13px;font-weight:500;padding:8px 18px;border-radius:var(--radius);border:none;background:transparent;color:var(--text-tertiary);cursor:pointer;transition:all .15s}
+.mode-tab:hover{color:var(--text-secondary)}
+.mode-tab.active{background:var(--bg-elevated);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tool-area{margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.editor-panel{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .15s}
+.editor-panel:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-tertiary)}
+.panel-label{font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);display:flex;align-items:center;gap:8px}
+.panel-label .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.panel-actions{display:flex;gap:4px}
+.small-btn{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.small-btn:hover{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-focus)}
+.small-btn.copied{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+textarea{width:100%;min-height:180px;padding:16px;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-mono);font-size:14px;line-height:1.6;resize:vertical}
+textarea::placeholder{color:var(--text-tertiary)}
+.direction-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:4px 0}
+.direction-line{flex:1;height:1px;background:var(--border)}
+.direction-indicator{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary);padding:6px 14px;border-radius:20px;background:var(--bg-secondary);border:1px solid var(--border)}
+.direction-indicator svg{width:14px;height:14px;color:var(--accent)}
+.swap-btn{font-family:var(--font-mono);font-size:11px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-tertiary);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.swap-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.status-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)}
+.status-left{display:flex;align-items:center;gap:16px}
+.status-item{display:flex;align-items:center;gap:5px}
+.status-dot{width:5px;height:5px;border-radius:50%}
+.status-dot.ok{background:var(--green)} .status-dot.warn{background:var(--orange)} .status-dot.err{background:var(--red)}
+.kbd{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-tertiary);font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary);line-height:1}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-top:16px;display:none}
+.dropzone.visible{display:block}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:var(--accent-dim)}
+.dropzone-text{font-size:14px;color:var(--text-secondary)}
+.dropzone-hint{font-size:12px;color:var(--text-tertiary);margin-top:4px;font-family:var(--font-mono)}
+.image-preview{margin-top:12px;border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;background:var(--bg-secondary);display:none}
+.image-preview.visible{display:block}
+.image-preview img{max-width:100%;max-height:300px;display:block;margin:0 auto}
+.image-preview .preview-info{padding:10px 16px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);display:flex;justify-content:space-between}
+.shortcuts-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
+.shortcuts-overlay.visible{display:flex}
+.shortcuts-modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:420px;width:90%}
+.shortcuts-title{font-family:var(--font-mono);font-size:14px;font-weight:600;margin-bottom:20px;color:var(--text-primary)}
+.shortcut-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.shortcut-row:last-child{border-bottom:none}
+.shortcut-desc{font-size:13px;color:var(--text-secondary)}
+.shortcut-keys{display:flex;gap:4px}
+.shortcut-keys .kbd{font-size:11px;padding:3px 8px}
+.seo-content{margin-top:48px;padding:32px 16px 0;border-top:1px solid var(--border)}
+.seo-content h2{font-family:var(--font-sans);font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:12px;margin-top:32px}
+.seo-content h2:first-child{margin-top:0}
+.seo-content h3{font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;margin-top:24px}
+.seo-content p{font-size:15px;line-height:1.7;color:var(--text-secondary);margin-bottom:12px}
+.seo-content code{font-family:var(--font-mono);font-size:13px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--accent)}
+.seo-content pre{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;margin:12px 0 16px;font-family:var(--font-mono);font-size:13px;line-height:1.6;color:var(--text-primary)}
+footer{margin-top:auto;padding:24px 0 20px;border-top:1px solid var(--border)}
+.footer-row{display:flex;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)}
+.footer-links{display:flex;gap:16px}
+.footer-links a{color:var(--text-tertiary);text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:var(--text-secondary)}
+#fileInput{display:none}
+
+@media(max-width:768px){
+  .container{padding:0 20px}
+  .seo-content pre{font-size:12px;padding:12px}
+}
+@media(max-width:640px){
+  header{padding-top:16px}
+  .logo-name{font-size:20px}
+  .tagline{font-size:13px}
+  .container{padding:0 16px}
+  .mode-bar{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .mode-tab{flex:1;text-align:center;padding:8px 10px;font-size:12px;min-width:0}
+  textarea{min-height:130px;font-size:13px;padding:12px}
+  .panel-header{padding:8px 12px}
+  .panel-label{font-size:10px}
+  .small-btn{font-size:10px;padding:4px 8px}
+  .direction-row{flex-wrap:wrap;gap:8px;padding:6px 0}
+  .direction-line{display:none}
+  .direction-indicator{font-size:11px;padding:5px 12px}
+  .swap-btn{font-size:10px;padding:5px 12px}
+  .status-bar{flex-wrap:wrap;gap:6px;padding:8px 0}
+  .status-bar .status-item:last-child{display:none}
+  .dropzone{padding:24px 16px}
+  .dropzone-text{font-size:13px}
+  .dropzone-hint{font-size:11px}
+  .image-preview img{max-height:200px}
+  .seo-content{margin-top:32px;padding-top:24px}
+  .seo-content h2{font-size:18px;margin-top:24px}
+  .seo-content h3{font-size:15px}
+  .seo-content p{font-size:14px;line-height:1.65}
+  .seo-content pre{font-size:11px;padding:12px;margin:8px 0 12px;-webkit-overflow-scrolling:touch}
+  .seo-content code{font-size:12px}
+  .footer-row{flex-direction:column;gap:8px;text-align:center}
+}
+@media(max-width:375px){
+  .container{padding:0 12px}
+  .logo-name{font-size:18px}
+  .mode-tab{padding:7px 8px;font-size:11px}
+  textarea{min-height:110px;font-size:12px;padding:10px}
+  .icon-btn{width:32px;height:32px;font-size:14px}
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tool-area{animation:fadeUp .4s ease}
+.mode-bar{animation:fadeUp .3s ease}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home">
+        <h1 class="logo-name">base64<span class="logo-tld">.dev</span></h1>
+      </a>
+      <div class="header-actions">
+        <button class="icon-btn" id="shortcutsBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">⌨</button>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+    <p class="tagline">Encode & decode Base64 instantly. No ads. No tracking.</p>
+  </header>
+
+  <nav aria-label="Tool modes">
+    <div class="mode-bar" role="tablist">
+      <button class="mode-tab active" data-mode="text" role="tab" aria-selected="true">Text</button>
+      <button class="mode-tab" data-mode="image" role="tab" aria-selected="false">Image</button>
+      <button class="mode-tab" data-mode="file" role="tab" aria-selected="false">File</button>
+      <button class="mode-tab" data-mode="url" role="tab" aria-selected="false">URL Safe</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="tool-area">
+      <section class="editor-panel" aria-label="Input">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot" aria-hidden="true"></span> INPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+            <button class="small-btn" id="pasteBtn">Paste</button>
+          </div>
+        </div>
+        <label for="inputArea" class="sr-only">Input text or Base64</label>
+        <textarea id="inputArea" placeholder="Paste text or Base64 here — auto-detected..." spellcheck="false" aria-label="Input: paste text or Base64 to encode or decode"></textarea>
+      </section>
+
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop a file here or click to browse">
+        <div class="dropzone-text">Drop a file here or click to browse</div>
+        <div class="dropzone-hint">Supports images, PDFs, and any binary file</div>
+      </div>
+      <input type="file" id="fileInput" aria-hidden="true">
+
+      <div class="image-preview" id="imagePreview" aria-label="Image preview">
+        <img id="previewImg" alt="Preview of uploaded image">
+        <div class="preview-info">
+          <span id="previewName">image.png</span>
+          <span id="previewSize">0 KB</span>
+        </div>
+      </div>
+
+      <div class="direction-row" aria-hidden="true">
+        <div class="direction-line"></div>
+        <div class="direction-indicator" id="directionLabel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          <span id="directionText">auto-detecting...</span>
+        </div>
+        <button class="swap-btn" id="swapBtn" title="Swap input and output" aria-label="Swap input and output">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+        <div class="direction-line"></div>
+      </div>
+
+      <section class="editor-panel" aria-label="Output">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot" aria-hidden="true"></span> OUTPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+            <button class="small-btn" id="downloadBtn" style="display:none">Download</button>
+          </div>
+        </div>
+        <label for="outputArea" class="sr-only">Output result</label>
+        <textarea id="outputArea" placeholder="Result appears here..." readonly spellcheck="false" aria-label="Output: encoded or decoded result"></textarea>
+      </section>
+
+      <div class="status-bar" aria-live="polite">
+        <div class="status-left">
+          <div class="status-item">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
+          </div>
+          <div class="status-item" id="sizeInfo" style="display:none">
+            <span id="sizeText"></span>
+          </div>
+        </div>
+        <div class="status-item">
+          <span class="kbd">⌘</span><span class="kbd">⏎</span> encode&nbsp;&nbsp;
+          <span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">⏎</span> decode&nbsp;&nbsp;
+          <span class="kbd">?</span> help
+        </div>
+      </div>
+    </div>
+
+    <article class="seo-content">
+      <h2>What is Base64 Encoding?</h2>
+      <p>Base64 is a binary-to-text encoding scheme that converts binary data into a sequence of printable ASCII characters. It uses a set of 64 characters — <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code>, and <code>/</code> — to represent data, with <code>=</code> used for padding. This makes it safe to transmit binary data over protocols that only support text, like HTTP, SMTP (email), and JSON or XML payloads.</p>
+      <p>The encoding works by taking every 3 bytes (24 bits) of input and splitting them into four 6-bit groups, each mapped to one of the 64 characters. This means Base64-encoded data is always about 33% larger than the original — a tradeoff for transport safety.</p>
+
+      <h2>How to Encode and Decode Base64</h2>
+      <p>With base64.dev, just paste your text and the tool auto-detects whether to encode or decode. No buttons to click. If you want to force a direction, use the keyboard shortcuts: <code>Cmd+Enter</code> to encode, <code>Cmd+Shift+Enter</code> to decode.</p>
+
+      <h3>Base64 in JavaScript</h3>
+      <p>JavaScript provides built-in functions for Base64:</p>
+<pre>// Encode
+const encoded = btoa("Hello, world!");
+// "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode
+const decoded = atob("SGVsbG8sIHdvcmxkIQ==");
+// "Hello, world!"</pre>
+      <p>Note that <code>btoa()</code> and <code>atob()</code> only handle Latin-1 characters. For Unicode strings, encode to UTF-8 first using <code>TextEncoder</code> and <code>TextDecoder</code>.</p>
+
+      <h3>Base64 in Python</h3>
+<pre>import base64
+
+# Encode
+encoded = base64.b64encode(b"Hello, world!")
+# b'SGVsbG8sIHdvcmxkIQ=='
+
+# Decode
+decoded = base64.b64decode(encoded)
+# b'Hello, world!'</pre>
+
+      <h2>URL-Safe Base64 (RFC 4648)</h2>
+      <p>Standard Base64 uses <code>+</code> and <code>/</code> which have special meaning in URLs. URL-safe Base64 (defined in RFC 4648 Section 5) replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>, and typically omits the <code>=</code> padding. This is commonly used in JWTs, URL parameters, and filenames. Switch to the "URL Safe" tab above to use this variant.</p>
+
+      <h2>Image to Base64 Data URI</h2>
+      <p>You can embed images directly in HTML or CSS using Base64 data URIs. The format is <code>data:image/png;base64,...</code> — switch to the "Image" tab above, drop your image, and get the data URI ready to paste into your code. This eliminates an extra HTTP request, though it increases the HTML/CSS size by ~33%.</p>
+
+      <h2>Common Use Cases for Base64</h2>
+      <p>Base64 encoding is used in email attachments (MIME), embedding images in HTML/CSS (data URIs), encoding binary data in JSON APIs, storing cryptographic keys and certificates (PEM format), JSON Web Tokens (JWT), and encoding query parameters in URLs. Anywhere you need to pass binary data through a text-only channel, Base64 is the standard solution.</p>
+    </article>
+  </main>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<div class="shortcuts-overlay" id="shortcutsModal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+  <div class="shortcuts-modal">
+    <div class="shortcuts-title">Keyboard Shortcuts</div>
+    <div class="shortcut-row"><span class="shortcut-desc">Encode</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">Enter</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Decode</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">Enter</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Swap input ↔ output</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">S</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Copy output</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">C</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Clear all</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">X</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Toggle theme</span><div class="shortcut-keys"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">L</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Show shortcuts</span><div class="shortcut-keys"><span class="kbd">?</span></div></div>
+    <div class="shortcut-row"><span class="shortcut-desc">Close modal</span><div class="shortcut-keys"><span class="kbd">Esc</span></div></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  let currentMode = 'text';
+  let currentFile = null;
+
+  const $ = (id) => document.getElementById(id);
+  const inputArea = $('inputArea');
+  const outputArea = $('outputArea');
+  const directionText = $('directionText');
+  const statusDot = $('statusDot');
+  const statusText = $('statusText');
+  const sizeInfo = $('sizeInfo');
+  const sizeText = $('sizeText');
+  const copyBtn = $('copyBtn');
+  const downloadBtn = $('downloadBtn');
+  const dropzone = $('dropzone');
+  const fileInput = $('fileInput');
+  const imagePreview = $('imagePreview');
+  const previewImg = $('previewImg');
+  const previewName = $('previewName');
+  const previewSize = $('previewSize');
+
+  function isBase64(str) {
+    if (!str || str.length < 4) return false;
+    var trimmed = str.trim();
+    if (/^data:[^;]+;base64,/.test(trimmed)) return true;
+    var cleaned = trimmed.replace(/\s/g, '');
+    if (cleaned.length % 4 !== 0) return false;
+    if (!/^[A-Za-z0-9+/\n\r]+=*$/.test(cleaned)) return false;
+    var alphaNum = cleaned.replace(/[^A-Za-z0-9]/g, '');
+    return alphaNum.length / cleaned.length > 0.9 && cleaned.length >= 8;
+  }
+
+  function isBase64URL(str) {
+    if (!str || str.length < 4) return false;
+    var cleaned = str.trim().replace(/\s/g, '');
+    return /^[A-Za-z0-9_-]+=*$/.test(cleaned) && cleaned.length >= 8;
+  }
+
+  function encodeBase64(text, urlSafe) {
+    try {
+      var bytes = new TextEncoder().encode(text);
+      var result = btoa(String.fromCharCode.apply(null, bytes));
+      if (urlSafe) result = result.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      return result;
+    } catch (e) { return null; }
+  }
+
+  function decodeBase64(b64, urlSafe) {
+    try {
+      var input = b64.trim();
+      var m = input.match(/^data:[^;]+;base64,(.+)$/s);
+      if (m) input = m[1];
+      if (urlSafe) { input = input.replace(/-/g, '+').replace(/_/g, '/'); while (input.length % 4) input += '='; }
+      input = input.replace(/\s/g, '');
+      var decoded = atob(input);
+      var bytes = new Uint8Array(decoded.length);
+      for (var i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
+      return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (e) { return null; }
+  }
+
+  function fmt(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function setStatus(type, text) {
+    statusDot.className = 'status-dot';
+    if (type === 'ok') statusDot.classList.add('ok');
+    else if (type === 'err') statusDot.classList.add('err');
+    else if (type === 'warn') statusDot.classList.add('warn');
+    statusText.textContent = text;
+  }
+
+  function showSize(i, o) {
+    sizeInfo.style.display = 'flex';
+    sizeText.textContent = fmt(o) + ' (' + ((o / i) * 100).toFixed(0) + '% of input)';
+  }
+
+  function process() {
+    var input = inputArea.value;
+    if (!input.trim()) {
+      outputArea.value = ''; directionText.textContent = 'auto-detecting...';
+      setStatus('ready', 'Ready'); sizeInfo.style.display = 'none'; downloadBtn.style.display = 'none'; return;
+    }
+    var urlSafe = currentMode === 'url';
+    if (isBase64(input) || (urlSafe && isBase64URL(input))) {
+      var decoded = decodeBase64(input, urlSafe);
+      if (decoded !== null) {
+        outputArea.value = decoded; directionText.textContent = 'decoded (auto-detected)';
+        setStatus('ok', 'Decoded ' + fmt(input.length) + ' \u2192 ' + fmt(decoded.length));
+        showSize(input.length, decoded.length); return;
+      }
+    }
+    var encoded = encodeBase64(input, urlSafe);
+    if (encoded) {
+      outputArea.value = encoded; directionText.textContent = 'encoded';
+      setStatus('ok', 'Encoded ' + fmt(input.length) + ' \u2192 ' + fmt(encoded.length));
+      showSize(input.length, encoded.length);
+    } else { setStatus('err', 'Encoding failed'); }
+  }
+
+  function forceEncode() {
+    var input = inputArea.value; if (!input.trim()) return;
+    var encoded = encodeBase64(input, currentMode === 'url');
+    if (encoded) { outputArea.value = encoded; directionText.textContent = 'encoded (forced)'; setStatus('ok', 'Encoded ' + fmt(input.length) + ' \u2192 ' + fmt(encoded.length)); showSize(input.length, encoded.length); }
+  }
+
+  function forceDecode() {
+    var input = inputArea.value; if (!input.trim()) return;
+    var decoded = decodeBase64(input, currentMode === 'url');
+    if (decoded) { outputArea.value = decoded; directionText.textContent = 'decoded (forced)'; setStatus('ok', 'Decoded ' + fmt(input.length) + ' \u2192 ' + fmt(decoded.length)); showSize(input.length, decoded.length); }
+    else { setStatus('err', 'Invalid Base64 input'); }
+  }
+
+  function handleFile(file) {
+    currentFile = file;
+    if (currentMode === 'image' && file.type.startsWith('image/')) {
+      var r = new FileReader();
+      r.onload = function(e) { previewImg.src = e.target.result; previewName.textContent = file.name; previewSize.textContent = fmt(file.size); imagePreview.classList.add('visible'); };
+      r.readAsDataURL(file);
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var full = e.target.result; var data = full.split(',')[1];
+      outputArea.value = currentMode === 'image' ? full : data;
+      directionText.textContent = 'file \u2192 base64';
+      setStatus('ok', 'Encoded ' + file.name + ' (' + fmt(file.size) + ')');
+      showSize(file.size, data.length); downloadBtn.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    var tab = document.querySelector('[data-mode="' + mode + '"]');
+    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
+    var isFile = mode === 'image' || mode === 'file';
+    dropzone.classList.toggle('visible', isFile);
+    imagePreview.classList.remove('visible');
+    if (mode === 'image') {
+      inputArea.placeholder = 'Paste a data URI here, or drop an image above...';
+      dropzone.querySelector('.dropzone-text').textContent = 'Drop an image here or click to browse';
+      dropzone.querySelector('.dropzone-hint').textContent = 'PNG, JPG, GIF, SVG, WebP';
+      fileInput.accept = 'image/*';
+    } else if (mode === 'file') {
+      inputArea.placeholder = 'Paste Base64 to decode to a file, or drop a file above...';
+      dropzone.querySelector('.dropzone-text').textContent = 'Drop any file here or click to browse';
+      dropzone.querySelector('.dropzone-hint').textContent = 'Any file type supported';
+      fileInput.accept = '';
+    } else if (mode === 'url') { inputArea.placeholder = 'Paste text or URL-safe Base64 here...'; }
+    else { inputArea.placeholder = 'Paste text or Base64 here \u2014 auto-detected...'; }
+    if (inputArea.value.trim()) process();
+  }
+
+  function clearInput() {
+    inputArea.value = ''; outputArea.value = ''; imagePreview.classList.remove('visible');
+    currentFile = null; directionText.textContent = 'auto-detecting...';
+    setStatus('ready', 'Ready'); sizeInfo.style.display = 'none'; downloadBtn.style.display = 'none'; inputArea.focus();
+  }
+
+  function swapContent() { var t = inputArea.value; inputArea.value = outputArea.value; outputArea.value = ''; process(); }
+
+  function toggleTheme() {
+    document.documentElement.classList.toggle('light');
+    try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+  }
+
+  function toggleShortcuts() { $('shortcutsModal').classList.toggle('visible'); }
+
+  // Load saved theme
+  try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+
+  // --- Event Listeners ---
+
+  // Mode tabs
+  document.querySelectorAll('.mode-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() { setMode(this.dataset.mode); });
+  });
+
+  // Buttons
+  $('clearBtn').addEventListener('click', clearInput);
+  $('pasteBtn').addEventListener('click', function() {
+    navigator.clipboard.readText().then(function(text) { inputArea.value = text; process(); inputArea.focus(); }).catch(function() { inputArea.focus(); });
+  });
+  $('copyBtn').addEventListener('click', function() {
+    if (!outputArea.value) return;
+    navigator.clipboard.writeText(outputArea.value).then(function() {
+      copyBtn.textContent = 'Copied!'; copyBtn.classList.add('copied');
+      setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 1500);
+    }).catch(function() { outputArea.select(); document.execCommand('copy'); });
+  });
+  $('downloadBtn').addEventListener('click', function() {
+    if (!outputArea.value) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([outputArea.value], { type: 'text/plain' }));
+    a.download = 'base64-output.txt'; a.click(); URL.revokeObjectURL(a.href);
+  });
+  $('swapBtn').addEventListener('click', swapContent);
+  $('themeBtn').addEventListener('click', toggleTheme);
+  $('shortcutsBtn').addEventListener('click', toggleShortcuts);
+  $('shortcutsModal').addEventListener('click', function(e) { if (e.target === e.currentTarget) toggleShortcuts(); });
+
+  // Input
+  inputArea.addEventListener('input', function() { if (currentMode === 'text' || currentMode === 'url') process(); });
+
+  // Dropzone
+  dropzone.addEventListener('click', function() { fileInput.click(); });
+  dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function(e) { e.preventDefault(); dropzone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  dropzone.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener('change', function(e) { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  // Body drop (for file/image modes)
+  document.body.addEventListener('dragover', function(e) { if (currentMode === 'image' || currentMode === 'file') e.preventDefault(); });
+  document.body.addEventListener('drop', function(e) { if (currentMode === 'image' || currentMode === 'file') { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); } });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    var mod = e.metaKey || e.ctrlKey;
+    if (e.key === '?' && document.activeElement !== inputArea && document.activeElement !== outputArea) { e.preventDefault(); toggleShortcuts(); return; }
+    if (e.key === 'Escape') { $('shortcutsModal').classList.remove('visible'); return; }
+    if (!mod) return;
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); forceEncode(); }
+    else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); forceDecode(); }
+    else if ((e.key === 's' || e.key === 'S') && e.shiftKey) { e.preventDefault(); swapContent(); }
+    else if ((e.key === 'c' || e.key === 'C') && e.shiftKey) { e.preventDefault(); $('copyBtn').click(); }
+    else if ((e.key === 'x' || e.key === 'X') && e.shiftKey) { e.preventDefault(); clearInput(); }
+    else if ((e.key === 'l' || e.key === 'L') && e.shiftKey) { e.preventDefault(); toggleTheme(); }
+  });
+
+  inputArea.focus();
+})();
+</script>
+</body>
+</html>
