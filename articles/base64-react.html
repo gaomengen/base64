@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 File Upload in React — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to convert files and images to Base64 in React using FileReader. Covers input handlers, previews, sending to APIs, and TypeScript types.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-react">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-react">
+<meta property="og:title" content="Base64 File Upload in React">
+<meta property="og:description" content="Convert files and images to Base64 in React with FileReader. Full examples with hooks, image preview, API upload, and TypeScript.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 File Upload in React",
+  "description": "Convert files and images to Base64 in React with FileReader. Full examples with hooks, image preview, API upload, and TypeScript.",
+  "url": "https://base64.dev/articles/base64-react",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in React", "item": "https://base64.dev/articles/base64-react" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I convert a file to Base64 in React?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use FileReader: const reader = new FileReader(); reader.onload = (e) => setBase64(e.target.result); reader.readAsDataURL(file). The result is a data URI like data:image/png;base64,iVBOR... To get just the Base64 part, split on comma: e.target.result.split(\",\")[1]" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I preview an image after Base64 encoding in React?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Store the full data URI (from FileReader.readAsDataURL) in state and use it as the src of an img element: <img src={base64DataUri} alt=\"preview\" />. The browser renders it directly without any HTTP request." }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use Base64 or multipart/form-data for file uploads?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For most file uploads, multipart/form-data is more efficient — it avoids the 33% Base64 overhead and is the native browser standard. Use Base64 when your API only accepts JSON, when you need to embed the file in a JSON payload alongside other data, or for small images used as data URIs." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in React</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">React</span>
+        <span class="article-read-time">6 min read</span>
+      </div>
+      <h1>Base64 File Upload in React</h1>
+      <p class="lead">Converting a file to Base64 in React uses the browser's <code>FileReader</code> API. You can then preview images inline, send the encoded data to an API, or store it locally. Here is everything you need.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#filereader">Convert a file to Base64 with FileReader.readAsDataURL</a></li>
+          <li><a href="#onchange">Handle file input with onChange and useState</a></li>
+          <li><a href="#preview">Show an image preview with the Base64 data URI</a></li>
+          <li><a href="#strip-prefix">Extract just the Base64 data</a></li>
+          <li><a href="#api">Send Base64 to a REST API with fetch</a></li>
+          <li><a href="#typescript">TypeScript types for FileReader and Base64 handlers</a></li>
+          <li><a href="#vs-multipart">When to use Base64 vs multipart/form-data</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="filereader">Convert a file to Base64 with FileReader.readAsDataURL</h2>
+      <p>The browser ships a built-in way to read files: the <code>FileReader</code> API. Its <code>readAsDataURL</code> method reads a <code>File</code> or <code>Blob</code> and produces a <strong>data URI</strong> — a string that begins with <code>data:</code>, declares the MIME type, and then contains the Base64-encoded bytes after <code>;base64,</code>. There is no external library required; this works in every modern browser.</p>
+      <p>Reading is asynchronous. You start the read with <code>readAsDataURL</code> and listen for the <code>load</code> event, which fires once the file has been fully read into memory. The encoded result lives on <code>reader.result</code> (also available as <code>event.target.result</code>).</p>
+      <pre>function fileToBase64(file) {
+  return new Promise((resolve, reject) =&gt; {
+    const reader = new FileReader();
+    reader.onload = () =&gt; resolve(reader.result);   // full data URI
+    reader.onerror = () =&gt; reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// usage
+const dataUri = await fileToBase64(myFile);
+// "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..."</pre>
+      <div class="tip"><p>Wrapping <code>FileReader</code> in a Promise (as above) lets you use <code>async/await</code> inside event handlers and effects, which reads far more cleanly than nesting callbacks.</p></div>
+
+      <h2 id="onchange">Handle file input with onChange and useState</h2>
+      <p>In React, you read the selected file from the <code>onChange</code> event of an <code>&lt;input type="file"&gt;</code>. The chosen files live on <code>event.target.files</code>, which is a <code>FileList</code>. For a single-file input, grab the first entry. Store the resulting Base64 string in component state with <code>useState</code> so the UI re-renders.</p>
+      <pre>import { useState } from "react";
+
+function UploadForm() {
+  const [base64, setBase64] = useState("");
+
+  function handleChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () =&gt; setBase64(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input type="file" accept="image/*" onChange={handleChange} /&gt;
+      {base64 &amp;&amp; &lt;p&gt;Encoded {base64.length} characters&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+}</pre>
+      <p>The <code>accept</code> attribute filters the native file picker — <code>accept="image/*"</code> shows only images, while <code>accept=".pdf,.docx"</code> restricts by extension. It is a hint, not a guarantee, so always validate the file type and size in your handler too.</p>
+      <div class="warn"><p>Never call <code>setBase64</code> directly with <code>event.target.files[0]</code> — that is a <code>File</code> object, not a string. The Base64 value is only available <em>inside</em> the asynchronous <code>onload</code> callback, after the read completes.</p></div>
+
+      <h2 id="preview">Show an image preview with the Base64 data URI</h2>
+      <p>Because <code>readAsDataURL</code> returns a complete data URI, you can drop it straight into the <code>src</code> of an <code>&lt;img&gt;</code> element. The browser decodes and renders it locally — no network request, no temporary URL to clean up. This is the simplest possible image preview.</p>
+      <pre>function ImagePreview() {
+  const [preview, setPreview] = useState("");
+
+  function handleChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () =&gt; setPreview(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input type="file" accept="image/*" onChange={handleChange} /&gt;
+      {preview &amp;&amp; (
+        &lt;img
+          src={preview}
+          alt="preview"
+          style={{ maxWidth: 240, borderRadius: 8 }}
+        /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</pre>
+      <div class="tip"><p>For large images, an alternative is <code>URL.createObjectURL(file)</code>, which produces a short <code>blob:</code> URL instead of inlining the whole file. It uses far less memory for previews, but remember to call <code>URL.revokeObjectURL</code> when the component unmounts. Use the Base64 data URI when you also need the encoded string for an upload.</p></div>
+
+      <h2 id="strip-prefix">Extract just the Base64 data</h2>
+      <p>A data URI bundles two things: metadata (<code>data:image/png;base64,</code>) and the raw Base64 payload. Many APIs want only the payload — the part after the comma. Splitting on the first comma gives you exactly that.</p>
+      <pre>const dataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...";
+
+const base64Only = dataUri.split(",")[1];
+// "iVBORw0KGgoAAAANSUhEUg..."
+
+// also capture the MIME type if your API needs it separately
+const mimeType = dataUri.match(/^data:(.*?);/)?.[1];
+// "image/png"</pre>
+      <p>Keep the full data URI when the value will be rendered in the browser (an <code>&lt;img src&gt;</code>, a CSS <code>background-image</code>, or stored for later display). Strip the prefix when sending to a backend that expects the bare Base64 string and tracks the content type in a separate field.</p>
+      <div class="warn"><p>Do not assume the prefix is always a fixed length. The MIME type varies (<code>image/jpeg</code>, <code>application/pdf</code>, etc.), so the prefix length differs. Always split on the comma rather than slicing a hard-coded number of characters.</p></div>
+
+      <h2 id="api">Send Base64 to a REST API with fetch</h2>
+      <p>If your endpoint accepts JSON, embed the Base64 string in the request body. This is convenient when you want to send the file alongside other structured fields in one payload.</p>
+      <pre>async function uploadAsBase64(file) {
+  const reader = new FileReader();
+
+  const dataUri = await new Promise((resolve, reject) =&gt; {
+    reader.onload = () =&gt; resolve(reader.result);
+    reader.onerror = () =&gt; reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      filename: file.name,
+      mimeType: file.type,
+      data: dataUri.split(",")[1], // strip the prefix
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+  return response.json();
+}</pre>
+      <p>On the server, decode the string back to bytes before writing it to disk or object storage. In Node.js that is one line: <code>Buffer.from(data, "base64")</code> yields the original binary buffer.</p>
+      <div class="warn"><p>Base64 inflates payload size by roughly 33%. For multi-megabyte files this means slower uploads and higher memory use on both client and server. For anything large, prefer <code>multipart/form-data</code> (see the last section) or a presigned upload directly to storage.</p></div>
+
+      <h2 id="typescript">TypeScript types for FileReader and Base64 handlers</h2>
+      <p>TypeScript already ships DOM types for <code>FileReader</code> and React events, so you rarely need custom interfaces. The one gotcha is that <code>reader.result</code> has type <code>string | ArrayBuffer | null</code> — because <code>FileReader</code> can also read binary. After <code>readAsDataURL</code> the result is always a string, so narrow it.</p>
+      <pre>import { useState, ChangeEvent } from "react";
+
+function readAsDataURL(file: File): Promise&lt;string&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    const reader = new FileReader();
+    reader.onload = () =&gt; {
+      const result = reader.result;
+      if (typeof result === "string") resolve(result);
+      else reject(new Error("Expected a data URL string"));
+    };
+    reader.onerror = () =&gt; reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function Uploader() {
+  const [base64, setBase64] = useState&lt;string&gt;("");
+
+  async function handleChange(event: ChangeEvent&lt;HTMLInputElement&gt;) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setBase64(await readAsDataURL(file));
+  }
+
+  return &lt;input type="file" onChange={handleChange} /&gt;;
+}</pre>
+      <p>Type the input handler with <code>ChangeEvent&lt;HTMLInputElement&gt;</code>, type state as <code>useState&lt;string&gt;</code>, and let the helper return a <code>Promise&lt;string&gt;</code>. With that, the rest of your component stays fully type-checked without any casts.</p>
+      <div class="tip"><p>Avoid casting <code>reader.result as string</code>. The explicit <code>typeof result === "string"</code> check is safer — it catches the binary-read case at runtime instead of silently passing an <code>ArrayBuffer</code> downstream.</p></div>
+
+      <h2 id="vs-multipart">When to use Base64 vs multipart/form-data</h2>
+      <p>The native way to upload a file from the browser is <code>multipart/form-data</code>. You build a <code>FormData</code> object, append the raw <code>File</code>, and let the browser stream the binary directly. No 33% overhead, no manual encoding, and the file uploads as a true binary part.</p>
+      <pre>async function uploadMultipart(file: File) {
+  const form = new FormData();
+  form.append("file", file);          // raw binary, no encoding
+  form.append("filename", file.name);
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: form, // do NOT set Content-Type — the browser adds the boundary
+  });
+  return response.json();
+}</pre>
+      <p>Use the right tool for the job:</p>
+      <ul>
+        <li><strong>Reach for multipart/form-data</strong> for most file uploads, especially large files. It is the efficient, standard approach and streams binary without bloat.</li>
+        <li><strong>Reach for Base64</strong> when your API only accepts JSON, when you need to bundle the file inside a JSON object with other fields, when embedding small images as data URIs, or when storing a thumbnail in <code>localStorage</code>.</li>
+      </ul>
+      <div class="warn"><p>When sending <code>FormData</code> with <code>fetch</code>, do <em>not</em> manually set the <code>Content-Type</code> header. The browser generates it automatically along with the required multipart boundary; setting it yourself breaks the request.</p></div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+
+      <h3>How do I convert a file to Base64 in React?</h3>
+      <p>Use FileReader: <code>const reader = new FileReader(); reader.onload = (e) =&gt; setBase64(e.target.result); reader.readAsDataURL(file)</code>. The result is a data URI like <code>data:image/png;base64,iVBOR...</code> To get just the Base64 part, split on comma: <code>e.target.result.split(",")[1]</code></p>
+
+      <h3>How do I preview an image after Base64 encoding in React?</h3>
+      <p>Store the full data URI (from <code>FileReader.readAsDataURL</code>) in state and use it as the src of an img element: <code>&lt;img src={base64DataUri} alt="preview" /&gt;</code>. The browser renders it directly without any HTTP request.</p>
+
+      <h3>Should I use Base64 or multipart/form-data for file uploads?</h3>
+      <p>For most file uploads, multipart/form-data is more efficient — it avoids the 33% Base64 overhead and is the native browser standard. Use Base64 when your API only accepts JSON, when you need to embed the file in a JSON payload alongside other data, or for small images used as data URIs.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+        <li><a href="/articles/base64-image-encoding">Base64 Image Encoding</a></li>
+        <li><a href="/articles/base64-data-uri">Base64 Data URIs</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

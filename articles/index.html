@@ -88,6 +88,41 @@
         <span class="article-card-title">Base64 Data URIs Explained</span>
         <span class="article-card-desc">The data: URI scheme in depth — syntax, MIME types, browser support, and performance considerations.</span>
       </a>
+      <a href="/articles/base64-padding" class="article-card">
+        <span class="article-card-tag">Concepts</span>
+        <span class="article-card-title">Base64 Padding Explained</span>
+        <span class="article-card-desc">Why = signs exist, how padding is calculated, and when it can be omitted.</span>
+      </a>
+      <a href="/articles/base64-invalid-padding" class="article-card">
+        <span class="article-card-tag">Troubleshooting</span>
+        <span class="article-card-title">Fix Invalid Base64 Errors</span>
+        <span class="article-card-desc">Diagnose and fix padding errors, whitespace issues, and wrong variant errors.</span>
+      </a>
+      <a href="/articles/base64-encodings-comparison" class="article-card">
+        <span class="article-card-tag">Concepts</span>
+        <span class="article-card-title">Base64 vs Base32, Base58 & Base85</span>
+        <span class="article-card-desc">Compare all binary-to-text encoding schemes: size, alphabet, and use cases.</span>
+      </a>
+      <a href="/articles/base64-basic-auth" class="article-card">
+        <span class="article-card-tag">Use Case</span>
+        <span class="article-card-title">HTTP Basic Auth & Base64</span>
+        <span class="article-card-desc">How Basic Authentication encodes credentials in the Authorization header.</span>
+      </a>
+      <a href="/articles/base64-json" class="article-card">
+        <span class="article-card-tag">Use Case</span>
+        <span class="article-card-title">Binary Data in JSON</span>
+        <span class="article-card-desc">Embed binary data in JSON with Base64 — tradeoffs and multipart alternatives.</span>
+      </a>
+      <a href="/articles/base64-ssh-pem" class="article-card">
+        <span class="article-card-tag">DevOps</span>
+        <span class="article-card-title">SSH Keys & PEM Certificates</span>
+        <span class="article-card-desc">Encode private keys for env vars, Docker, Kubernetes, and CI/CD pipelines.</span>
+      </a>
+      <a href="/articles/base64-react" class="article-card">
+        <span class="article-card-tag">Use Case</span>
+        <span class="article-card-title">File Upload in React</span>
+        <span class="article-card-desc">Convert files and images to Base64 with FileReader in React.</span>
+      </a>
     </div>
 
     <div class="section-heading">Language Guides</div>
@@ -152,7 +187,46 @@
         <span class="article-card-title">Base64 in Kotlin</span>
         <span class="article-card-desc">java.util.Base64 in Kotlin, multiplatform approaches, and Ktor base64 utilities.</span>
       </a>
+      <a href="/articles/base64-c" class="article-card">
+        <span class="article-card-tag">C</span>
+        <span class="article-card-title">Base64 in C</span>
+        <span class="article-card-desc">Lookup-table implementation, URL-safe variant, and OpenSSL EVP API.</span>
+      </a>
+      <a href="/articles/base64-cpp" class="article-card">
+        <span class="article-card-tag">C++</span>
+        <span class="article-card-title">Base64 in C++</span>
+        <span class="article-card-desc">std::string implementation, Boost.Beast, and OpenSSL EVP API.</span>
+      </a>
+      <a href="/articles/base64-dart" class="article-card">
+        <span class="article-card-tag">Dart</span>
+        <span class="article-card-title">Base64 in Dart & Flutter</span>
+        <span class="article-card-desc">dart:convert base64 and base64Url, image encoding, and HTTP usage.</span>
+      </a>
     </div>
+
+    <div class="section-heading">CLI & Tools</div>
+      <div class="articles-grid">
+      <a href="/articles/base64-linux-mac" class="article-card">
+        <span class="article-card-tag">CLI</span>
+        <span class="article-card-title">base64 Command (Linux & macOS)</span>
+        <span class="article-card-desc">Flags, GNU vs BSD differences, and shell pipeline patterns.</span>
+      </a>
+      <a href="/articles/base64-openssl" class="article-card">
+        <span class="article-card-tag">CLI</span>
+        <span class="article-card-title">OpenSSL Base64</span>
+        <span class="article-card-desc">openssl enc -base64, the -A flag, and certificate workflows.</span>
+      </a>
+      <a href="/articles/base64-bash" class="article-card">
+        <span class="article-card-tag">Bash</span>
+        <span class="article-card-title">Base64 in Bash Scripts</span>
+        <span class="article-card-desc">The echo -n newline gotcha, file encoding, and env variable handling.</span>
+      </a>
+      <a href="/articles/base64-powershell" class="article-card">
+        <span class="article-card-tag">PowerShell</span>
+        <span class="article-card-title">Base64 in PowerShell</span>
+        <span class="article-card-desc">Convert::ToBase64String, the UTF-16 trap, and cross-platform usage.</span>
+      </a>
+      </div>
 
     <div class="cta-box">
       <h3>Need to encode or decode Base64 right now?</h3>

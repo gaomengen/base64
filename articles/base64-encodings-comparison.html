@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 vs Base32, Base58 & Base85 — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Compare Base64, Base32, Base58, and Base85 encoding schemes. Understand size efficiency, character sets, use cases, and when to choose each.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-encodings-comparison">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-encodings-comparison">
+<meta property="og:title" content="Base64 vs Base32, Base58 & Base85">
+<meta property="og:description" content="A complete comparison of binary-to-text encoding schemes: Base64, Base32, Base58, and Base85 — size, alphabet, and use cases.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 vs Base32, Base58 & Base85",
+  "description": "A complete comparison of binary-to-text encoding schemes: Base64, Base32, Base58, and Base85 — size, alphabet, and use cases.",
+  "url": "https://base64.dev/articles/base64-encodings-comparison",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 vs Base32, Base58 & Base85", "item": "https://base64.dev/articles/base64-encodings-comparison" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the difference between Base64 and Base32?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base32 uses only 32 characters (A-Z and 2-7) and is case-insensitive, making it easier for humans to read and type. The tradeoff is 60% size overhead vs Base64's 33%. Base32 is used in TOTP (authenticator apps) and IETF standards." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Bitcoin use Base58 instead of Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base58 removes characters that look similar (0 and O, I and l) and avoids + and / which have special meaning in URLs. This makes Bitcoin addresses easier to type and copy without errors." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which encoding is most space-efficient?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base85 (ASCII85) is the most efficient, with only 25% overhead. Base64 has 33% overhead. Base32 has 60% overhead. For most web use cases, Base64 is the standard due to wide support despite not being the smallest." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 vs Base32, Base58 & Base85</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Concepts</span>
+        <span class="article-read-time">7 min read</span>
+      </div>
+      <h1>Base64 vs Base32, Base58 & Base85</h1>
+      <p class="lead">Not all binary-to-text encodings are the same. Base64, Base32, Base58, and Base85 each make different tradeoffs between size efficiency, readability, and the characters they use. Here is when to use each.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#why">Why binary-to-text encodings exist</a></li>
+          <li><a href="#base64">Base64 — the standard</a></li>
+          <li><a href="#base32">Base32 (RFC 4648)</a></li>
+          <li><a href="#base58">Base58</a></li>
+          <li><a href="#base85">Base85 (ASCII85)</a></li>
+          <li><a href="#comparison">Comparison table</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="why">Why binary-to-text encodings exist</h2>
+      <p>Computers store everything as bytes — sequences of 8 bits that can take any of 256 values. But many systems that move data around were designed only to handle text. Email bodies, URLs, JSON strings, XML attributes, and source code files all expect printable characters, and some treat certain bytes (null, newline, control codes) as special or simply corrupt them in transit. Sending raw binary through these channels is unreliable.</p>
+      <p>Binary-to-text encoding solves this by mapping arbitrary bytes onto a restricted, safe alphabet of printable characters. The cost is size: representing 8 bits of information using characters that each only carry a few bits of usable entropy always inflates the output. The question every encoding answers is <em>which</em> tradeoff to make — fewer, safer characters that are easy for humans to handle, or a denser alphabet that keeps the output small.</p>
+      <p>The math is straightforward. An alphabet of <code>N</code> symbols carries <code>log2(N)</code> bits per character. To encode 8 bits you need <code>8 / log2(N)</code> characters per byte, and the overhead is how much larger the text is than the original binary:</p>
+      <pre>Alphabet size   Bits/char   Chars per byte   Overhead
+─────────────────────────────────────────────────────
+16  (hex)       4.00        2.00             100%
+32  (base32)    5.00        1.60             ~60%
+58  (base58)    5.86        1.37             ~37%
+64  (base64)    6.00        1.33             ~33%
+85  (base85)    6.41        1.25             ~25%</pre>
+      <p>Larger alphabets are more efficient, but they pull in more punctuation and case-sensitive characters that can clash with the surrounding format. The four encodings below sit at different points on that curve.</p>
+
+      <h2 id="base64">Base64 — the standard</h2>
+      <p>Base64 is the default binary-to-text encoding of the modern web. It uses a 64-character alphabet — <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, plus <code>+</code> and <code>/</code> — and an optional <code>=</code> for padding. Because 64 is a power of two, each character maps cleanly to exactly 6 bits. Base64 groups the input into 3-byte (24-bit) chunks and emits 4 characters per chunk, giving the familiar ~33% size overhead defined in RFC 4648.</p>
+      <pre>Input:  "Man" = [0x4D, 0x61, 0x6E] = 24 bits
+Split:  010011 010110 0001 011011 10
+        →  77   →  22   →  5   →  46  (6-bit values, padded)
+Map:     T       W       F      u
+Output: "TWFu"   (3 bytes → 4 chars)</pre>
+      <p>When the input length is not a multiple of 3, Base64 pads the final group with <code>=</code> so the output length is always a multiple of 4. Almost every language ships a built-in implementation:</p>
+      <pre>// JavaScript
+btoa("Hi")                      // =&gt; "SGk="
+atob("SGk=")                    // =&gt; "Hi"
+
+# Python
+import base64
+base64.b64encode(b"Hi")         # =&gt; b'SGk='
+base64.b64decode(b"SGk=")       # =&gt; b'Hi'</pre>
+      <div class="tip"><p>The <code>+</code> and <code>/</code> characters are unsafe in URLs and filenames. RFC 4648 defines a "URL-safe" variant that swaps them for <code>-</code> and <code>_</code>. JWTs use this variant and also strip the <code>=</code> padding entirely.</p></div>
+      <p>Base64 wins by ubiquity, not by efficiency. It is the format you reach for when you need something that works everywhere with zero extra dependencies: data URIs, email attachments (MIME), HTTP Basic Auth headers, JSON payloads carrying binary blobs, and JWT segments all rely on it.</p>
+
+      <h2 id="base32">Base32 (RFC 4648) — human-readable and case-insensitive</h2>
+      <p>Base32 trades size for legibility. It uses a 32-character alphabet — the uppercase letters <code>A-Z</code> and the digits <code>2-7</code> — deliberately excluding <code>0</code>, <code>1</code>, and <code>8</code> because they are easily confused with <code>O</code>, <code>I/L</code>, and <code>B</code>. Each character encodes 5 bits, so Base32 groups input into 5-byte (40-bit) chunks and emits 8 characters per chunk, padding with <code>=</code> as needed. The result is about 60% larger than the original binary.</p>
+      <pre>Base32 alphabet (RFC 4648):
+ABCDEFGHIJKLMNOPQRSTUVWXYZ234567
+
+Input:  "Hi"
+Output: "JBSQ===="   (note 5-char-aligned padding)</pre>
+      <p>The payoff is that Base32 is case-insensitive and free of punctuation, so it survives being read aloud, typed by hand, or printed on paper without ambiguity. Because of this it shows up wherever a human is in the loop. The classic example is TOTP, the algorithm behind Google Authenticator and similar apps — the shared secret in an <code>otpauth://</code> URI is Base32-encoded:</p>
+      <pre># Python — generate a TOTP secret in Base32
+import base64, os
+secret = base64.b32encode(os.urandom(20)).decode()
+# =&gt; e.g. "JBSWY3DPEHPK3PXP..." (only A-Z and 2-7)</pre>
+      <p>Base32 is also used in DNS-based systems and onion service addresses (Tor v3 addresses are Base32), the NSEC3 records in DNSSEC, and various IETF protocols where data must pass through case-folding or case-insensitive layers. It is the encoding to choose when output may be transcribed by a person.</p>
+      <div class="warn"><p>Base32 is case-insensitive on decode but conventionally emitted in uppercase. Some implementations also offer an "extended hex" variant (Base32hex, alphabet <code>0-9A-V</code>) used in DNSSEC — it is <em>not</em> interchangeable with standard Base32. Always confirm which variant a system expects.</p></div>
+
+      <h2 id="base58">Base58 — no 0/O/I/l confusion</h2>
+      <p>Base58 was introduced by Satoshi Nakamoto for Bitcoin addresses. Its design goal is purely human ergonomics: take a Base62-ish alphabet but remove the four characters that are hardest to tell apart in common fonts — the digit <code>0</code>, the capital <code>O</code>, the capital <code>I</code>, and the lowercase <code>l</code>. It also drops <code>+</code> and <code>/</code> so the output is safe to paste into URLs and double-click to select as a single token.</p>
+      <pre>Base58 alphabet (Bitcoin):
+123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+(no 0, O, I, or l)</pre>
+      <p>Unlike Base64 and Base32, 58 is not a power of two, so there is no clean bit-to-character mapping. Base58 instead treats the entire input as one big integer and repeatedly divides it by 58, much like converting a number to a different radix. This makes encoding and decoding slower and means the output length is not perfectly predictable, but the resulting strings are remarkably tidy.</p>
+      <pre>// JavaScript using the `bs58` package
+import bs58 from "bs58";
+const bytes = Buffer.from("hello world");
+bs58.encode(bytes);             // =&gt; "StV1DL6CwTryKyV"
+bs58.decode("StV1DL6CwTryKyV"); // =&gt; &lt;Buffer 68 65 6c 6c 6f ...&gt;</pre>
+      <p>In practice Base58 almost always appears as <strong>Base58Check</strong>, which appends a 4-byte truncated double-SHA-256 checksum before encoding. This lets a wallet reject a mistyped address instead of sending funds into the void. Beyond Bitcoin, Base58 is used in IPFS content identifiers (the older CIDv0 format), Monero and many other cryptocurrencies, and Solana public keys. It is the right choice when a value will be copied, typed, or read by people and a single wrong character must never silently succeed.</p>
+      <div class="warn"><p>There is no single official Base58 alphabet. Bitcoin, Ripple (XRP), and Flickr each use different orderings. <code>bs58</code> defaults to the Bitcoin alphabet — decoding a Ripple address with it will produce garbage.</p></div>
+
+      <h2 id="base85">Base85 (ASCII85) — the most compact</h2>
+      <p>Base85 pushes the alphabet as large as is practical for ASCII while keeping the encoding sane. With 85 symbols each character carries about 6.41 bits, so Base85 groups input into 4-byte (32-bit) chunks and emits just 5 characters per chunk — only ~25% overhead, the tightest of any common scheme. The reason 85 is the magic number: <code>85^5 = 4,437,053,125</code>, which is the smallest power of an integer that is at least <code>2^32 = 4,294,967,296</code>, so five characters can always represent a 32-bit group.</p>
+      <pre>Encoding a 4-byte group:
+1. Treat the 4 bytes as one 32-bit unsigned integer N.
+2. Compute five base-85 digits: N = (((d0*85 + d1)*85 + d2)*85 + d3)*85 + d4
+3. Map each digit (0-84) to a printable ASCII char, starting at '!' (0x21).</pre>
+      <p>The classic ASCII85 alphabet runs from <code>!</code> (value 0) through <code>u</code> (value 84) — 85 consecutive printable characters. As a space optimization, a group of four zero bytes is written as a single <code>z</code> instead of <code>!!!!!</code>. Python's standard library implements it directly:</p>
+      <pre># Python
+import base64
+base64.a85encode(b"Man is distinguished")
+# =&gt; b'9jqo^BlbD-BleB1DJ+*+F(f'
+base64.b85encode(b"hi")   # =&gt; b'Xk' (RFC 1924 / Z85-style variant)</pre>
+      <p>Base85 is used where every byte counts but the data still has to be text. Adobe PDF uses ASCII85 to embed binary streams, PostScript uses it, and Git's binary patch format (<code>git diff --binary</code>) uses a Base85 variant to keep binary deltas compact. The ZeroMQ project defined <strong>Z85</strong>, a Base85 alphabet chosen so the output is safe inside source code and string literals.</p>
+      <div class="warn"><p>Base85 has several incompatible variants — Adobe ASCII85 (delimited by <code>&lt;~</code> and <code>~&gt;</code>), RFC 1924, and ZeroMQ Z85 — that use different alphabets and rules for whitespace and the <code>z</code> shortcut. It also includes characters like <code>"</code>, <code>'</code>, <code>\</code>, and <code>&lt;</code> that break HTML, JSON, and XML, so it is a poor fit for the web despite its efficiency.</p></div>
+
+      <h2 id="comparison">Comparison table</h2>
+      <p>Side by side, the four encodings trade efficiency against human-friendliness in a predictable way — smaller alphabets are easier for people, larger alphabets are smaller on the wire.</p>
+      <pre>Encoding   Alphabet size   Overhead   Padding   Group size      Case
+──────────────────────────────────────────────────────────────────────────
+Base32     32 (A-Z 2-7)    ~60%       Yes (=)   5 bytes → 8     Insensitive
+Base58     58 (no 0OIl)    ~37%       No        big-integer     Sensitive
+Base64     64 (A-Za-z0-9   ~33%       Yes (=)   3 bytes → 4     Sensitive
+                  + /)
+Base85     85 (!..u)       ~25%       No        4 bytes → 5     Sensitive</pre>
+      <p>Choosing between them comes down to the channel and the audience:</p>
+      <ul>
+        <li><strong>Base64</strong> — the safe default. Use it for data URIs, JWTs, email/MIME, HTTP headers, and any binary blob inside JSON. Universal support, no dependencies.</li>
+        <li><strong>Base32</strong> — when a human types or reads the value: TOTP secrets, onion addresses, recovery codes, and case-insensitive identifiers.</li>
+        <li><strong>Base58</strong> — when a value is copied by hand and a typo must never silently succeed: cryptocurrency addresses and keys, IPFS CIDv0. Almost always paired with a checksum (Base58Check).</li>
+        <li><strong>Base85</strong> — when size matters and the channel tolerates a wide character set: PDF/PostScript streams, Git binary patches, and ZeroMQ keys (Z85). Avoid it in HTML, JSON, and URLs.</li>
+      </ul>
+      <div class="tip"><p>Encoding never provides confidentiality — all four schemes are fully reversible without a key. If you need to protect data, encrypt it first and then encode the ciphertext for transport.</p></div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+
+      <h3>What is the difference between Base64 and Base32?</h3>
+      <p>Base32 uses only 32 characters (A-Z and 2-7) and is case-insensitive, making it easier for humans to read and type. The tradeoff is 60% size overhead vs Base64's 33%. Base32 is used in TOTP (authenticator apps) and IETF standards.</p>
+
+      <h3>Why does Bitcoin use Base58 instead of Base64?</h3>
+      <p>Base58 removes characters that look similar (0 and O, I and l) and avoids + and / which have special meaning in URLs. This makes Bitcoin addresses easier to type and copy without errors.</p>
+
+      <h3>Which encoding is most space-efficient?</h3>
+      <p>Base85 (ASCII85) is the most efficient, with only 25% overhead. Base64 has 33% overhead. Base32 has 60% overhead. For most web use cases, Base64 is the standard due to wide support despite not being the smallest.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/what-is-base64">What is Base64?</a></li>
+        <li><a href="/articles/base64-vs-hex">Base64 vs Hex</a></li>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

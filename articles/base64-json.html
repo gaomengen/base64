@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Data in JSON: Base64 Encoding — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How and when to use Base64 to embed binary data in JSON payloads. Covers size overhead, encoding images and files, and multipart alternatives.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-json">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-json">
+<meta property="og:title" content="Binary Data in JSON: Base64 Encoding">
+<meta property="og:description" content="How to embed binary data in JSON using Base64. Size tradeoffs, code examples in JavaScript and Python, and multipart alternatives.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Binary Data in JSON: Base64 Encoding",
+  "description": "How to embed binary data in JSON using Base64. Size tradeoffs, code examples in JavaScript and Python, and multipart alternatives.",
+  "url": "https://base64.dev/articles/base64-json",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Binary Data in JSON", "item": "https://base64.dev/articles/base64-json" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I send a binary file as JSON?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64-encode the file contents and include the string in your JSON payload: { "filename": "image.png", "data": "iVBORw0KGgo..." }. In JavaScript: const data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer))). In Python: import base64; data = base64.b64encode(file_bytes).decode()" }
+    },
+    {
+      "@type": "Question",
+      "name": "How much larger is binary data when Base64-encoded in JSON?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64 adds approximately 33% overhead — 3 bytes of binary become 4 ASCII characters. A 1 MB file becomes ~1.37 MB as a Base64 string in JSON. The JSON wrapper itself adds additional overhead. For large files, multipart/form-data is more efficient." }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use Base64 or multipart/form-data for file uploads?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use multipart/form-data for file uploads — it is more bandwidth-efficient (no Base64 overhead) and is the browser native standard. Use Base64 in JSON when your API is strictly JSON-only, when the file is small (under ~1 MB), or when you need to include the file alongside other JSON fields atomically." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Binary Data in JSON</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">JSON</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Storing Binary Data in JSON with Base64</h1>
+      <p class="lead">JSON is a text format and cannot represent raw binary data. The standard solution is to Base64-encode the binary and store it as a string. Here is how it works, when to use it, and when to choose an alternative.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#why-no-binary">Why JSON cannot store binary natively</a></li>
+          <li><a href="#base64-approach">The Base64 approach: encode binary to string</a></li>
+          <li><a href="#examples">Examples in JavaScript, Python, and Go</a></li>
+          <li><a href="#overhead">The 33% size overhead tradeoff</a></li>
+          <li><a href="#alternatives">Alternatives: multipart, BSON, MessagePack, Protobuf</a></li>
+          <li><a href="#when-to-use">When to use Base64 in JSON vs alternatives</a></li>
+        </ol>
+      </div>
+
+      <h2 id="why-no-binary">Why JSON cannot store binary natively</h2>
+      <p>The JSON specification (<a href="https://www.rfc-editor.org/rfc/rfc8259" rel="noopener">RFC 8259</a>) defines exactly six value types: object, array, string, number, boolean, and null. There is no byte-array type and no notion of "raw bytes." Every value is ultimately text built from Unicode characters, and a JSON document is meant to be a valid sequence of characters that can be transmitted, logged, and read as text.</p>
+      <p>This matters because arbitrary binary data — a PNG, a ZIP archive, an encrypted blob — contains byte values that have no meaning as text. Many of those bytes (<code>0x00</code> through <code>0x1F</code>) are control characters that JSON strings forbid, and a byte sequence interpreted as UTF-8 will frequently be invalid (for example, a lone continuation byte like <code>0x80</code> is not a legal UTF-8 sequence). If you tried to paste raw bytes into a JSON string, the parser would reject the document.</p>
+      <p>You could store bytes as a JSON array of numbers, like <code>[137, 80, 78, 71]</code>, but this is wasteful: each byte expands to several characters plus a comma, often 3–4x the size, with no compatibility benefit. The community converged long ago on a single text-safe representation: Base64.</p>
+      <div class="warn">
+        <p>JSON strings must be valid Unicode. Embedding raw bytes — or even Latin-1 "binary-as-text" — risks data corruption the moment the payload passes through a parser, a database column with a different encoding, or a logging pipeline that normalizes text. Always encode binary explicitly.</p>
+      </div>
+
+      <h2 id="base64-approach">The Base64 approach: encode binary to string</h2>
+      <p>Base64 maps every 3 bytes of binary input to 4 ASCII characters drawn from a 64-character alphabet (<code>A–Z</code>, <code>a–z</code>, <code>0–9</code>, <code>+</code>, and <code>/</code>, with <code>=</code> for padding). Every character in that alphabet is a safe, printable JSON string character, so the result drops cleanly into a JSON value with no escaping needed.</p>
+      <p>The typical pattern is to wrap the encoded data alongside metadata such as the filename and MIME type, so the receiver knows how to reconstruct the file:</p>
+      <pre>{
+  "filename": "logo.png",
+  "contentType": "image/png",
+  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMCAYAAA..."
+}</pre>
+      <p>The <code>data</code> field is a plain string. The server receives standard JSON, decodes the Base64 string back into the original bytes, and writes the file. Because the binary travels inside an ordinary string, it works through every JSON-aware tool in the chain — REST APIs, message queues, document databases, and config files — without special handling.</p>
+      <div class="tip">
+        <p>If your Base64 string may end up in a URL or filename, use the URL-safe alphabet, which replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>. Inside a JSON body the standard alphabet is fine, since <code>+</code> and <code>/</code> are valid in JSON strings.</p>
+      </div>
+
+      <h2 id="examples">Examples in JavaScript, Python, and Go</h2>
+      <p>Below are complete round-trip examples — encoding bytes into a JSON payload and decoding them back — in three common server and client languages.</p>
+
+      <p><strong>JavaScript (browser).</strong> The browser's <code>btoa()</code> works on binary strings, so an <code>ArrayBuffer</code> must first be turned into a byte string. For large buffers, chunk the conversion to avoid argument-length limits:</p>
+      <pre>// Encode a Blob/File to a Base64 JSON field
+async function fileToJson(file) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i &lt; bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return {
+    filename: file.name,
+    contentType: file.type,
+    data: btoa(binary),
+  };
+}
+
+// Decode back to bytes
+function jsonToBytes(payload) {
+  const binary = atob(payload.data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i &lt; binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}</pre>
+
+      <p><strong>Python.</strong> The <code>base64</code> module operates on <code>bytes</code> and returns <code>bytes</code>, so decode to <code>str</code> before placing the value in a dict that <code>json.dumps</code> will serialize:</p>
+      <pre>import base64, json
+
+# Encode
+with open("logo.png", "rb") as f:
+    raw = f.read()
+
+payload = {
+    "filename": "logo.png",
+    "contentType": "image/png",
+    "data": base64.b64encode(raw).decode("ascii"),
+}
+body = json.dumps(payload)
+
+# Decode
+parsed = json.loads(body)
+raw_again = base64.b64decode(parsed["data"])
+assert raw_again == raw</pre>
+
+      <p><strong>Go.</strong> The standard library's <code>encoding/json</code> already Base64-encodes <code>[]byte</code> fields automatically. A struct field of type <code>[]byte</code> is marshaled to a Base64 string and unmarshaled back to bytes with no manual conversion:</p>
+      <pre>package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type File struct {
+    Filename    string `json:"filename"`
+    ContentType string `json:"contentType"`
+    Data        []byte `json:"data"` // auto Base64 in JSON
+}
+
+func main() {
+    f := File{Filename: "logo.png", ContentType: "image/png", Data: []byte{0x89, 'P', 'N', 'G'}}
+    b, _ := json.Marshal(f)
+    fmt.Println(string(b)) // {"filename":"logo.png","contentType":"image/png","data":"iVBORw=="}
+
+    var back File
+    _ = json.Unmarshal(b, &amp;back)
+    fmt.Printf("%x\n", back.Data) // 89504e47
+}</pre>
+      <div class="tip">
+        <p>Go's automatic <code>[]byte</code> handling is a quiet convenience: you never call an encoder yourself. If you need URL-safe output or a custom alphabet, marshal the field as a <code>string</code> and encode it with <code>base64.URLEncoding</code> manually.</p>
+      </div>
+
+      <h2 id="overhead">The 33% size overhead tradeoff</h2>
+      <p>Base64's core cost is fixed by its design: 3 bytes in, 4 characters out, a 4/3 ratio that adds roughly <strong>33% size overhead</strong> before any other factors. A 1 MB file becomes about 1.37 MB of Base64 text. Padding adds 0–2 extra characters, and if your encoder inserts line breaks every 76 characters (MIME style), that is a small additional cost — though JSON payloads usually omit line wrapping.</p>
+      <p>On top of the raw 33%, the JSON wrapper itself contributes overhead: the field names, quotes, braces, and any string escaping. The escaping is usually negligible for a Base64 string because the Base64 alphabet contains no characters JSON must escape. The bigger hidden cost is memory: encoding and decoding typically materializes the entire blob plus its encoded form in memory at once, so a "small" 50 MB upload can briefly consume well over 100 MB on the server.</p>
+      <div class="warn">
+        <p>The 33% expansion is on the wire <em>and</em> in storage. If you persist Base64 in a database text column, every row carries that overhead permanently, plus you lose the ability to do byte-range reads. For anything large, store the raw bytes (or an object-storage URL) and Base64 only at the transport boundary if you must.</p>
+      </div>
+      <p>Compression partially offsets this. Base64 text compresses well with gzip or Brotli — often back down close to, though not below, the original binary size — because the encoding is regular. If your transport already applies content compression (most HTTP stacks do), the on-the-wire penalty of Base64 is smaller than the raw 33% suggests, but the CPU and memory costs of encoding remain.</p>
+
+      <h2 id="alternatives">Alternatives: multipart/form-data, BSON, MessagePack, Protocol Buffers</h2>
+      <p>Base64-in-JSON is convenient but not always the right tool. Several alternatives carry binary natively, eliminating the 33% expansion:</p>
+      <ul>
+        <li><strong>multipart/form-data</strong> — The browser-native, HTTP-standard way to upload files. Binary parts are sent as raw bytes with their own headers, so there is no encoding overhead. JSON metadata can ride along as additional form fields. This is the default choice for file uploads from web clients.</li>
+        <li><strong>BSON</strong> — "Binary JSON," used by MongoDB. It is a binary serialization of a JSON-like document model with a first-class <code>binary</code> type, so byte arrays are stored directly. BSON is slightly larger than JSON for text-heavy data but far more efficient for binary fields.</li>
+        <li><strong>MessagePack</strong> — A compact binary serialization that mirrors the JSON data model (objects, arrays, strings, numbers) and adds native <code>bin</code> and <code>ext</code> types. It is typically smaller and faster to parse than JSON, and binary needs no Base64. Good drop-in when both ends control the format.</li>
+        <li><strong>Protocol Buffers</strong> — Google's schema-driven binary format. Fields of type <code>bytes</code> are stored raw, and the schema (<code>.proto</code>) gives strong typing and forward/backward compatibility. Best for high-throughput service-to-service RPC (often via gRPC), at the cost of needing a shared schema and codegen.</li>
+      </ul>
+      <p>The common thread: each of these can transmit bytes as bytes. JSON's limitation is specifically that it is a <em>text</em> format. If you are free to move off plain JSON, you can avoid the encoding tax entirely.</p>
+      <div class="tip">
+        <p>You do not have to choose globally. A common hybrid is a JSON metadata document plus a separate binary channel — multipart parts, a second request to object storage, or a binary side-stream — keeping your primary API JSON while large blobs travel raw.</p>
+      </div>
+
+      <h2 id="when-to-use">When to use Base64 in JSON vs alternatives</h2>
+      <p>Base64-in-JSON earns its keep when simplicity and a uniform text pipeline outweigh raw efficiency. Reach for it when:</p>
+      <ul>
+        <li><strong>Your API is strictly JSON.</strong> Many platforms, webhooks, and serverless functions accept only <code>application/json</code>. Base64 lets you include binary without a second content type or endpoint.</li>
+        <li><strong>The payload is small.</strong> For files under roughly 1 MB — icons, thumbnails, signatures, short audio clips — the 33% overhead is immaterial and inlining keeps the request atomic.</li>
+        <li><strong>Atomicity matters.</strong> When the binary must arrive together with related fields in a single, all-or-nothing document (a record plus its attachment), embedding avoids the coordination problems of separate uploads.</li>
+        <li><strong>Human-readability or debuggability helps.</strong> A JSON payload you can log, diff, and replay end-to-end is easier to operate than a binary protocol, even at some size cost.</li>
+      </ul>
+      <p>Choose an alternative when the binary is large or performance-critical. Use <strong>multipart/form-data</strong> for browser file uploads; use <strong>BSON</strong> when MongoDB is already in the path; use <strong>MessagePack</strong> for compact internal messaging where both ends agree on the format; and use <strong>Protocol Buffers</strong> for typed, high-volume RPC. The decisive questions are: how big is the blob, do both ends control the wire format, and does the rest of your stack expect plain JSON?</p>
+      <p>In practice many teams settle on a clean split — small binaries inline as Base64 for convenience, large binaries to object storage with only a URL or key in the JSON. That keeps the API JSON-clean while sidestepping the worst of the overhead.</p>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+      <h3>How do I send a binary file as JSON?</h3>
+      <p>Base64-encode the file contents and include the string in your JSON payload: <code>{ "filename": "image.png", "data": "iVBORw0KGgo..." }</code>. In JavaScript: <code>const data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))</code>. In Python: <code>import base64; data = base64.b64encode(file_bytes).decode()</code></p>
+
+      <h3>How much larger is binary data when Base64-encoded in JSON?</h3>
+      <p>Base64 adds approximately 33% overhead — 3 bytes of binary become 4 ASCII characters. A 1 MB file becomes ~1.37 MB as a Base64 string in JSON. The JSON wrapper itself adds additional overhead. For large files, multipart/form-data is more efficient.</p>
+
+      <h3>Should I use Base64 or multipart/form-data for file uploads?</h3>
+      <p>Use multipart/form-data for file uploads — it is more bandwidth-efficient (no Base64 overhead) and is the browser native standard. Use Base64 in JSON when your API is strictly JSON-only, when the file is small (under ~1 MB), or when you need to include the file alongside other JSON fields atomically.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-data-uri">Base64 Data URIs</a></li>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+        <li><a href="/articles/base64-python">Base64 in Python</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

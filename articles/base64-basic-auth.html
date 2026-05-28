@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Basic Auth & Base64 — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How HTTP Basic Authentication encodes credentials with Base64. Examples in curl, JavaScript, Python, and .NET, plus security best practices.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-basic-auth">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-basic-auth">
+<meta property="og:title" content="HTTP Basic Auth & Base64">
+<meta property="og:description" content="How HTTP Basic Authentication uses Base64 for the Authorization header, with code examples and security warnings.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "HTTP Basic Auth & Base64",
+  "description": "How HTTP Basic Authentication uses Base64 for the Authorization header, with code examples and security warnings.",
+  "url": "https://base64.dev/articles/base64-basic-auth",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "HTTP Basic Auth & Base64", "item": "https://base64.dev/articles/base64-basic-auth" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Base64 in Basic Auth secure?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Base64 encoding is trivially reversible — anyone who intercepts the Authorization header can decode the credentials instantly. Basic Auth is only safe when used exclusively over HTTPS (TLS), which encrypts the entire request including headers." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I create a Basic Auth header in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use btoa() to encode: const header = "Basic " + btoa(username + ":" + password). Then set it as fetch("url", { headers: { Authorization: header } })." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the format of the Authorization header for Basic Auth?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Authorization: Basic <credentials> where credentials is the Base64 encoding of username:password (colon-separated). Example: Authorization: Basic dXNlcjpwYXNz" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>HTTP Basic Auth & Base64</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">HTTP</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>HTTP Basic Auth & the Authorization Header</h1>
+      <p class="lead">HTTP Basic Authentication encodes a username and password as Base64 and sends them in the <code>Authorization</code> header. It is simple to implement but easy to misuse. Here is how it works and how to do it safely.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#how-it-works">How HTTP Basic Authentication works</a></li>
+          <li><a href="#header-format">The Authorization header format</a></li>
+          <li><a href="#code-examples">Encoding credentials in code</a></li>
+          <li><a href="#not-encryption">Why Base64 is NOT encryption</a></li>
+          <li><a href="#https-mandatory">HTTPS is mandatory</a></li>
+          <li><a href="#vs-bearer">Basic Auth vs Bearer tokens</a></li>
+        </ol>
+      </div>
+
+      <h2 id="how-it-works">How HTTP Basic Authentication works (RFC 7617)</h2>
+      <p>HTTP Basic Authentication is one of the oldest and simplest authentication schemes on the web. It was originally defined in RFC 2617 and is now specified in <a href="https://www.rfc-editor.org/rfc/rfc7617" rel="noopener">RFC 7617</a>. The idea is straightforward: the client sends a username and password with every request, packaged in a single HTTP header. There are no sessions, no cookies, and no token exchange — just credentials presented on each round trip.</p>
+      <p>The typical challenge-response flow looks like this. A client requests a protected resource without credentials, and the server replies with <code>401 Unauthorized</code> plus a <code>WWW-Authenticate</code> header naming the scheme and a <em>realm</em> (a label describing the protected area). The client then retries the request, this time including an <code>Authorization</code> header carrying the Base64-encoded credentials.</p>
+      <pre>&gt; GET /secret HTTP/1.1
+&gt; Host: api.example.com
+
+&lt; HTTP/1.1 401 Unauthorized
+&lt; WWW-Authenticate: Basic realm="Restricted Area", charset="UTF-8"
+
+&gt; GET /secret HTTP/1.1
+&gt; Host: api.example.com
+&gt; Authorization: Basic dXNlcjpwYXNz
+
+&lt; HTTP/1.1 200 OK</pre>
+      <p>Because the scheme is stateless, the server must validate the credentials on every single request. Most clients optimize this by sending the <code>Authorization</code> header proactively after the first challenge, rather than waiting for repeated <code>401</code> responses. The <code>realm</code> value lets a single server expose multiple protected areas, each requiring its own credentials.</p>
+      <div class="tip"><p>RFC 7617 added an explicit <code>charset</code> parameter so servers can signal that they expect UTF-8 encoded credentials. This matters when usernames or passwords contain non-ASCII characters — always encode the <code>username:password</code> string as UTF-8 bytes before Base64-encoding.</p></div>
+
+      <h2 id="header-format">The Authorization header format: Basic base64(username:password)</h2>
+      <p>The format of the header is precise and easy to reproduce. The value is the word <code>Basic</code>, a single space, and then the Base64 encoding of the username and password joined by a colon:</p>
+      <pre>Authorization: Basic base64(username ":" password)</pre>
+      <p>For example, with the username <code>user</code> and the password <code>pass</code>, you join them into the string <code>user:pass</code>, encode those 9 bytes as Base64, and get <code>dXNlcjpwYXNz</code>. The full header becomes:</p>
+      <pre>Authorization: Basic dXNlcjpwYXNz</pre>
+      <p>There are two important rules that trip people up. First, the colon is the delimiter, so a <strong>username may not contain a colon</strong> — a password can, since everything after the first colon is treated as the password. Second, the entire <code>username:password</code> string is encoded as one unit; you do not encode the username and password separately.</p>
+      <div class="warn"><p>Do not add line breaks or whitespace inside the Base64 value. Some encoders (notably older command-line tools) wrap output at 76 characters by default. A wrapped credential string will produce a malformed header and a confusing <code>401</code>. Strip newlines before building the header.</p></div>
+
+      <h2 id="code-examples">Encode credentials in curl, JavaScript, Python, and .NET/C#</h2>
+      <p>Every HTTP client and platform offers a way to build the Basic Auth header. Here are working examples in four common environments.</p>
+      <p><strong>curl</strong> has first-class support through the <code>-u</code> / <code>--user</code> flag, which builds the header for you. You can also set it manually:</p>
+      <pre># Let curl encode the credentials for you
+curl -u user:pass https://api.example.com/secret
+
+# Or set the header explicitly
+curl -H "Authorization: Basic dXNlcjpwYXNz" https://api.example.com/secret</pre>
+      <p><strong>JavaScript</strong> (in the browser or any runtime with <code>btoa</code>) uses <code>btoa()</code> to Base64-encode the credential string before passing it to <code>fetch</code>:</p>
+      <pre>const username = "user";
+const password = "pass";
+const header = "Basic " + btoa(`${username}:${password}`);
+
+const res = await fetch("https://api.example.com/secret", {
+  headers: { Authorization: header }
+});</pre>
+      <div class="tip"><p><code>btoa()</code> operates on Latin-1 (binary) strings, so it breaks on multibyte UTF-8 characters. If your credentials may contain non-ASCII characters, encode them first: <code>btoa(new TextEncoder().encode(s).reduce((a, b) =&gt; a + String.fromCharCode(b), ""))</code>, or use a <code>Buffer</code> in Node.js.</p></div>
+      <p><strong>Node.js</strong> avoids the <code>btoa</code> charset pitfalls entirely by using <code>Buffer</code>, which handles UTF-8 correctly:</p>
+      <pre>const creds = Buffer.from("user:pass", "utf-8").toString("base64");
+const header = `Basic ${creds}`;</pre>
+      <p><strong>Python</strong> uses the <code>base64</code> module. Note the explicit <code>.encode()</code> to bytes and <code>.decode()</code> back to a string:</p>
+      <pre>import base64
+
+raw = "user:pass".encode("utf-8")
+token = base64.b64encode(raw).decode("ascii")
+headers = {"Authorization": f"Basic {token}"}
+
+# Or with the requests library, which does this for you:
+import requests
+requests.get("https://api.example.com/secret", auth=("user", "pass"))</pre>
+      <p><strong>.NET / C#</strong> builds the header with <code>Convert.ToBase64String</code> and attaches it to an <code>HttpClient</code> request:</p>
+      <pre>using System.Net.Http.Headers;
+using System.Text;
+
+var bytes = Encoding.UTF8.GetBytes("user:pass");
+var token = Convert.ToBase64String(bytes);
+
+var client = new HttpClient();
+client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue("Basic", token);
+
+var response = await client.GetAsync("https://api.example.com/secret");</pre>
+
+      <h2 id="not-encryption">Why Base64 is NOT encryption — security implications</h2>
+      <p>This is the single most important thing to understand about Basic Auth: <strong>Base64 is an encoding, not encryption.</strong> It has no key, no secret, and provides zero confidentiality. Its only purpose is to represent arbitrary bytes — including non-printable characters and binary data — as a safe subset of ASCII so they can travel cleanly inside an HTTP header. Anyone can decode it instantly with no special knowledge.</p>
+      <p>Decoding the example header takes one command:</p>
+      <pre>$ echo "dXNlcjpwYXNz" | base64 --decode
+user:pass</pre>
+      <p>The same is true in any language — <code>atob("dXNlcjpwYXNz")</code> in JavaScript, <code>base64.b64decode(...)</code> in Python. There is no brute force, no cracking, no compute cost. If an attacker captures the header, they have your plaintext credentials immediately. Treat a Basic Auth header exactly as you would treat the raw password itself.</p>
+      <div class="warn"><p>Never log <code>Authorization</code> headers, never put credentials in URLs (the deprecated <code>https://user:pass@host</code> form leaks into history, logs, and referrer headers), and never store the encoded token thinking it is "hashed." Base64 is reversible and provides no protection whatsoever.</p></div>
+
+      <h2 id="https-mandatory">HTTPS is mandatory: credentials are trivially decoded without TLS</h2>
+      <p>Because the credentials are sent in cleartext (Base64 being equivalent to cleartext), Basic Auth is only acceptable over a connection that encrypts the transport. In practice that means <strong>HTTPS / TLS is non-negotiable</strong>. TLS encrypts the entire HTTP request — method, path, headers, and body — so an eavesdropper on the network sees only ciphertext and cannot read the <code>Authorization</code> header.</p>
+      <p>Over plain HTTP, anyone positioned between the client and server — on the same Wi-Fi network, at an ISP, on a compromised router, or running a man-in-the-middle proxy — can capture the request and read the credentials with the one-line decode shown above. Worse, since Basic Auth resends the credentials on every request, a single intercepted request is enough, and the exposure repeats endlessly for the life of the session.</p>
+      <div class="tip"><p>Defense in depth: serve your API only over HTTPS, send <code>Strict-Transport-Security</code> (HSTS) so browsers refuse to downgrade to HTTP, and configure servers to reject Basic Auth on non-TLS connections entirely. If you cannot guarantee TLS end to end, do not use Basic Auth.</p></div>
+
+      <h2 id="vs-bearer">Basic Auth vs Bearer tokens and when to use each</h2>
+      <p>Modern APIs more often use the <code>Authorization: Bearer &lt;token&gt;</code> scheme, where the token is typically an OAuth 2.0 access token or a JWT. The header format looks superficially similar, but the security model is very different. A bearer token is usually short-lived, scoped to specific permissions, and revocable without changing the user's actual password.</p>
+      <p>The key differences:</p>
+      <ul>
+        <li><strong>Credential exposure.</strong> Basic Auth sends your real, long-lived password on every request. A leaked bearer token expires and can be revoked; a leaked password compromises the account until it is changed everywhere.</li>
+        <li><strong>Scope.</strong> Bearer tokens can be issued with limited scopes (read-only, a single resource). Basic Auth grants whatever the account itself can do.</li>
+        <li><strong>Rotation.</strong> Tokens rotate automatically via refresh flows. Passwords require manual changes that break every integration using them.</li>
+        <li><strong>Statelessness.</strong> Both are stateless on the wire, but JWTs can carry claims the server validates without a database lookup.</li>
+      </ul>
+      <p>So when is Basic Auth still the right choice? It is genuinely useful for server-to-server traffic on a trusted network, internal tooling and health-check endpoints, quick prototypes, and protecting low-risk resources behind a reverse proxy or CDN. It is also still the standard way to authenticate against many package registries and CI systems using a personal access token in place of a password. For anything user-facing, multi-tenant, or security-sensitive, prefer OAuth 2.0 bearer tokens.</p>
+      <div class="tip"><p>A common hybrid pattern: use Basic Auth where the "username" is a client ID and the "password" is an API key or token. You get the simplicity of the header format with a credential you can rotate and revoke independently of any human password.</p></div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+      <h3>Is Base64 in Basic Auth secure?</h3>
+      <p>No. Base64 encoding is trivially reversible — anyone who intercepts the Authorization header can decode the credentials instantly. Basic Auth is only safe when used exclusively over HTTPS (TLS), which encrypts the entire request including headers.</p>
+      <h3>How do I create a Basic Auth header in JavaScript?</h3>
+      <p>Use <code>btoa()</code> to encode: <code>const header = "Basic " + btoa(username + ":" + password)</code>. Then set it as <code>fetch("url", { headers: { Authorization: header } })</code>.</p>
+      <h3>What is the format of the Authorization header for Basic Auth?</h3>
+      <p><code>Authorization: Basic &lt;credentials&gt;</code> where credentials is the Base64 encoding of <code>username:password</code> (colon-separated). Example: <code>Authorization: Basic dXNlcjpwYXNz</code></p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+        <li><a href="/articles/base64-python">Base64 in Python</a></li>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

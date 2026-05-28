@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode SSH Keys & PEM Files — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to Base64-encode SSH keys and PEM certificates for environment variables, Docker secrets, Kubernetes, and CI/CD pipelines. Includes decode examples.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-ssh-pem">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-ssh-pem">
+<meta property="og:title" content="Base64 Encode SSH Keys & PEM Files">
+<meta property="og:description" content="Encode SSH keys and PEM certificates as Base64 for env vars, Docker, Kubernetes secrets, and CI/CD pipelines.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encode SSH Keys & PEM Files",
+  "description": "Encode SSH keys and PEM certificates as Base64 for env vars, Docker, Kubernetes secrets, and CI/CD pipelines.",
+  "url": "https://base64.dev/articles/base64-ssh-pem",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "SSH Keys & PEM Files", "item": "https://base64.dev/articles/base64-ssh-pem" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I base64 encode an SSH private key?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use: base64 -w 0 ~/.ssh/id_rsa (Linux) or base64 -i ~/.ssh/id_rsa (macOS) to get a single-line Base64 string. Store that as a secret in your CI/CD system, then decode it at runtime with: echo \"$SECRET\" | base64 -d > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa" }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a PEM file already Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The content between -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- headers is already Base64-encoded DER data. When DevOps guides say \"base64 encode your certificate,\" they mean encode the entire PEM file (including headers) into a single-line string for storage." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use a Base64-encoded private key in GitHub Actions?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Store the Base64 string as a repository secret (e.g., SSH_PRIVATE_KEY). In your workflow, decode it: echo \"${{ secrets.SSH_PRIVATE_KEY }}\" | base64 -d > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>SSH Keys & PEM Files</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">DevOps</span>
+        <span class="article-read-time">6 min read</span>
+      </div>
+      <h1>Base64 Encode SSH Keys & PEM Certificates</h1>
+      <p class="lead">Storing multi-line SSH private keys and PEM certificates in environment variables, Docker secrets, or CI/CD pipelines requires single-line encoding. Base64 is the standard solution. Here is how to do it correctly.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#why-encode">Why keys need encoding</a></li>
+          <li><a href="#pem-is-base64">PEM format is already Base64</a></li>
+          <li><a href="#encode-single-line">Encode a key or certificate to a single line</a></li>
+          <li><a href="#env-vars">Store in environment variables and .env files</a></li>
+          <li><a href="#docker-k8s">Docker secrets and Kubernetes secrets</a></li>
+          <li><a href="#cicd">GitHub Actions, GitLab CI, and other pipelines</a></li>
+          <li><a href="#decode-runtime">Decode back to PEM at runtime</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="why-encode">Why keys need encoding</h2>
+      <p>SSH private keys and PEM certificates are text files, but they are <em>multi-line</em> text files. A typical OpenSSH or RSA private key spans dozens of lines, each terminated by a newline character, wrapped between <code>-----BEGIN-----</code> and <code>-----END-----</code> markers. Newlines are exactly what breaks most secret-storage mechanisms.</p>
+      <p>Environment variables, <code>.env</code> files, JSON config, shell exports, and many CI/CD secret stores are designed for single-line values. When you paste a multi-line key directly, the newlines get stripped, mangled into literal <code>\n</code> sequences, or split into fragments — and the key silently becomes invalid. OpenSSH is unforgiving about this: a key missing even one newline or with the wrong line wrapping will fail with <code>invalid format</code> or <code>error in libcrypto</code>.</p>
+      <p>Base64 solves the problem cleanly. By encoding the entire key file (including its headers and newlines) into a single continuous string from the 64-character alphabet, you get a value that survives copy-paste, environment variables, JSON escaping, and pipeline interpolation untouched. At runtime you decode it back to the original bytes — newlines and all — restoring a byte-for-byte identical key file.</p>
+      <div class="tip"><p>The golden rule: encode the <strong>whole file</strong>, store the single line, then decode the single line back to the file. Never try to manually reconstruct newlines with <code>sed</code> or <code>tr</code> — Base64 round-trips the bytes perfectly so you do not have to.</p></div>
+
+      <h2 id="pem-is-base64">PEM format is already Base64</h2>
+      <p>Here is the part that confuses almost everyone. A PEM file <em>is itself</em> Base64. The "PEM" format (Privacy-Enhanced Mail) takes binary DER-encoded data, Base64-encodes it, wraps it at 64 characters per line, and surrounds it with <code>-----BEGIN ...-----</code> / <code>-----END ...-----</code> headers. Open any certificate and you are already looking at Base64.</p>
+      <pre>-----BEGIN CERTIFICATE-----
+MIIDdzCCAl+gAwIBAgIEAgAAuTANBgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJJ
+RTESMBAGA1UEChMJQmFsdGltb3JlMRMwEQYDVQQLEwpDeWJlclRydXN0MSIwIAYD
+VQQDExlCYWx0aW1vcmUgQ3liZXJUcnVzdCBSb290
+-----END CERTIFICATE-----</pre>
+      <p>So when a DevOps guide says "base64 encode your certificate," it is <strong>not</strong> asking you to encode the DER bytes (those are already encoded inside the PEM). It means: take the entire PEM text file — headers, line breaks, footers, everything — and Base64-encode <em>that</em> into one flat line. This is a second layer of Base64 applied on top of the PEM. The purpose is purely to flatten the multi-line file into a single transport-safe token.</p>
+      <div class="warn"><p>Do not strip the <code>-----BEGIN-----</code> / <code>-----END-----</code> headers before encoding. The headers tell parsers what the data is (certificate, private key, EC key, etc.). Encode the file exactly as it sits on disk, including the trailing newline.</p></div>
+
+      <h2 id="encode-single-line">Encode a key or certificate to a single line</h2>
+      <p>The key flag is the one that disables line wrapping, so you get one unbroken string. On Linux (GNU coreutils) use <code>-w 0</code>; on macOS (BSD) the default output is already unwrapped, but you can be explicit with <code>-b 0</code> or pipe through <code>tr</code>.</p>
+      <pre># Linux (GNU coreutils) — -w 0 disables line wrapping
+base64 -w 0 ~/.ssh/id_ed25519 &gt; key.b64
+
+# macOS (BSD base64) — read from a file with -i
+base64 -i ~/.ssh/id_ed25519 &gt; key.b64
+
+# Cross-platform fallback — strip any newlines the tool adds
+base64 ~/.ssh/id_ed25519 | tr -d '\n' &gt; key.b64
+
+# Encode a PEM certificate the same way
+base64 -w 0 fullchain.pem &gt; cert.b64</pre>
+      <p>OpenSSL works identically and is handy when it is already installed but GNU <code>base64</code> is not. The <code>-A</code> flag tells OpenSSL to treat the input/output as a single line instead of wrapping at 64 characters:</p>
+      <pre># Encode to a single line with OpenSSL
+openssl base64 -A -in ~/.ssh/id_rsa -out key.b64
+
+# Copy the result straight to the clipboard (macOS)
+base64 -i ~/.ssh/id_rsa | pbcopy
+
+# Linux with xclip
+base64 -w 0 ~/.ssh/id_rsa | xclip -selection clipboard</pre>
+      <div class="tip"><p>Verify the round-trip before you trust it: <code>base64 -w 0 key | base64 -d | diff - key</code> should produce no output. If <code>diff</code> prints anything, your encoding wrapped lines or dropped the trailing newline.</p></div>
+
+      <h2 id="env-vars">Store in environment variables and .env files</h2>
+      <p>Because the encoded value is a single line of safe characters (<code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code>, <code>/</code>, <code>=</code>), it drops straight into an environment variable or <code>.env</code> file with no escaping headaches:</p>
+      <pre># .env file — single line, no quotes needed for the value
+SSH_PRIVATE_KEY=LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...
+TLS_CERT=LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR...
+
+# Export directly in a shell
+export SSH_PRIVATE_KEY="$(base64 -w 0 ~/.ssh/id_ed25519)"</pre>
+      <p>This sidesteps the classic <code>.env</code> pitfall where a raw multi-line key either breaks the parser or gets collapsed. Most dotenv libraries (Node's <code>dotenv</code>, Python's <code>python-dotenv</code>, etc.) cannot reliably hold a multi-line value, but a single Base64 line is trivially safe.</p>
+      <p>In your application, read the variable and decode it. In Node.js, for example:</p>
+      <pre>const fs = require('fs');
+const key = Buffer.from(process.env.SSH_PRIVATE_KEY, 'base64');
+fs.writeFileSync('/tmp/id_ed25519', key, { mode: 0o600 });</pre>
+      <div class="warn"><p>An encoded secret is still a secret — Base64 is encoding, not encryption. Anyone who reads the env var can decode it instantly. Keep <code>.env</code> files out of version control and treat these values exactly as you would the raw key.</p></div>
+
+      <h2 id="docker-k8s">Docker secrets and Kubernetes secrets</h2>
+      <p>Docker lets you pass the encoded value as a build arg or environment variable and decode it in an entrypoint script. A common pattern materializes the key on container start:</p>
+      <pre># Pass the encoded key at runtime
+docker run -e SSH_PRIVATE_KEY="$(base64 -w 0 ~/.ssh/id_ed25519)" myimage
+
+# entrypoint.sh — decode before the app starts
+mkdir -p /root/.ssh
+echo "$SSH_PRIVATE_KEY" | base64 -d &gt; /root/.ssh/id_ed25519
+chmod 600 /root/.ssh/id_ed25519</pre>
+      <p>Kubernetes is the headline case, because a <code>Secret</code> object stores its values as Base64 by design. The <code>data:</code> field <strong>must</strong> contain Base64-encoded values — Kubernetes decodes them automatically when mounting the secret as a file or injecting it as an env var:</p>
+      <pre>apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh-key
+type: Opaque
+data:
+  # value here is base64-encoded; k8s decodes it on mount
+  id_ed25519: LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...</pre>
+      <pre># Generate the manifest without hand-encoding anything
+kubectl create secret generic ssh-key \
+  --from-file=id_ed25519=$HOME/.ssh/id_ed25519 \
+  --dry-run=client -o yaml &gt; ssh-secret.yaml</pre>
+      <div class="tip"><p>If you use <code>stringData:</code> instead of <code>data:</code>, Kubernetes accepts the raw multi-line key and encodes it for you. Either way, what is stored in etcd is Base64. For real confidentiality, enable encryption-at-rest or use an external secrets manager.</p></div>
+
+      <h2 id="cicd">GitHub Actions, GitLab CI, and other pipelines</h2>
+      <p>CI/CD secret stores are the most common reason people Base64-encode keys, because the secret UI fields are single-line and pipeline YAML interpolation mangles raw newlines. Encode once, paste the single line into the secret, decode in the job.</p>
+      <p><strong>GitHub Actions</strong> — store the encoded string as a repository secret named <code>SSH_PRIVATE_KEY</code>, then:</p>
+      <pre>- name: Set up SSH key
+  run: |
+    mkdir -p ~/.ssh
+    echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d &gt; ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    ssh-keyscan github.com &gt;&gt; ~/.ssh/known_hosts</pre>
+      <p><strong>GitLab CI</strong> — define a masked CI/CD variable. Note GitLab masking requires single-line, base64-safe values, which the encoded key already satisfies:</p>
+      <pre>deploy:
+  script:
+    - mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | base64 -d &gt; ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa</pre>
+      <p><strong>CircleCI, Jenkins, and others</strong> follow the same shape: store the single Base64 line as an environment variable or credential, then <code>echo "$VAR" | base64 -d</code> into a file at the start of the job. The decode step is identical everywhere because the encoding is standard.</p>
+      <div class="warn"><p>On macOS-based runners, <code>base64 -d</code> is the BSD decode flag — but GNU also accepts <code>-d</code>, so the snippets above are portable. Avoid <code>base64 --decode</code> only if you must support extremely old BusyBox builds; otherwise it is equivalent.</p></div>
+
+      <h2 id="decode-runtime">Decode back to PEM at runtime</h2>
+      <p>Decoding restores the exact original bytes, including every newline and the headers, so the resulting file is a valid PEM or OpenSSH key with no post-processing. The two things people forget are <strong>file permissions</strong> and <strong>making the directory first</strong>.</p>
+      <pre># Decode and restore the key, then lock down permissions
+echo "$SSH_PRIVATE_KEY" | base64 -d &gt; ~/.ssh/id_ed25519
+chmod 600 ~/.ssh/id_ed25519
+
+# Decode a TLS certificate and key pair
+echo "$TLS_CERT" | base64 -d &gt; /etc/ssl/certs/app.pem
+echo "$TLS_KEY"  | base64 -d &gt; /etc/ssl/private/app.key
+chmod 600 /etc/ssl/private/app.key</pre>
+      <p>SSH refuses to use a private key whose permissions are too open, failing with <code>Permissions 0644 for 'id_ed25519' are too open</code>. Always follow the decode with <code>chmod 600</code> (or <code>0400</code>). If you decode into a fresh <code>~/.ssh</code>, create the directory with <code>mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh</code> first.</p>
+      <p>You can verify a decoded key without exposing it. For SSH keys, ask OpenSSH to print the public fingerprint; for PEM certificates, dump the subject and dates with OpenSSL:</p>
+      <pre># Confirm the decoded SSH key parses and show its fingerprint
+ssh-keygen -y -f ~/.ssh/id_ed25519 &gt; /dev/null &amp;&amp; echo "key OK"
+
+# Inspect a decoded certificate
+openssl x509 -in /etc/ssl/certs/app.pem -noout -subject -dates</pre>
+      <div class="tip"><p>If decoding produces a file that tools reject, the cause is almost always a wrapped (multi-line) Base64 value that lost characters during copy-paste, or a value that picked up a stray space. Re-encode with <code>-w 0</code>, paste carefully, and re-run the <code>diff</code> round-trip check.</p></div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+
+      <h3>How do I base64 encode an SSH private key?</h3>
+      <p>Use: <code>base64 -w 0 ~/.ssh/id_rsa</code> (Linux) or <code>base64 -i ~/.ssh/id_rsa</code> (macOS) to get a single-line Base64 string. Store that as a secret in your CI/CD system, then decode it at runtime with: <code>echo "$SECRET" | base64 -d &gt; ~/.ssh/id_rsa &amp;&amp; chmod 600 ~/.ssh/id_rsa</code></p>
+
+      <h3>Is a PEM file already Base64?</h3>
+      <p>Yes. The content between <code>-----BEGIN CERTIFICATE-----</code> and <code>-----END CERTIFICATE-----</code> headers is already Base64-encoded DER data. When DevOps guides say "base64 encode your certificate," they mean encode the entire PEM file (including headers) into a single-line string for storage.</p>
+
+      <h3>How do I use a Base64-encoded private key in GitHub Actions?</h3>
+      <p>Store the Base64 string as a repository secret (e.g., <code>SSH_PRIVATE_KEY</code>). In your workflow, decode it: <code>echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d &gt; ~/.ssh/id_rsa &amp;&amp; chmod 600 ~/.ssh/id_rsa</code></p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-openssl">OpenSSL Base64</a></li>
+        <li><a href="/articles/base64-linux-mac">base64 Command (Linux & macOS)</a></li>
+        <li><a href="/articles/base64-jwt">Base64 in JWT</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in C — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in C. Includes a complete lookup-table implementation, URL-safe variant, and OpenSSL-based alternative for production use.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-c">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-c">
+<meta property="og:title" content="Base64 Encoding & Decoding in C">
+<meta property="og:description" content="Complete Base64 implementation in C: lookup-table encoder/decoder, URL-safe variant, and OpenSSL alternative.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in C",
+  "description": "Complete Base64 implementation in C: lookup-table encoder/decoder, URL-safe variant, and OpenSSL alternative.",
+  "url": "https://base64.dev/articles/base64-c",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in C", "item": "https://base64.dev/articles/base64-c" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is there a base64 function in C standard library?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The C standard library (stdio.h, stdlib.h, string.h, etc.) does not include Base64 encoding. You must either write your own implementation using a lookup table or use a third-party library such as OpenSSL (EVP_EncodeBlock) or libb64." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I calculate the output buffer size for Base64 in C?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Encoded output is ceil(input_len / 3) * 4 bytes, plus 1 for the null terminator. In C: size_t encoded_len = ((input_len + 2) / 3) * 4 + 1. For decoding: decoded_len is at most ceil(encoded_len / 4) * 3." }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use OpenSSL or a custom implementation for Base64 in C?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For production code that already links against OpenSSL, use EVP_EncodeBlock/EVP_DecodeBlock — they are well-tested and maintained. For embedded systems, CLI tools, or projects without OpenSSL, a 50-line lookup-table implementation is common and portable." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in C</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">C</span>
+        <span class="article-read-time">8 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in C</h1>
+      <p class="lead">C has no standard library function for Base64. You either implement it yourself using a lookup table or link against OpenSSL. Here is a complete, correct implementation plus the OpenSSL alternative.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#no-stdlib">No stdlib support — your options</a></li>
+          <li><a href="#encoder">Encoder: the lookup table approach</a></li>
+          <li><a href="#decoder">Decoder: reverse lookup table</a></li>
+          <li><a href="#url-safe">URL-safe variant</a></li>
+          <li><a href="#openssl">Using OpenSSL BIO/EVP API</a></li>
+          <li><a href="#memory">Memory management and buffer sizing</a></li>
+          <li><a href="#compile">Compile and test</a></li>
+        </ol>
+      </div>
+
+      <h2 id="no-stdlib">No stdlib support — your options</h2>
+      <p>Unlike Python (<code>base64</code>), Java (<code>java.util.Base64</code>), or JavaScript (<code>btoa</code>/<code>atob</code>), the C standard library ships with no Base64 routines at all. None of <code>stdio.h</code>, <code>stdlib.h</code>, <code>string.h</code>, or any other ISO C header expose an encoder or decoder. If you need Base64 in C, you must bring it yourself.</p>
+      <p>There are three practical paths, and the right one depends on what your project already links against:</p>
+      <ul>
+        <li><strong>Roll your own lookup table.</strong> Base64 is a simple, deterministic transform. A correct, portable encoder and decoder fit in roughly 50 lines each with no dependencies. This is the standard choice for embedded targets, single-file CLI tools, and any code that must stay dependency-free.</li>
+        <li><strong>Use OpenSSL.</strong> If your binary already links <code>libcrypto</code> (for TLS, hashing, or signatures), reuse its well-tested <code>EVP_EncodeBlock</code>/<code>EVP_DecodeBlock</code> or the streaming <code>BIO_f_base64</code> filter rather than maintaining your own.</li>
+        <li><strong>Drop in a small library</strong> such as <a href="https://github.com/libb64/libb64">libb64</a> or <a href="https://github.com/aklomp/base64">aklomp/base64</a> (the latter offers SIMD-accelerated paths). Useful when you want vetted code but not OpenSSL's footprint.</li>
+      </ul>
+      <p>This article walks through a complete hand-written implementation first — because understanding the transform makes every library API obvious — and then shows the OpenSSL alternative for production use.</p>
+
+      <h2 id="encoder">Encoder: the lookup table approach</h2>
+      <p>Base64 reads the input three bytes (24 bits) at a time and re-groups those 24 bits into four 6-bit values. Each 6-bit value (0–63) indexes a 64-character alphabet to produce one output character. When the input length is not a multiple of three, the final group is padded with <code>=</code> characters so the output length is always a multiple of four.</p>
+      <p>The encoder is built around a single 64-byte alphabet table. We process full 3-byte chunks in the main loop, then handle the 1- or 2-byte remainder as a special case with padding.</p>
+      <pre>#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+static const char b64_enc_table[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
+/* Encodes `len` bytes from `in` into a freshly malloc'd, null-terminated
+ * Base64 string. Caller must free() the result. Returns NULL on alloc fail. */
+char *base64_encode(const uint8_t *in, size_t len) {
+    size_t out_len = 4 * ((len + 2) / 3);      /* ceil(len/3) * 4 */
+    char *out = malloc(out_len + 1);           /* +1 for '\0'     */
+    if (!out) return NULL;
+
+    size_t i, j;
+    for (i = 0, j = 0; i + 2 &lt; len; i += 3) {
+        uint32_t n = ((uint32_t)in[i] &lt;&lt; 16)
+                   | ((uint32_t)in[i + 1] &lt;&lt; 8)
+                   |  (uint32_t)in[i + 2];
+        out[j++] = b64_enc_table[(n &gt;&gt; 18) &amp; 0x3F];
+        out[j++] = b64_enc_table[(n &gt;&gt; 12) &amp; 0x3F];
+        out[j++] = b64_enc_table[(n &gt;&gt;  6) &amp; 0x3F];
+        out[j++] = b64_enc_table[ n        &amp; 0x3F];
+    }
+
+    /* Handle the trailing 1 or 2 bytes. */
+    size_t rem = len - i;
+    if (rem == 1) {
+        uint32_t n = (uint32_t)in[i] &lt;&lt; 16;
+        out[j++] = b64_enc_table[(n &gt;&gt; 18) &amp; 0x3F];
+        out[j++] = b64_enc_table[(n &gt;&gt; 12) &amp; 0x3F];
+        out[j++] = '=';
+        out[j++] = '=';
+    } else if (rem == 2) {
+        uint32_t n = ((uint32_t)in[i] &lt;&lt; 16)
+                   | ((uint32_t)in[i + 1] &lt;&lt; 8);
+        out[j++] = b64_enc_table[(n &gt;&gt; 18) &amp; 0x3F];
+        out[j++] = b64_enc_table[(n &gt;&gt; 12) &amp; 0x3F];
+        out[j++] = b64_enc_table[(n &gt;&gt;  6) &amp; 0x3F];
+        out[j++] = '=';
+    }
+
+    out[j] = '\0';
+    return out;
+}</pre>
+      <p>Note the use of <code>uint8_t</code> for the input. This matters: if you read input as plain <code>char</code> on a platform where <code>char</code> is signed, bytes with the high bit set become negative and the shift/mask arithmetic produces garbage. Always treat binary data as unsigned bytes.</p>
+      <div class="tip"><p>The expression <code>(len + 2) / 3</code> is the standard integer-arithmetic trick for computing <code>ceil(len / 3)</code> without floating point. Multiplying that by 4 gives the exact encoded length for any input, including the padding characters.</p></div>
+
+      <h2 id="decoder">Decoder: reverse lookup table</h2>
+      <p>Decoding inverts the process: read four input characters, map each back to its 6-bit value, and reassemble the 24-bit group into three output bytes. Instead of scanning the 64-character alphabet for every input character (slow), we build a 256-entry reverse table that maps any byte directly to its 6-bit value, or to a sentinel for invalid characters.</p>
+      <p>The decoder below validates input length, ignores nothing silently, and correctly reduces the output count when it sees padding. It returns the decoded byte count through an out-parameter.</p>
+      <pre>#include &lt;stdint.h&gt;
+#include &lt;stdlib.h&gt;
+
+/* -1 = invalid, -2 = padding ('='). Index by unsigned byte value. */
+static const int8_t b64_dec_table[256] = {
+    ['A']= 0,['B']= 1,['C']= 2,['D']= 3,['E']= 4,['F']= 5,['G']= 6,['H']= 7,
+    ['I']= 8,['J']= 9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,
+    ['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,
+    ['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,
+    ['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,
+    ['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,
+    ['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,
+    ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63,
+    ['=']=-2,
+    /* every other entry is implicitly 0 — fix that below at runtime,
+     * or initialise to -1 explicitly. See note. */
+};
+
+/* Decodes a null-terminated Base64 string. On success returns a malloc'd
+ * buffer and writes the byte count to *out_len. Returns NULL on error. */
+uint8_t *base64_decode(const char *in, size_t in_len, size_t *out_len) {
+    if (in_len % 4 != 0) return NULL;          /* must be a multiple of 4 */
+    if (in_len == 0) { *out_len = 0; return malloc(1); }
+
+    size_t pad = 0;
+    if (in[in_len - 1] == '=') pad++;
+    if (in[in_len - 2] == '=') pad++;
+
+    size_t cap = (in_len / 4) * 3 - pad;
+    uint8_t *out = malloc(cap ? cap : 1);
+    if (!out) return NULL;
+
+    size_t i, j = 0;
+    for (i = 0; i &lt; in_len; i += 4) {
+        int8_t a = b64_dec_table[(uint8_t)in[i]];
+        int8_t b = b64_dec_table[(uint8_t)in[i + 1]];
+        int8_t c = b64_dec_table[(uint8_t)in[i + 2]];
+        int8_t d = b64_dec_table[(uint8_t)in[i + 3]];
+
+        if (a == -1 || b == -1) { free(out); return NULL; }
+
+        uint32_t n = ((uint32_t)a &lt;&lt; 18) | ((uint32_t)b &lt;&lt; 12);
+        out[j++] = (n &gt;&gt; 16) &amp; 0xFF;
+
+        if (c != -2) {                          /* not padding */
+            n |= (uint32_t)c &lt;&lt; 6;
+            out[j++] = (n &gt;&gt; 8) &amp; 0xFF;
+            if (d != -2) {
+                n |= (uint32_t)d;
+                out[j++] = n &amp; 0xFF;
+            }
+        }
+    }
+
+    *out_len = j;
+    return out;
+}</pre>
+      <div class="warn"><p>The designated-initializer table above leaves all unspecified entries at <code>0</code> — which collides with the valid value for <code>'A'</code>. To make invalid-character detection work, you must initialise the whole array to <code>-1</code> first (e.g. fill it at startup with a loop, or generate the table so every non-alphabet byte is <code>-1</code>). Skipping this means malformed input is silently accepted. Decoder validation is the most common place real-world Base64 code goes wrong.</p></div>
+      <p>A robust approach is to populate the table at runtime once: set all 256 entries to <code>-1</code>, then walk <code>b64_enc_table</code> assigning <code>table[(uint8_t)b64_enc_table[k]] = k</code>, and finally set <code>table['=']</code> to the padding sentinel. That guarantees correctness without hand-typing 256 entries.</p>
+
+      <h2 id="url-safe">URL-safe variant</h2>
+      <p>Standard Base64 uses <code>+</code> and <code>/</code> as the last two alphabet characters. Both are problematic in URLs and filenames: <code>+</code> is interpreted as a space in query strings and <code>/</code> is a path separator. RFC 4648 §5 defines a <em>URL-safe</em> alphabet that swaps them for <code>-</code> (minus) and <code>_</code> (underscore). The transform is otherwise identical.</p>
+      <p>To support both variants without duplicating the entire encoder, add a flag and swap only the two affected characters on output:</p>
+      <pre>static const char b64_url_table[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789-_";
+
+/* Pass `url_safe = 1` to emit the RFC 4648 URL-safe alphabet. */
+char *base64_encode_ex(const uint8_t *in, size_t len, int url_safe) {
+    const char *table = url_safe ? b64_url_table : b64_enc_table;
+    /* ...identical loop, but index `table` instead of `b64_enc_table`... */
+    /* (omit '=' padding entirely if you want unpadded URL-safe output) */
+}</pre>
+      <p>For decoding, the cleanest fix is to normalise input before the lookup: map <code>-</code> to <code>+</code> and <code>_</code> to <code>/</code> as you read each character, then use the same reverse table. Alternatively, add <code>['-']=62</code> and <code>['_']=63</code> entries to a decode table that already contains the standard symbols — accepting both alphabets at once.</p>
+      <div class="tip"><p>URL-safe Base64 is frequently emitted <em>without</em> padding (JWTs are the canonical example). If you strip the <code>=</code> characters, your decoder must accept input whose length is not a multiple of four. Compute the original group size from <code>in_len % 4</code> (a remainder of 2 means one trailing byte, 3 means two) instead of rejecting it. See <a href="/articles/url-safe-base64">URL-Safe Base64</a> for the full details.</p></div>
+
+      <h2 id="openssl">Using OpenSSL BIO/EVP API</h2>
+      <p>If your project already links <code>libcrypto</code>, prefer OpenSSL's implementation over a hand-rolled one. There are two interfaces. The simplest is the one-shot <code>EVP_EncodeBlock</code>/<code>EVP_DecodeBlock</code> pair, which operates on full buffers in memory:</p>
+      <pre>#include &lt;openssl/evp.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+char *openssl_b64_encode(const unsigned char *in, int len) {
+    int out_len = 4 * ((len + 2) / 3);
+    char *out = malloc(out_len + 1);
+    if (!out) return NULL;
+    /* EVP_EncodeBlock writes the data plus a trailing '\0' and
+     * returns the number of characters written (excluding the '\0'). */
+    EVP_EncodeBlock((unsigned char *)out, in, len);
+    return out;
+}</pre>
+      <p>For larger or streamed data, the <code>BIO</code> filter chain is idiomatic. You push a <code>BIO_f_base64</code> filter onto a memory or file BIO and write through it. One important detail: <code>BIO_f_base64</code> inserts a newline every 64 characters by default, which most modern consumers do not want — set <code>BIO_FLAGS_BASE64_NO_NL</code> to disable it.</p>
+      <pre>#include &lt;openssl/bio.h&gt;
+#include &lt;openssl/evp.h&gt;
+
+char *bio_b64_encode(const unsigned char *in, int len) {
+    BIO *b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);   /* no line breaks */
+    BIO *mem = BIO_new(BIO_s_mem());
+    b64 = BIO_push(b64, mem);                     /* base64 -&gt; mem  */
+
+    BIO_write(b64, in, len);
+    BIO_flush(b64);
+
+    BUF_MEM *bptr;
+    BIO_get_mem_ptr(b64, &amp;bptr);
+    char *out = malloc(bptr-&gt;length + 1);
+    memcpy(out, bptr-&gt;data, bptr-&gt;length);
+    out[bptr-&gt;length] = '\0';
+
+    BIO_free_all(b64);                            /* frees whole chain */
+    return out;
+}</pre>
+      <div class="warn"><p><code>EVP_DecodeBlock</code> does not tell you how many padding bytes were present — it always returns a multiple of three. If the input ended in one or two <code>=</code> characters, you must subtract the corresponding number of bytes from the returned length yourself, or you will keep one or two trailing zero bytes that were never part of the original data.</p></div>
+      <p>For a deeper dive into the BIO chain, error handling, and the streaming decode path, see the dedicated <a href="/articles/base64-openssl">OpenSSL Base64</a> article.</p>
+
+      <h2 id="memory">Memory management and buffer sizing</h2>
+      <p>Because C gives you no automatic strings, the single most important correctness concern is computing output sizes exactly and freeing what you allocate. Get the size formula wrong by one byte and you get either a buffer overflow or a truncated result.</p>
+      <ul>
+        <li><strong>Encoding size:</strong> <code>encoded_len = 4 * ((input_len + 2) / 3)</code>, plus <code>1</code> for the null terminator if you treat the result as a C string. This is exact, not an upper bound.</li>
+        <li><strong>Decoding size (upper bound):</strong> <code>decoded_max = (encoded_len / 4) * 3</code>. The actual decoded length is this minus the number of trailing <code>=</code> padding characters (0, 1, or 2).</li>
+      </ul>
+      <p>You have two allocation strategies. Either the function allocates and returns a buffer (the approach used above — caller owns it and must <code>free()</code> it), or the caller passes in a buffer plus its capacity and the function reports how many bytes it wrote. The caller-supplied-buffer style avoids heap allocation entirely, which matters on embedded systems:</p>
+      <pre>/* Returns the number of bytes written, or -1 if `out_cap` is too small.
+ * Computes the required size up front so it never overflows the buffer. */
+int base64_encode_buf(const uint8_t *in, size_t len,
+                      char *out, size_t out_cap) {
+    size_t need = 4 * ((len + 2) / 3) + 1;       /* incl. terminator */
+    if (out_cap &lt; need) return -1;
+    /* ...encode directly into `out`... */
+    return (int)(need - 1);
+}</pre>
+      <div class="tip"><p>Whatever convention you pick, document ownership explicitly in the header comment. The most common Base64 memory bug in C is the caller forgetting to <code>free()</code> a returned heap buffer, or freeing a caller-supplied stack buffer. Pick one convention per function and never mix them.</p></div>
+
+      <h2 id="compile">Compile and test</h2>
+      <p>A quick round-trip test is the fastest way to confirm your encoder and decoder agree. The canonical RFC 4648 test vector <code>"Man"</code> should encode to <code>"TWFu"</code>, and <code>"Ma"</code> to <code>"TWE="</code>. Wire up a small <code>main</code>:</p>
+      <pre>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+int main(void) {
+    const char *msg = "Hello, base64.dev!";
+    char *enc = base64_encode((const uint8_t *)msg, strlen(msg));
+    printf("encoded: %s\n", enc);
+
+    size_t dec_len;
+    uint8_t *dec = base64_decode(enc, strlen(enc), &amp;dec_len);
+    printf("decoded: %.*s\n", (int)dec_len, dec);
+
+    /* round-trip must match the original exactly */
+    int ok = dec_len == strlen(msg) &amp;&amp; memcmp(dec, msg, dec_len) == 0;
+    printf("round-trip: %s\n", ok ? "OK" : "FAIL");
+
+    free(enc);
+    free(dec);
+    return ok ? 0 : 1;
+}</pre>
+      <p>Compile the standalone version with warnings cranked up so you catch signedness and conversion bugs early:</p>
+      <pre>cc -std=c11 -Wall -Wextra -Wconversion -o b64test base64.c main.c
+./b64test</pre>
+      <p>If you used the OpenSSL functions, add the link flags:</p>
+      <pre>cc -std=c11 -Wall -Wextra -o b64test base64_openssl.c main.c -lcrypto
+./b64test</pre>
+      <div class="tip"><p>Run your build under sanitizers during testing: <code>cc -fsanitize=address,undefined ...</code>. AddressSanitizer catches the off-by-one buffer overruns that are so easy to introduce in size calculations, and UBSan flags the signed-overflow and shift mistakes that hide in the bit-twiddling. Both are essentially free to enable and pay for themselves the first time they fire.</p></div>
+      <p>Once your round-trip passes for the empty string, 1-byte, 2-byte, and 3-byte inputs (the four padding cases), the implementation is almost certainly correct for everything else.</p>
+
+      <hr>
+
+      <h2 id="faq">FAQ</h2>
+
+      <h3>Is there a base64 function in C standard library?</h3>
+      <p>No. The C standard library (<code>stdio.h</code>, <code>stdlib.h</code>, <code>string.h</code>, etc.) does not include Base64 encoding. You must either write your own implementation using a lookup table or use a third-party library such as OpenSSL (<code>EVP_EncodeBlock</code>) or libb64.</p>
+
+      <h3>How do I calculate the output buffer size for Base64 in C?</h3>
+      <p>Encoded output is <code>ceil(input_len / 3) * 4</code> bytes, plus 1 for the null terminator. In C: <code>size_t encoded_len = ((input_len + 2) / 3) * 4 + 1;</code>. For decoding: <code>decoded_len</code> is at most <code>ceil(encoded_len / 4) * 3</code>.</p>
+
+      <h3>Should I use OpenSSL or a custom implementation for Base64 in C?</h3>
+      <p>For production code that already links against OpenSSL, use <code>EVP_EncodeBlock</code>/<code>EVP_DecodeBlock</code> — they are well-tested and maintained. For embedded systems, CLI tools, or projects without OpenSSL, a 50-line lookup-table implementation is common and portable.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-cpp">Base64 in C++</a></li>
+        <li><a href="/articles/base64-openssl">OpenSSL Base64</a></li>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

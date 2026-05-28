@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in C++ — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in C++. Covers a modern std::string implementation, Boost.Beast, OpenSSL EVP API, and URL-safe Base64.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-cpp">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-cpp">
+<meta property="og:title" content="Base64 Encoding & Decoding in C++">
+<meta property="og:description" content="Base64 in C++: modern std::string implementation, Boost.Beast base64, OpenSSL EVP API, and URL-safe variant.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in C++",
+  "description": "Base64 in C++: modern std::string implementation, Boost.Beast base64, OpenSSL EVP API, and URL-safe variant.",
+  "url": "https://base64.dev/articles/base64-cpp",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in C++", "item": "https://base64.dev/articles/base64-cpp" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is there a Base64 function in the C++ standard library?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. As of C++23, there is no Base64 encoding in the C++ standard library. The most common approaches are: a custom lookup-table implementation (50-100 lines), Boost.Beast (header-only, no linking required), or OpenSSL (if already a dependency)." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use Boost.Beast for Base64 in C++?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Include <boost/beast/core/detail/base64.hpp>. Then: std::string encoded = boost::beast::detail::base64_encode(input_data, input_size); and for decode: std::string decoded; decoded.resize(boost::beast::detail::base64::decoded_size(encoded.size())); auto [n, m] = boost::beast::detail::base64::decode(decoded.data(), encoded.data(), encoded.size());" }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the output buffer size for Base64 encoding in C++?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The encoded size is ((input_size + 2) / 3) * 4 bytes. For decoding, the maximum output is (encoded_size / 4) * 3 bytes (exact size depends on padding). Always allocate at least this much buffer space." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in C++</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">C++</span>
+        <span class="article-read-time">7 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in C++</h1>
+      <p class="lead">C++ has no standard library Base64 support. Your options are a custom implementation, Boost.Beast's built-in codec, or OpenSSL. Here is a complete guide to all three approaches.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#no-stdlib">No stdlib support — your three options</a></li>
+          <li><a href="#custom">Custom implementation with std::string</a></li>
+          <li><a href="#boost-beast">Boost.Beast base64 (header-only)</a></li>
+          <li><a href="#openssl">OpenSSL EVP_EncodeBlock / EVP_DecodeBlock</a></li>
+          <li><a href="#url-safe">URL-safe Base64 variant</a></li>
+          <li><a href="#files">Encoding binary files with std::ifstream</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="no-stdlib">No stdlib support — your three options</h2>
+      <p>Despite being one of the most common encoding tasks in network and web programming, Base64 has never made it into the C++ standard library. As of C++23 there is no <code>std::base64_encode</code>, no header to include, nothing in <code>&lt;string&gt;</code> or <code>&lt;algorithm&gt;</code> that handles it. The closest the language gets is the raw building blocks: bit shifts, lookup tables, and <code>std::string</code>.</p>
+      <p>In practice, C++ developers reach for one of three approaches depending on what is already in the project:</p>
+      <ul>
+        <li><strong>A custom implementation.</strong> Base64 is simple enough that a complete, correct encoder and decoder fits in 50–100 lines. No dependencies, full control, easy to make URL-safe. This is the right choice for small projects or when you want zero external linkage.</li>
+        <li><strong>Boost.Beast.</strong> If you already use Boost (or are doing HTTP/WebSocket work), Beast ships a fast, header-only Base64 codec in its <code>detail</code> namespace. No linking required.</li>
+        <li><strong>OpenSSL.</strong> If your application already links against OpenSSL for TLS or hashing, the <code>EVP_EncodeBlock</code> / <code>EVP_DecodeBlock</code> functions are available with no extra dependency.</li>
+      </ul>
+      <p>The sections below cover all three in working detail. If you only need to verify output or do a one-off conversion, the <a href="/">base64.dev tool</a> handles it in the browser without writing any code.</p>
+
+      <h2 id="custom">Custom implementation with std::string</h2>
+      <p>The standard Base64 alphabet maps every 6 bits of input to one printable ASCII character. Encoding works by taking three input bytes (24 bits) and splitting them into four 6-bit groups, each indexed into the alphabet. When the input length is not a multiple of three, the output is padded with <code>=</code> characters. Here is a complete, self-contained encoder:</p>
+      <pre>#include &lt;string&gt;
+#include &lt;cstdint&gt;
+
+static const char kEncodeTable[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
+std::string base64_encode(const unsigned char* data, std::size_t len) {
+    std::string out;
+    out.reserve(((len + 2) / 3) * 4);
+
+    std::size_t i = 0;
+    while (i + 3 &lt;= len) {
+        std::uint32_t n = (data[i] &lt;&lt; 16) | (data[i + 1] &lt;&lt; 8) | data[i + 2];
+        out.push_back(kEncodeTable[(n &gt;&gt; 18) &amp; 0x3F]);
+        out.push_back(kEncodeTable[(n &gt;&gt; 12) &amp; 0x3F]);
+        out.push_back(kEncodeTable[(n &gt;&gt; 6)  &amp; 0x3F]);
+        out.push_back(kEncodeTable[n &amp; 0x3F]);
+        i += 3;
+    }
+
+    if (std::size_t rem = len - i; rem &gt; 0) {
+        std::uint32_t n = data[i] &lt;&lt; 16;
+        if (rem == 2) n |= data[i + 1] &lt;&lt; 8;
+        out.push_back(kEncodeTable[(n &gt;&gt; 18) &amp; 0x3F]);
+        out.push_back(kEncodeTable[(n &gt;&gt; 12) &amp; 0x3F]);
+        out.push_back(rem == 2 ? kEncodeTable[(n &gt;&gt; 6) &amp; 0x3F] : '=');
+        out.push_back('=');
+    }
+    return out;
+}</pre>
+      <p>Decoding reverses the process. Rather than searching the alphabet for each character, build a reverse lookup table once that maps each ASCII byte back to its 6-bit value (and marks invalid bytes). Then read four input characters at a time and reassemble three output bytes:</p>
+      <pre>#include &lt;array&gt;
+
+static std::array&lt;int, 256&gt; build_decode_table() {
+    std::array&lt;int, 256&gt; t;
+    t.fill(-1);
+    for (int i = 0; i &lt; 64; ++i)
+        t[static_cast&lt;unsigned char&gt;(kEncodeTable[i])] = i;
+    return t;
+}
+
+std::string base64_decode(const std::string&amp; in) {
+    static const auto table = build_decode_table();
+    std::string out;
+    out.reserve((in.size() / 4) * 3);
+
+    std::uint32_t buffer = 0;
+    int bits = 0;
+    for (unsigned char c : in) {
+        if (c == '=') break;
+        int v = table[c];
+        if (v &lt; 0) continue;            // skip whitespace / newlines
+        buffer = (buffer &lt;&lt; 6) | v;
+        bits += 6;
+        if (bits &gt;= 8) {
+            bits -= 8;
+            out.push_back(static_cast&lt;char&gt;((buffer &gt;&gt; bits) &amp; 0xFF));
+        }
+    }
+    return out;
+}</pre>
+      <div class="tip">
+        <p>The decoder above tolerates and skips embedded whitespace and newlines, which is important because MIME Base64 (RFC 2045) wraps lines at 76 characters. Treating any non-alphabet byte as a skip rather than an error makes the function robust against real-world input.</p>
+      </div>
+      <div class="warn">
+        <p>Use <code>unsigned char</code> when indexing the decode table. Indexing a 256-entry array with a plain <code>char</code> is undefined behavior on platforms where <code>char</code> is signed and the input has the high bit set (any byte &gt; 127). The <code>static_cast&lt;unsigned char&gt;</code> in the table build and the <code>for (unsigned char c : in)</code> loop both guard against this.</p>
+      </div>
+
+      <h2 id="boost-beast">Boost.Beast base64 (header-only)</h2>
+      <p>If your project already pulls in Boost, the Beast library includes a Base64 codec that is both fast and header-only — no separate compilation or linking is needed. It lives in a <code>detail</code> namespace, which signals it is an implementation detail of Beast's HTTP support rather than a public API, but it is widely used directly and is stable across versions.</p>
+      <pre>#include &lt;boost/beast/core/detail/base64.hpp&gt;
+#include &lt;string&gt;
+
+namespace base64 = boost::beast::detail::base64;
+
+std::string encode(const std::string&amp; input) {
+    // base64_encode returns a std::string directly
+    return boost::beast::detail::base64_encode(
+        reinterpret_cast&lt;const std::uint8_t*&gt;(input.data()),
+        input.size());
+}
+
+std::string decode(const std::string&amp; encoded) {
+    std::string out;
+    out.resize(base64::decoded_size(encoded.size()));
+    auto const result = base64::decode(
+        out.data(), encoded.data(), encoded.size());
+    out.resize(result.first);   // result.first = bytes written
+    return out;
+}</pre>
+      <p>The <code>decode</code> function returns a <code>std::pair&lt;std::size_t, std::size_t&gt;</code> where <code>.first</code> is the number of output bytes written and <code>.second</code> is the number of input characters consumed. You must resize the output string down to <code>result.first</code> afterward, because <code>decoded_size</code> only gives an upper bound (it assumes no padding).</p>
+      <div class="tip">
+        <p>Beast also exposes <code>base64::encoded_size(n)</code> which returns <code>((n + 2) / 3) * 4</code> — the exact encoded length including padding. Use it to pre-size buffers when you want to call the lower-level <code>base64::encode(dest, src, len)</code> overload instead of the convenience <code>base64_encode</code> wrapper.</p>
+      </div>
+
+      <h2 id="openssl">OpenSSL EVP_EncodeBlock / EVP_DecodeBlock</h2>
+      <p>When OpenSSL is already a dependency, its EVP layer offers single-call Base64 functions. <code>EVP_EncodeBlock</code> encodes a buffer and null-terminates the output; <code>EVP_DecodeBlock</code> reverses it. Both are declared in <code>&lt;openssl/evp.h&gt;</code> and return the number of characters/bytes produced.</p>
+      <pre>#include &lt;openssl/evp.h&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+std::string openssl_encode(const std::string&amp; input) {
+    std::string out;
+    out.resize(4 * ((input.size() + 2) / 3));   // exact encoded size
+    int n = EVP_EncodeBlock(
+        reinterpret_cast&lt;unsigned char*&gt;(out.data()),
+        reinterpret_cast&lt;const unsigned char*&gt;(input.data()),
+        static_cast&lt;int&gt;(input.size()));
+    out.resize(n);
+    return out;
+}
+
+std::string openssl_decode(const std::string&amp; encoded) {
+    std::vector&lt;unsigned char&gt; out(3 * (encoded.size() / 4));
+    int n = EVP_DecodeBlock(
+        out.data(),
+        reinterpret_cast&lt;const unsigned char*&gt;(encoded.data()),
+        static_cast&lt;int&gt;(encoded.size()));
+    if (n &lt; 0) return {};   // decode error
+    return std::string(reinterpret_cast&lt;char*&gt;(out.data()), n);
+}</pre>
+      <p>The <code>EVP_EncodeBlock</code> path is clean, but decoding has a well-known wrinkle. <code>EVP_DecodeBlock</code> always returns a length that is a multiple of three and does <em>not</em> account for padding — it treats trailing <code>=</code> characters as zero bytes. So if your original data was 4 or 5 bytes (encoding to 8 characters with one or two padding signs), the decoder will hand back 6 bytes with one or two extra trailing zeros.</p>
+      <div class="warn">
+        <p>To get the true decoded length from <code>EVP_DecodeBlock</code>, subtract the padding count from the returned value: count the trailing <code>=</code> characters in the input (0, 1, or 2) and subtract that many bytes. For strict, padding-aware decoding instead use the streaming API — <code>EVP_DecodeInit</code>, <code>EVP_DecodeUpdate</code>, and <code>EVP_DecodeFinal</code> with an <code>EVP_ENCODE_CTX</code> — which reports the exact output size.</p>
+      </div>
+      <p>Link against OpenSSL with <code>-lcrypto</code> (the EVP encoding functions live in libcrypto, not libssl). See the dedicated <a href="/articles/base64-openssl">OpenSSL Base64</a> guide for the full streaming-decode example.</p>
+
+      <h2 id="url-safe">URL-safe Base64 variant</h2>
+      <p>Standard Base64 uses <code>+</code> and <code>/</code>, both of which have special meaning in URLs and file paths. The URL-safe variant (RFC 4648 §5) replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>, and frequently omits the <code>=</code> padding entirely. With the custom implementation above, supporting it is a two-character change to the alphabet plus optional padding handling:</p>
+      <pre>static const char kUrlSafeTable[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789-_";
+
+std::string base64url_encode(const unsigned char* data, std::size_t len) {
+    std::string out = base64_encode(data, len);   // standard encode
+    for (char&amp; c : out) {
+        if (c == '+') c = '-';
+        else if (c == '/') c = '_';
+    }
+    // strip padding, common for tokens / JWT
+    while (!out.empty() &amp;&amp; out.back() == '=')
+        out.pop_back();
+    return out;
+}</pre>
+      <p>Decoding URL-safe input is just as straightforward: translate <code>-</code> and <code>_</code> back to <code>+</code> and <code>/</code> before feeding the string to the standard decoder. Because the streaming decoder shown earlier reconstructs bytes from the bit count rather than relying on padding, it handles unpadded input correctly without modification — you do not need to re-add the <code>=</code> characters.</p>
+      <pre>std::string base64url_decode(std::string in) {
+    for (char&amp; c : in) {
+        if (c == '-') c = '+';
+        else if (c == '_') c = '/';
+    }
+    return base64_decode(in);   // bit-count decoder ignores missing padding
+}</pre>
+      <div class="tip">
+        <p>URL-safe Base64 is what you will encounter in JSON Web Tokens (JWT), URL query parameters, and many REST APIs. If you need both variants, pass the alphabet as a parameter to a single shared encode function rather than duplicating the body. The full topic is covered in <a href="/articles/url-safe-base64">URL-Safe Base64</a>.</p>
+      </div>
+
+      <h2 id="files">Encoding binary files with std::ifstream</h2>
+      <p>To Base64-encode a file — an image, a PDF, a certificate — read it in binary mode and pass the raw bytes to any of the encoders above. The critical detail is opening the stream with <code>std::ios::binary</code>; without it, on Windows the runtime performs newline translation and corrupts binary data. Read the whole file into a buffer first:</p>
+      <pre>#include &lt;fstream&gt;
+#include &lt;iterator&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+std::string encode_file(const std::string&amp; path) {
+    std::ifstream file(path, std::ios::binary);
+    if (!file) return {};   // open failed
+
+    std::vector&lt;unsigned char&gt; bytes(
+        (std::istreambuf_iterator&lt;char&gt;(file)),
+         std::istreambuf_iterator&lt;char&gt;());
+
+    return base64_encode(bytes.data(), bytes.size());
+}</pre>
+      <p>The <code>std::istreambuf_iterator</code> pair reads the entire stream byte-for-byte without skipping whitespace, which a default <code>std::istream_iterator</code> would do. Note the extra parentheses around the first iterator argument — that disambiguation guards against the "most vexing parse," where the compiler would otherwise read the line as a function declaration.</p>
+      <div class="warn">
+        <p>For large files, reading the entire contents into memory before encoding is wasteful and can fail outright on multi-gigabyte inputs. Encode in fixed-size chunks instead, but always read in multiples of 3 bytes per chunk (e.g. 3072 bytes). Splitting input on a non-multiple-of-3 boundary would insert spurious padding mid-stream and produce invalid output. Only the final chunk should be allowed a remainder.</p>
+      </div>
+      <p>To decode back to a file, run the decoder and write the result to an <code>std::ofstream</code> opened with <code>std::ios::binary</code>, using <code>file.write(data.data(), data.size())</code> rather than the <code>&lt;&lt;</code> operator so that embedded null bytes are preserved.</p>
+
+      <hr>
+
+      <h2 id="faq">FAQ</h2>
+      <h3>Is there a Base64 function in the C++ standard library?</h3>
+      <p>No. As of C++23, there is no Base64 encoding in the C++ standard library. The most common approaches are: a custom lookup-table implementation (50-100 lines), Boost.Beast (header-only, no linking required), or OpenSSL (if already a dependency).</p>
+
+      <h3>How do I use Boost.Beast for Base64 in C++?</h3>
+      <p>Include <code>&lt;boost/beast/core/detail/base64.hpp&gt;</code>. Then: <code>std::string encoded = boost::beast::detail::base64_encode(input_data, input_size);</code> and for decode: <code>std::string decoded; decoded.resize(boost::beast::detail::base64::decoded_size(encoded.size())); auto [n, m] = boost::beast::detail::base64::decode(decoded.data(), encoded.data(), encoded.size());</code></p>
+
+      <h3>What is the output buffer size for Base64 encoding in C++?</h3>
+      <p>The encoded size is <code>((input_size + 2) / 3) * 4</code> bytes. For decoding, the maximum output is <code>(encoded_size / 4) * 3</code> bytes (exact size depends on padding). Always allocate at least this much buffer space.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-c">Base64 in C</a></li>
+        <li><a href="/articles/base64-openssl">OpenSSL Base64</a></li>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

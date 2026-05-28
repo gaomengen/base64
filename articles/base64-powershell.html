@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode & Decode in PowerShell — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in PowerShell using [Convert]::ToBase64String. Covers the UTF-16 encoding pitfall, file encoding, and cross-platform usage.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-powershell">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-powershell">
+<meta property="og:title" content="Base64 Encode & Decode in PowerShell">
+<meta property="og:description" content="Base64 in PowerShell: [Convert]::ToBase64String, the UTF-16 gotcha, file encoding, and cross-platform PowerShell 7 usage.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encode & Decode in PowerShell",
+  "description": "Base64 in PowerShell: [Convert]::ToBase64String, the UTF-16 gotcha, file encoding, and cross-platform PowerShell 7 usage.",
+  "url": "https://base64.dev/articles/base64-powershell",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in PowerShell", "item": "https://base64.dev/articles/base64-powershell" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode a string in PowerShell?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use UTF-8 encoding for cross-platform compatibility: $bytes = [System.Text.Encoding]::UTF8.GetBytes(\"Hello\"); $encoded = [Convert]::ToBase64String($bytes). Avoid using [System.Text.Encoding]::Unicode (UTF-16) unless you know the recipient also expects UTF-16." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does PowerShell Base64 not decode correctly on Linux?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PowerShell defaults to UTF-16LE (Unicode) byte encoding, which uses 2 bytes per character. The Base64 output looks different from what UTF-8-based tools produce. Specify UTF-8 explicitly: [System.Text.Encoding]::UTF8.GetBytes($string)." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode a Base64 string in PowerShell?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($encoded)). If the string was encoded with UTF-16, use [System.Text.Encoding]::Unicode instead of UTF8." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in PowerShell</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">PowerShell</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encode & Decode in PowerShell</h1>
+      <p class="lead">PowerShell encodes Base64 via <code>[Convert]::ToBase64String()</code>, but has a critical trap: it defaults to UTF-16 (Unicode) byte encoding. This produces output that fails to decode on Linux, macOS, or any non-Windows system. Here is how to do it correctly.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#basic">Basic Base64 encode and decode</a></li>
+          <li><a href="#utf16-trap">The UTF-16 trap: why you must specify UTF-8</a></li>
+          <li><a href="#cross-platform">Encode strings for cross-platform use</a></li>
+          <li><a href="#decode">Decode Base64 back to a string</a></li>
+          <li><a href="#files">Encode and decode files</a></li>
+          <li><a href="#powershell-7">PowerShell 7 on Linux and macOS</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="basic">Basic Base64 encode and decode</h2>
+      <p>PowerShell does not ship with a dedicated <code>base64</code> command like Linux does. Instead, you reach into the .NET <code>System.Convert</code> class, which both Windows PowerShell (5.1) and the cross-platform PowerShell 7 are built on. Base64 always operates on raw bytes, so the workflow is always two steps: turn your data into a <code>byte[]</code> array, then convert that array to or from a Base64 string.</p>
+      <p>The two methods you will use are <code>[Convert]::ToBase64String()</code> to encode bytes into a Base64 string, and <code>[Convert]::FromBase64String()</code> to decode a Base64 string back into bytes. Here is the simplest round trip:</p>
+      <pre>$text    = "Hello, World!"
+$bytes   = [System.Text.Encoding]::UTF8.GetBytes($text)
+$encoded = [Convert]::ToBase64String($bytes)
+$encoded
+# SGVsbG8sIFdvcmxkIQ==
+
+$decoded = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($encoded))
+$decoded
+# Hello, World!</pre>
+      <p>Notice that the encode step requires a text encoding (<code>UTF8</code> here) to translate the string into bytes, and the decode step requires the <em>same</em> encoding to translate the bytes back into a string. Getting that encoding right is the single most important detail in PowerShell Base64 work, which is the subject of the next section.</p>
+
+      <h2 id="utf16-trap">The UTF-16 trap: why you must specify UTF-8</h2>
+      <p>You will find a popular one-liner all over the internet that looks shorter and more convenient:</p>
+      <pre>$encoded = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes("Hello"))
+$encoded
+# SABlAGwAbABvAA==</pre>
+      <p>That <code>SABlAGwAbABvAA==</code> is <strong>not</strong> what <code>echo -n Hello | base64</code> produces on Linux (which is <code>SGVsbG8=</code>). The reason is that <code>[System.Text.Encoding]::Unicode</code> in .NET means UTF-16 little-endian, where every character occupies two bytes. The letter <code>H</code> becomes the byte pair <code>48 00</code>, and those interleaved null bytes are what create the distinctive padding-heavy <code>...A...A...A</code> pattern you see in the output.</p>
+      <div class="warn"><p>UTF-16 Base64 will fail to decode correctly in virtually every other ecosystem. Python, JavaScript, the Linux <code>base64</code> command, JWT libraries, and most APIs assume UTF-8 bytes. If you hand them a UTF-16 Base64 blob, they will either error out or return text peppered with null characters.</p></div>
+      <p>This trap is especially sneaky because <code>powershell.exe -EncodedCommand</code> genuinely <em>does</em> require UTF-16 Base64. So a lot of guidance written for that specific feature uses <code>::Unicode</code>, and people copy it into contexts where UTF-8 is expected. Unless you are deliberately building an <code>-EncodedCommand</code> payload, always use <code>[System.Text.Encoding]::UTF8</code>.</p>
+      <div class="tip"><p>A quick sanity check: a UTF-8 Base64 string of an ASCII message has no null-byte artifacts. If your output looks like <code>SABlAGwAbABvAA==</code> with a capital letter followed by lowercase letters and <code>A</code>s in a repeating rhythm, you have accidentally used UTF-16.</p></div>
+
+      <h2 id="cross-platform">Encode strings for cross-platform use (ASCII/UTF-8)</h2>
+      <p>For anything that leaves your machine — API tokens, HTTP Basic Auth headers, data destined for a Linux server, JSON payloads — encode with UTF-8. UTF-8 is a strict superset of ASCII, so pure-ASCII text produces identical bytes either way, and any accented or non-Latin characters are encoded in the universally understood UTF-8 form.</p>
+      <pre>function ConvertTo-Base64Utf8 {
+    param([Parameter(Mandatory)][string]$Text)
+    [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Text))
+}
+
+ConvertTo-Base64Utf8 "café"
+# Y2Fmw6k=</pre>
+      <p>A common real-world use is building an HTTP Basic Authentication header, where the format is the Base64 of <code>username:password</code>. The credentials must be UTF-8 per RFC 7617:</p>
+      <pre>$user = "admin"
+$pass = "s3cr3t"
+$pair = "${user}:${pass}"
+$token = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($pair))
+
+$headers = @{ Authorization = "Basic $token" }
+Invoke-RestMethod -Uri "https://api.example.com/data" -Headers $headers</pre>
+      <p>If you want the convenience of <code>::ASCII</code>, be aware it silently replaces any character above code point 127 with a <code>?</code>. That is fine for guaranteed-ASCII data like a generated token, but dangerous for arbitrary user input. UTF-8 is the safer default in every case.</p>
+
+      <h2 id="decode">Decode Base64 back to a string</h2>
+      <p>Decoding mirrors encoding: convert the Base64 string to bytes with <code>[Convert]::FromBase64String()</code>, then turn those bytes back into text with the matching encoding's <code>GetString()</code> method.</p>
+      <pre>$encoded = "SGVsbG8sIFdvcmxkIQ=="
+$bytes   = [Convert]::FromBase64String($encoded)
+$text    = [System.Text.Encoding]::UTF8.GetString($bytes)
+$text
+# Hello, World!</pre>
+      <p>The encoding you decode with must match the encoding the string was created with. If a Windows script produced UTF-16 Base64 and you decode it as UTF-8, you will see null characters wedged between every letter. In that case, decode with <code>[System.Text.Encoding]::Unicode</code> instead:</p>
+      <pre># String was encoded with ::Unicode (UTF-16)
+$encoded = "SABlAGwAbABvAA=="
+[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($encoded))
+# Hello</pre>
+      <div class="warn"><p><code>[Convert]::FromBase64String()</code> is strict. It throws a <code>FormatException</code> if the input contains invalid characters, has incorrect padding, or includes whitespace such as line breaks. Strip newlines first with <code>($encoded -replace '\s', '')</code> if you are reading Base64 from a wrapped file or pasted block.</p></div>
+      <p>If you are unsure which encoding produced a string, a reliable tactic is to decode the bytes and inspect them. Bytes that alternate between meaningful values and <code>0x00</code> are a strong signal of UTF-16; a continuous run of meaningful values is UTF-8 or ASCII.</p>
+
+      <h2 id="files">Encode and decode files</h2>
+      <p>For files, skip the text-encoding step entirely — you want the file's raw bytes, not an interpretation of them as text. In PowerShell 7, the cleanest way to read raw bytes is <code>Get-Content -AsByteStream</code>; in Windows PowerShell 5.1 the equivalent is <code>Get-Content -Encoding Byte</code>. Reaching directly into .NET with <code>[System.IO.File]</code> works on every version and is the most portable choice.</p>
+      <pre># Encode any file (image, PDF, binary) to a Base64 string
+$bytes   = [System.IO.File]::ReadAllBytes("C:\path\to\logo.png")
+$encoded = [Convert]::ToBase64String($bytes)
+Set-Content -Path "logo.b64" -Value $encoded</pre>
+      <p>To go the other way, read the Base64 text, convert it to bytes, and write those bytes back out as a binary file:</p>
+      <pre># Decode a Base64 file back to its original binary form
+$encoded = Get-Content "logo.b64" -Raw
+$bytes   = [Convert]::FromBase64String($encoded.Trim())
+[System.IO.File]::WriteAllBytes("C:\path\to\logo-restored.png", $bytes)</pre>
+      <div class="tip"><p>Use <code>Get-Content -Raw</code> when reading the encoded file so the entire content arrives as a single string. Without <code>-Raw</code>, <code>Get-Content</code> returns an array of lines, and you would need to join them before decoding.</p></div>
+      <p>One useful variant is producing a <code>data:</code> URI for embedding an image directly in HTML or CSS. Just prepend the MIME type and the <code>;base64,</code> marker:</p>
+      <pre>$bytes = [System.IO.File]::ReadAllBytes("icon.png")
+$uri   = "data:image/png;base64," + [Convert]::ToBase64String($bytes)
+$uri | Set-Content "icon-datauri.txt"</pre>
+
+      <h2 id="powershell-7">PowerShell 7 on Linux and macOS</h2>
+      <p>PowerShell 7 (the cross-platform, open-source edition built on .NET) runs natively on Linux and macOS, and all the <code>[Convert]</code> and <code>[System.Text.Encoding]</code> code above works identically there. The encoding rules become even more important in this context, because you are now likely sharing data with native Unix tools that universally expect UTF-8.</p>
+      <p>One genuine difference worth knowing: in PowerShell 7, the default file and pipeline encoding is UTF-8 (without a BOM), whereas Windows PowerShell 5.1 historically defaulted to UTF-16 for some cmdlets like <code>Out-File</code> and <code>Set-Content</code>. This makes PowerShell 7 more predictable, but you should still pass bytes explicitly through <code>[System.Text.Encoding]::UTF8.GetBytes()</code> rather than relying on cmdlet defaults when correctness matters.</p>
+      <pre># Identical script runs on Windows, Linux, and macOS under pwsh
+$text    = "Crossplatform ✓"
+$encoded = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($text))
+$encoded
+# Q3Jvc3NwbGF0Zm9ybSDinJM=
+
+# Verify against the native base64 tool on Linux/macOS:
+#   echo -n "Crossplatform ✓" | base64
+#   -> Q3Jvc3NwbGF0Zm9ybSDinJM=</pre>
+      <p>Because PowerShell 7 sits on the same shell as <code>bash</code> and <code>zsh</code> on those systems, you can also just call the native <code>base64</code> binary when you want a quick command-line conversion. But for scripts that must run on both Windows and Unix, the .NET API with explicit UTF-8 is the one approach that behaves consistently everywhere.</p>
+
+      <hr>
+
+      <h2 id="faq">FAQ</h2>
+      <h3>How do I Base64 encode a string in PowerShell?</h3>
+      <p>Use UTF-8 encoding for cross-platform compatibility: <code>$bytes = [System.Text.Encoding]::UTF8.GetBytes("Hello"); $encoded = [Convert]::ToBase64String($bytes)</code>. Avoid using <code>[System.Text.Encoding]::Unicode</code> (UTF-16) unless you know the recipient also expects UTF-16.</p>
+      <h3>Why does PowerShell Base64 not decode correctly on Linux?</h3>
+      <p>PowerShell defaults to UTF-16LE (Unicode) byte encoding, which uses 2 bytes per character. The Base64 output looks different from what UTF-8-based tools produce. Specify UTF-8 explicitly: <code>[System.Text.Encoding]::UTF8.GetBytes($string)</code>.</p>
+      <h3>How do I decode a Base64 string in PowerShell?</h3>
+      <p>Use <code>[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($encoded))</code>. If the string was encoded with UTF-16, use <code>[System.Text.Encoding]::Unicode</code> instead of <code>UTF8</code>.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-bash">Base64 in Bash</a></li>
+        <li><a href="/articles/base64-linux-mac">base64 Command (Linux & macOS)</a></li>
+        <li><a href="/articles/base64-csharp">Base64 in C#</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

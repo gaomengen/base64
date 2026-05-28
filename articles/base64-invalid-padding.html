@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix Invalid Base64 & Padding Errors — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to fix invalid Base64 and incorrect padding errors in Python, JavaScript, Java, and .NET. Covers missing = signs, whitespace, and wrong Base64 variant.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-invalid-padding">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-invalid-padding">
+<meta property="og:title" content="Fix Invalid Base64 & Padding Errors">
+<meta property="og:description" content="Diagnose and fix Base64 decode errors: missing padding, whitespace, wrong variant, and language-specific fixes.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Fix Invalid Base64 & Padding Errors",
+  "description": "Diagnose and fix Base64 decode errors: missing padding, whitespace, wrong variant, and language-specific fixes.",
+  "url": "https://base64.dev/articles/base64-invalid-padding",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Fix Invalid Base64 Errors", "item": "https://base64.dev/articles/base64-invalid-padding" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is "Incorrect padding" in Python?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Python raises binascii.Error: Incorrect padding when the Base64 string length is not a multiple of 4. Fix it by adding missing = padding: data += "=" * (-len(data) % 4)." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does atob() throw "InvalidCharacterError"?",
+      "acceptedAnswer": { "@type": "Answer", "text": "atob() rejects characters not in the standard Base64 alphabet. Common causes: URL-safe Base64 with - and _ characters, or whitespace/newlines in the input. Strip whitespace and convert - to + and _ to / before decoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix "Invalid character in a Base64 string" in .NET?",
+      "acceptedAnswer": { "@type": "Answer", "text": "This error usually means the string uses URL-safe Base64 (- and _ instead of + and /). Replace - with + and _ with / before calling Convert.FromBase64String(), then add padding if needed." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Fix Invalid Base64 Errors</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Troubleshooting</span>
+        <span class="article-read-time">6 min read</span>
+      </div>
+      <h1>Fix "Invalid Base64" & Padding Errors</h1>
+      <p class="lead">Base64 decode errors are among the most common developer frustrations. The root causes are almost always the same: missing padding, stray whitespace, or the wrong Base64 variant. Here is how to diagnose and fix each one.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#padding-math">What causes Base64 padding errors</a></li>
+          <li><a href="#fix-padding">Fix missing padding programmatically</a></li>
+          <li><a href="#strip-whitespace">Strip whitespace and newlines</a></li>
+          <li><a href="#wrong-variant">Fix the wrong variant: URL-safe vs standard</a></li>
+          <li><a href="#language-fixes">Language-specific fixes</a></li>
+          <li><a href="#robust-decode">Write a robust decode function</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="padding-math">What causes Base64 padding errors</h2>
+      <p>Base64 encodes binary data in groups of 3 bytes (24 bits), which it represents as 4 ASCII characters (4 &times; 6 bits = 24 bits). Because the input is grouped into chunks of 3, the output always comes in chunks of 4. When the final group of input bytes is not a perfect multiple of 3, the encoder pads the output with <code>=</code> characters so the total length stays a multiple of 4.</p>
+      <p>The math is simple. A 3-byte input produces 4 characters with no padding. A 2-byte input produces 3 significant characters plus one <code>=</code>. A 1-byte input produces 2 significant characters plus two <code>==</code>. So a valid standard Base64 string always has a length divisible by 4, and it can end in zero, one, or two <code>=</code> signs — never three.</p>
+      <p>"Incorrect padding" errors happen when a decoder receives a string whose length is <em>not</em> a multiple of 4. This usually means the <code>=</code> signs were stripped somewhere along the way — by a URL parser, a database column trim, a JSON serializer, or a copy-paste that dropped trailing characters. Many systems treat the padding as optional and remove it, but stricter decoders refuse to guess.</p>
+      <div class="tip">
+        <p>You can compute how many padding characters a string needs: <code>missing = (4 - len % 4) % 4</code>. If <code>missing</code> is 3, the string is genuinely malformed — no valid Base64 ends with three <code>=</code> signs.</p>
+      </div>
+
+      <h2 id="fix-padding">Fix missing padding programmatically</h2>
+      <p>The fix for missing padding is to append enough <code>=</code> characters to bring the length back to a multiple of 4. A neat trick using modular arithmetic computes the count in one expression: <code>-len % 4</code> gives the number of characters needed (0, 1, or 2 for valid lengths).</p>
+      <p>In Python:</p>
+      <pre>import base64
+
+def add_padding(data: str) -&gt; str:
+    return data + "=" * (-len(data) % 4)
+
+raw = "SGVsbG8gV29ybGQ"          # 15 chars, missing one =
+fixed = add_padding(raw)          # "SGVsbG8gV29ybGQ="
+print(base64.b64decode(fixed))    # b'Hello World'</pre>
+      <p>In JavaScript the same logic works before calling <code>atob</code>:</p>
+      <pre>function addPadding(str) {
+  return str + "=".repeat((4 - (str.length % 4)) % 4);
+}
+
+const raw = "SGVsbG8gV29ybGQ";
+console.log(atob(addPadding(raw))); // "Hello World"</pre>
+      <div class="warn">
+        <p>If a string's length leaves a remainder of <strong>1</strong> when divided by 4, it can never be valid Base64 — there is no way to add padding to reach a multiple of 4 from that state. A remainder of 1 means the data itself is corrupt or truncated, not just unpadded.</p>
+      </div>
+
+      <h2 id="strip-whitespace">Strip whitespace and newlines before decoding</h2>
+      <p>MIME-style Base64 (used in email and PEM-encoded keys) inserts a line break every 64 or 76 characters. Pretty-printed JSON, copy-pasted blocks, and HTTP headers can all introduce spaces, tabs, carriage returns, and newlines. Strict decoders such as JavaScript's <code>atob</code> and .NET's <code>Convert.FromBase64String</code> reject these characters outright, throwing "InvalidCharacterError" or <code>FormatException</code>.</p>
+      <p>The fix is to remove all whitespace before decoding. A regex that strips everything outside the Base64 alphabet is the most defensive approach:</p>
+      <pre>// JavaScript: strip all whitespace
+const clean = dirty.replace(/\s+/g, "");
+const bytes = atob(clean);</pre>
+      <pre># Python: Python's b64decode tolerates newlines, but be explicit
+clean = "".join(raw.split())
+base64.b64decode(clean)</pre>
+      <div class="tip">
+        <p>Python's <code>base64.b64decode</code> silently ignores newlines and spaces in its default mode, but raises on other invalid characters if you pass <code>validate=True</code>. Stripping whitespace yourself makes the behavior predictable across languages.</p>
+      </div>
+
+      <h2 id="wrong-variant">Fix the wrong variant: URL-safe (-_) vs standard (+/)</h2>
+      <p>Standard Base64 (RFC 4648 §4) uses <code>+</code> and <code>/</code> for the last two characters of its 64-symbol alphabet. But <code>+</code> and <code>/</code> are problematic in URLs and filenames, so the URL-safe variant (RFC 4648 §5) substitutes <code>-</code> for <code>+</code> and <code>_</code> for <code>/</code>. JWTs, OAuth tokens, and many web APIs use the URL-safe form.</p>
+      <p>If you feed a URL-safe string to a standard decoder, it sees the unfamiliar <code>-</code> and <code>_</code> characters and throws an "Invalid character" error. The fix is to translate the alphabet back before decoding:</p>
+      <pre>// JavaScript: convert URL-safe to standard, then decode
+function fromUrlSafe(str) {
+  return str.replace(/-/g, "+").replace(/_/g, "/");
+}
+const bytes = atob(addPadding(fromUrlSafe(token)));</pre>
+      <pre># Python has a dedicated function for the URL-safe alphabet
+import base64
+base64.urlsafe_b64decode(add_padding(token))</pre>
+      <div class="warn">
+        <p>URL-safe Base64 frequently omits the <code>=</code> padding entirely, because <code>=</code> also needs percent-encoding in URLs. Always combine variant conversion with padding repair — fixing one without the other will still fail.</p>
+      </div>
+
+      <h2 id="language-fixes">Language-specific fixes</h2>
+      <p>Each language surfaces these problems with its own error message and quirks. Here is what to expect and how to handle each.</p>
+      <p><strong>Python — <code>binascii.Error: Incorrect padding</code>.</strong> This is thrown by <code>base64.b64decode</code> when the length is not a multiple of 4. Add padding before decoding, and use <code>urlsafe_b64decode</code> if the input contains <code>-</code> or <code>_</code>:</p>
+      <pre>import base64
+
+def decode_py(s: str) -&gt; bytes:
+    s = "".join(s.split())                  # strip whitespace
+    s += "=" * (-len(s) % 4)                # repair padding
+    return base64.urlsafe_b64decode(s)      # handles -_ and +/</pre>
+      <p><strong>JavaScript — <code>InvalidCharacterError</code>.</strong> <code>atob</code> is strict about whitespace and the alphabet. Note that <code>atob</code> returns a binary string, so for multi-byte UTF-8 you need <code>TextDecoder</code>:</p>
+      <pre>function decodeJs(s) {
+  s = s.replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  s += "=".repeat((4 - (s.length % 4)) % 4);
+  const bin = atob(s);
+  const bytes = Uint8Array.from(bin, c =&gt; c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}</pre>
+      <p><strong>Java — <code>IllegalArgumentException: Illegal base64 character</code>.</strong> Use <code>Base64.getMimeDecoder()</code> to tolerate whitespace, or <code>Base64.getUrlDecoder()</code> for the URL-safe alphabet. The standard <code>getDecoder()</code> rejects both:</p>
+      <pre>import java.util.Base64;
+
+byte[] decodeJava(String s) {
+    // getMimeDecoder ignores line breaks and invalid chars between groups
+    return Base64.getMimeDecoder().decode(s);
+}
+// For URL-safe tokens:
+byte[] decoded = Base64.getUrlDecoder().decode(token);</pre>
+      <p><strong>.NET — <code>FormatException: The input is not a valid Base-64 string</code>.</strong> <code>Convert.FromBase64String</code> is strict on length, whitespace, and alphabet. Clean and repair the string first:</p>
+      <pre>using System;
+using System.Text.RegularExpressions;
+
+byte[] DecodeNet(string s) {
+    s = Regex.Replace(s, @"\s+", "");
+    s = s.Replace('-', '+').Replace('_', '/');
+    s = s.PadRight(s.Length + (4 - s.Length % 4) % 4, '=');
+    return Convert.FromBase64String(s);
+}</pre>
+      <div class="tip">
+        <p>.NET 5+ also offers <code>Convert.TryFromBase64String</code>, which returns <code>false</code> instead of throwing — useful when you want to validate input without exception handling.</p>
+      </div>
+
+      <h2 id="robust-decode">Write a robust decode function</h2>
+      <p>Rather than handling each failure mode separately at every call site, wrap the cleanup logic in a single function that normalizes input before decoding. A robust decoder should strip whitespace, convert the URL-safe alphabet to standard, repair missing padding, and only then call the underlying decode primitive.</p>
+      <p>Here is a complete, defensive implementation in Python that handles every case discussed above:</p>
+      <pre>import base64
+import binascii
+
+def robust_b64decode(data) -&gt; bytes:
+    if isinstance(data, bytes):
+        data = data.decode("ascii", errors="ignore")
+
+    # 1. Strip all whitespace (newlines, spaces, tabs)
+    data = "".join(data.split())
+
+    # 2. Normalize URL-safe alphabet to standard
+    data = data.replace("-", "+").replace("_", "/")
+
+    # 3. Reject genuinely impossible lengths early
+    if len(data) % 4 == 1:
+        raise ValueError("Invalid Base64: length leaves remainder 1")
+
+    # 4. Repair missing padding
+    data += "=" * (-len(data) % 4)
+
+    # 5. Decode
+    try:
+        return base64.b64decode(data, validate=True)
+    except binascii.Error as e:
+        raise ValueError(f"Invalid Base64 input: {e}") from e</pre>
+      <p>And the equivalent in JavaScript, returning the decoded bytes as a <code>Uint8Array</code> so it works for both text and binary payloads:</p>
+      <pre>function robustB64Decode(input) {
+  let s = String(input).replace(/\s+/g, "");
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  if (s.length % 4 === 1) {
+    throw new Error("Invalid Base64: length leaves remainder 1");
+  }
+  s += "=".repeat((4 - (s.length % 4)) % 4);
+  const bin = atob(s); // throws InvalidCharacterError on bad chars
+  return Uint8Array.from(bin, c =&gt; c.charCodeAt(0));
+}</pre>
+      <p>This pattern covers the overwhelming majority of real-world decode failures. Validating the length-remainder up front gives a clear error for truly corrupt data, while the cleanup steps transparently handle the common cases of stripped padding, MIME line breaks, and URL-safe tokens.</p>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+      <h3>What is "Incorrect padding" in Python?</h3>
+      <p>Python raises binascii.Error: Incorrect padding when the Base64 string length is not a multiple of 4. Fix it by adding missing = padding: <code>data += "=" * (-len(data) % 4)</code>.</p>
+      <h3>Why does atob() throw "InvalidCharacterError"?</h3>
+      <p>atob() rejects characters not in the standard Base64 alphabet. Common causes: URL-safe Base64 with - and _ characters, or whitespace/newlines in the input. Strip whitespace and convert - to + and _ to / before decoding.</p>
+      <h3>How do I fix "Invalid character in a Base64 string" in .NET?</h3>
+      <p>This error usually means the string uses URL-safe Base64 (- and _ instead of + and /). Replace - with + and _ with / before calling Convert.FromBase64String(), then add padding if needed.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-padding">Base64 Padding Explained</a></li>
+        <li><a href="/articles/what-is-base64">What is Base64?</a></li>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

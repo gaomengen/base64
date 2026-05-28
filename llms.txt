@@ -29,6 +29,26 @@
 - [Base64 in Ruby](https://base64.dev/articles/base64-ruby): encode64 vs strict_encode64 vs urlsafe_encode64 and the critical differences between them.
 - [Base64 in Swift](https://base64.dev/articles/base64-swift): Data.base64EncodedString(), URL-safe extension, encoding images for iOS/macOS.
 - [Base64 in Kotlin](https://base64.dev/articles/base64-kotlin): java.util.Base64 on JVM/Android, android.util.Base64 for older API levels, Kotlin Multiplatform.
+- [Base64 in C](https://base64.dev/articles/base64-c): complete lookup-table encoder/decoder, URL-safe variant, and OpenSSL EVP API alternative.
+- [Base64 in C++](https://base64.dev/articles/base64-cpp): std::string implementation, Boost.Beast, OpenSSL EVP API, and URL-safe variant.
+- [Base64 in Dart & Flutter](https://base64.dev/articles/base64-dart): dart:convert base64 and base64Url codecs, image encoding, and HTTP usage.
+- [Base64 in React (File Upload)](https://base64.dev/articles/base64-react): FileReader API, image preview, sending Base64 to APIs, and TypeScript types.
+- [Base64 in PowerShell](https://base64.dev/articles/base64-powershell): [Convert]::ToBase64String, the UTF-16 encoding trap, and cross-platform usage.
+- [Base64 in Bash Scripts](https://base64.dev/articles/base64-bash): the echo -n newline gotcha, file encoding, env variables, and multi-line handling.
+
+## Concepts & Troubleshooting
+
+- [Base64 Padding Explained](https://base64.dev/articles/base64-padding): why = signs exist, how padding is calculated, and when it can be omitted in JWTs and URL-safe Base64.
+- [Fix Invalid Base64 & Padding Errors](https://base64.dev/articles/base64-invalid-padding): diagnose and fix decode failures from missing padding, whitespace, and wrong variant.
+- [Base64 vs Base32, Base58 & Base85](https://base64.dev/articles/base64-encodings-comparison): size overhead, alphabets, and when to choose each encoding scheme.
+- [HTTP Basic Auth & Base64](https://base64.dev/articles/base64-basic-auth): credentials in the Authorization header, with security warnings.
+- [Binary Data in JSON with Base64](https://base64.dev/articles/base64-json): how to embed binary in JSON, size tradeoffs, and multipart alternatives.
+
+## CLI & Tools
+
+- [base64 Command in Linux & macOS](https://base64.dev/articles/base64-linux-mac): GNU vs BSD flags, -w 0 line wrapping, and shell pipeline patterns.
+- [OpenSSL Base64](https://base64.dev/articles/base64-openssl): encode and decode with openssl enc -base64, the -A single-line flag, and certificate workflows.
+- [Base64 for SSH Keys & PEM Certificates](https://base64.dev/articles/base64-ssh-pem): encode private keys and certs for env vars, Docker, Kubernetes, and CI/CD pipelines.
 
 ## About
 

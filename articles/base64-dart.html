@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 in Dart & Flutter — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Dart and Flutter using dart:convert. Covers strings, images, URL-safe Base64, and encoding files with dart:io.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-dart">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-dart">
+<meta property="og:title" content="Base64 in Dart & Flutter">
+<meta property="og:description" content="Base64 encoding and decoding in Dart and Flutter with dart:convert. Covers base64, base64Url, images, and file encoding.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 in Dart & Flutter",
+  "description": "Base64 encoding and decoding in Dart and Flutter with dart:convert. Covers base64, base64Url, images, and file encoding.",
+  "url": "https://base64.dev/articles/base64-dart",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Dart & Flutter", "item": "https://base64.dev/articles/base64-dart" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode a string in Dart?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Import dart:convert and use: import "dart:convert"; String encoded = base64.encode(utf8.encode("Hello")); String decoded = utf8.decode(base64.decode(encoded));" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I encode an image to Base64 in Flutter?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Get the image as Uint8List (from AssetBundle, File, or NetworkImage), then encode: final bytes = await File(imagePath).readAsBytes(); final base64String = base64.encode(bytes); You can then use it as a data URI: "data:image/png;base64,$base64String"" }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between base64 and base64Url in Dart?",
+      "acceptedAnswer": { "@type": "Answer", "text": "base64 uses the standard Base64 alphabet (+ and /). base64Url uses the URL-safe alphabet (- and _) and is safe for use in URLs, filenames, and JWTs. Both are available in dart:convert without any additional packages." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Dart & Flutter</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Dart</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Dart & Flutter</h1>
+      <p class="lead">Dart's <code>dart:convert</code> library provides <code>base64</code> and <code>base64Url</code> codecs built in. No external packages needed for standard Base64 in Dart or Flutter.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#import">Import dart:convert</a></li>
+          <li><a href="#strings">Encode and decode strings</a></li>
+          <li><a href="#url-safe">URL-safe Base64 with base64Url</a></li>
+          <li><a href="#images">Encode images in Flutter (Uint8List to Base64)</a></li>
+          <li><a href="#files">Encode files with dart:io</a></li>
+          <li><a href="#http">Send Base64 in HTTP requests with the http package</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="import">Import dart:convert</h2>
+      <p>Everything you need for standard Base64 lives in Dart's core <code>dart:convert</code> library. It ships with the Dart SDK, so there is nothing to add to <code>pubspec.yaml</code> and nothing to run <code>pub get</code> for. A single import line exposes the <code>base64</code> codec, the <code>base64Url</code> codec, and the <code>utf8</code> codec you'll use to bridge between Dart strings and bytes.</p>
+      <pre>import 'dart:convert';</pre>
+      <p>The library exposes three Base64-related top-level constants. <code>base64</code> is the standard codec, <code>base64Url</code> is the URL- and filename-safe variant, and <code>base64Encode</code> / <code>base64Decode</code> are convenience functions that delegate to the standard codec. Each codec object has an <code>encode</code> method that takes a <code>List&lt;int&gt;</code> of bytes and returns a <code>String</code>, and a <code>decode</code> method that does the reverse.</p>
+      <div class="tip"><p>Base64 in Dart always operates on <em>bytes</em> (<code>List&lt;int&gt;</code> or <code>Uint8List</code>), never directly on strings. To encode a string you first convert it to bytes with <code>utf8.encode</code>, and to read decoded bytes back as text you use <code>utf8.decode</code>. This separation prevents accidental encoding bugs with non-ASCII characters.</p></div>
+
+      <h2 id="strings">Encode and decode strings</h2>
+      <p>The most common task is round-tripping a text string. Because <code>base64.encode</code> expects bytes, you wrap your string in <code>utf8.encode</code> first. Decoding reverses both steps: <code>base64.decode</code> gives you bytes back, and <code>utf8.decode</code> turns those bytes into a readable string.</p>
+      <pre>import 'dart:convert';
+
+void main() {
+  final original = 'Hello, Dart! 🎯';
+
+  // Encode: String -&gt; bytes -&gt; Base64 String
+  final encoded = base64.encode(utf8.encode(original));
+  print(encoded); // SGVsbG8sIERhcnQhIPCfjq8=
+
+  // Decode: Base64 String -&gt; bytes -&gt; String
+  final decoded = utf8.decode(base64.decode(encoded));
+  print(decoded); // Hello, Dart! 🎯
+}</pre>
+      <p>Dart also provides the standalone helpers <code>base64Encode(bytes)</code> and <code>base64Decode(string)</code> if you prefer functions over the codec object. They are exactly equivalent to <code>base64.encode</code> and <code>base64.decode</code>, so use whichever reads better in your code.</p>
+      <pre>final encoded = base64Encode(utf8.encode('quick helper'));
+final bytes = base64Decode(encoded);
+final text = utf8.decode(bytes);</pre>
+      <p>Because Base64 is a fully reversible binary-to-text transform, the decoded bytes are byte-for-byte identical to the input. That makes it ideal for embedding binary payloads in JSON, configuration files, or anywhere only text is allowed. Emoji and other multi-byte UTF-8 characters survive the round trip unchanged, as the example above shows.</p>
+      <div class="warn"><p><code>base64.decode</code> throws a <code>FormatException</code> if the input is not valid Base64 — for example if it contains spaces, line breaks, or a length that isn't a multiple of four after padding. Wrap untrusted input in a <code>try/catch</code> block, and strip whitespace before decoding strings that may have been line-wrapped by another tool.</p></div>
+
+      <h2 id="url-safe">URL-safe Base64 with base64Url</h2>
+      <p>Standard Base64 uses <code>+</code> and <code>/</code> as its 63rd and 64th characters, plus <code>=</code> for padding. Those characters have special meaning in URLs, query strings, and filenames, so dropping a standard Base64 string into a URL can break it. The <code>base64Url</code> codec swaps <code>+</code> for <code>-</code> and <code>/</code> for <code>_</code>, producing output that is safe to use without escaping.</p>
+      <pre>import 'dart:convert';
+
+void main() {
+  final bytes = utf8.encode('subjects?_d=qux');
+
+  final standard = base64.encode(bytes);
+  final urlSafe  = base64Url.encode(bytes);
+
+  print(standard); // c3ViamVjdHM/X2Q9cXV4  (contains '/')
+  print(urlSafe);  // c3ViamVjdHM_X2Q9cXV4  (uses '_')
+}</pre>
+      <p>This is the encoding used by JSON Web Tokens (JWTs), OAuth tokens, and many web APIs. Note that the JWT specification also strips the trailing <code>=</code> padding. Dart's <code>base64Url</code> keeps padding by default, so if you are hand-building a JWT segment you may need to remove it, and re-add it before decoding values produced elsewhere.</p>
+      <pre>// Strip padding for a JWT-style segment
+String b64UrlNoPad(List&lt;int&gt; bytes) =&gt;
+    base64Url.encode(bytes).replaceAll('=', '');
+
+// Decoding requires padding back to a multiple of 4
+List&lt;int&gt; b64UrlDecode(String input) {
+  final padded = input.padRight((input.length + 3) ~/ 4 * 4, '=');
+  return base64Url.decode(padded);
+}</pre>
+      <div class="tip"><p><code>base64.decode</code> is lenient: it accepts both the standard and URL-safe alphabets and will decode <code>-</code> and <code>_</code> correctly. So if you only need to <em>decode</em> a value and don't know which variant produced it, the plain <code>base64</code> codec usually just works. Choose <code>base64Url</code> explicitly on the encode side when the output must travel through a URL.</p></div>
+
+      <h2 id="images">Encode images in Flutter (Uint8List to Base64)</h2>
+      <p>In Flutter, images are typically available as a <code>Uint8List</code> of raw bytes, whether they come from an asset bundle, the device file system, the camera, or a network request. Since <code>Uint8List</code> implements <code>List&lt;int&gt;</code>, you pass it straight to <code>base64.encode</code> with no conversion step.</p>
+      <pre>import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
+
+// From a bundled asset
+Future&lt;String&gt; encodeAsset(String path) async {
+  final data = await rootBundle.load(path);
+  final bytes = data.buffer.asUint8List();
+  return base64.encode(bytes);
+}
+
+// From a file on disk (e.g. picked from the gallery)
+Future&lt;String&gt; encodeFile(String imagePath) async {
+  final bytes = await File(imagePath).readAsBytes();
+  return base64.encode(bytes);
+}</pre>
+      <p>Once you have the Base64 string, a common use case is building a data URI to send to a backend or embed in HTML. Prefix the string with the appropriate MIME type. To display a Base64 image back in your Flutter UI, decode it to bytes and hand it to <code>Image.memory</code>, which renders directly from a <code>Uint8List</code>.</p>
+      <pre>// Build a data URI
+final base64String = await encodeFile(imagePath);
+final dataUri = 'data:image/png;base64,$base64String';
+
+// Render a Base64 image in the widget tree
+Widget buildImage(String base64String) {
+  final bytes = base64.decode(base64String);
+  return Image.memory(bytes);
+}</pre>
+      <div class="warn"><p>Base64 inflates data by roughly 33%, and encoding large images blocks the UI isolate while it runs. For multi-megabyte photos, run the encode on a background isolate using <code>compute()</code> from <code>package:flutter/foundation.dart</code> so you don't drop frames. For very large or frequently transferred files, prefer uploading the raw bytes via multipart instead of Base64.</p></div>
+
+      <h2 id="files">Encode files with dart:io</h2>
+      <p>On the Dart VM and in Flutter mobile/desktop apps, <code>dart:io</code> gives you <code>File</code> access. Reading a file as bytes and encoding it is two lines. For small files, <code>readAsBytes</code> loads everything into memory at once, which is fine. The asynchronous version is preferred so you don't block the event loop.</p>
+      <pre>import 'dart:convert';
+import 'dart:io';
+
+Future&lt;String&gt; fileToBase64(String path) async {
+  final bytes = await File(path).readAsBytes();
+  return base64.encode(bytes);
+}
+
+// Decode Base64 back into a file
+Future&lt;void&gt; base64ToFile(String b64, String outPath) async {
+  final bytes = base64.decode(b64);
+  await File(outPath).writeAsBytes(bytes);
+}</pre>
+      <p>For large files you should avoid loading the whole thing into memory. Dart's codecs are <em>streaming-capable</em>: you can pipe a file's byte stream through <code>base64.encoder</code> (a <code>Converter</code>) and write the result chunk by chunk. This keeps memory usage flat regardless of file size.</p>
+      <pre>import 'dart:convert';
+import 'dart:io';
+
+Future&lt;void&gt; streamEncode(String inPath, String outPath) async {
+  final input = File(inPath).openRead();
+  final output = File(outPath).openWrite();
+
+  await input
+      .transform(base64.encoder) // Stream&lt;List&lt;int&gt;&gt; -&gt; Stream&lt;String&gt;
+      .transform(utf8.encoder)   // back to bytes for writing
+      .pipe(output);
+}</pre>
+      <div class="tip"><p><code>dart:io</code> is not available on Flutter Web. If your code needs to run in the browser too, encode bytes you already hold in memory (from <code>http</code> responses or <code>file_picker</code>) rather than touching <code>File</code> directly, or branch on <code>kIsWeb</code> from <code>package:flutter/foundation.dart</code>.</p></div>
+
+      <h2 id="http">Send Base64 in HTTP requests with the http package</h2>
+      <p>The <code>http</code> package is the standard way to make network calls in Dart. To send a Base64-encoded payload, encode your bytes, drop the resulting string into a JSON body, and POST it. The example below uploads an image as a Base64 field inside a JSON object.</p>
+      <pre>import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+
+Future&lt;void&gt; uploadImage(String imagePath) async {
+  final bytes = await File(imagePath).readAsBytes();
+  final base64Image = base64.encode(bytes);
+
+  final response = await http.post(
+    Uri.parse('https://api.example.com/upload'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'filename': 'photo.png',
+      'data': base64Image,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    print('Uploaded successfully');
+  } else {
+    print('Upload failed: ${response.statusCode}');
+  }
+}</pre>
+      <p>Receiving Base64 works the same way in reverse. Parse the JSON response, pull out the Base64 field, and decode it into bytes you can save or render. Because the server's value might use the URL-safe alphabet, decoding with the lenient <code>base64</code> codec is the safest default.</p>
+      <pre>Future&lt;Uint8List&gt; downloadImage(String url) async {
+  final response = await http.get(Uri.parse(url));
+  final json = jsonDecode(response.body) as Map&lt;String, dynamic&gt;;
+  final base64Image = json['data'] as String;
+  return base64.decode(base64Image);
+}</pre>
+      <div class="warn"><p>If you control the API, prefer <code>http.MultipartRequest</code> for file uploads instead of Base64-in-JSON. Multipart sends the raw bytes, avoiding the ~33% size overhead and the cost of encoding/decoding on both ends. Reserve Base64-in-JSON for small payloads or APIs that explicitly require it.</p></div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+
+      <h3>How do I Base64 encode a string in Dart?</h3>
+      <p>Import dart:convert and use: <code>import "dart:convert"; String encoded = base64.encode(utf8.encode("Hello")); String decoded = utf8.decode(base64.decode(encoded));</code></p>
+
+      <h3>How do I encode an image to Base64 in Flutter?</h3>
+      <p>Get the image as Uint8List (from AssetBundle, File, or NetworkImage), then encode: <code>final bytes = await File(imagePath).readAsBytes(); final base64String = base64.encode(bytes);</code> You can then use it as a data URI: <code>"data:image/png;base64,$base64String"</code></p>
+
+      <h3>What is the difference between base64 and base64Url in Dart?</h3>
+      <p><code>base64</code> uses the standard Base64 alphabet (<code>+</code> and <code>/</code>). <code>base64Url</code> uses the URL-safe alphabet (<code>-</code> and <code>_</code>) and is safe for use in URLs, filenames, and JWTs. Both are available in dart:convert without any additional packages.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+        <li><a href="/articles/base64-image-encoding">Base64 Image Encoding</a></li>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

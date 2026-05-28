@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>base64 Command in Linux & macOS — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to use the base64 command on Linux and macOS to encode and decode strings and files. Covers key flags and GNU coreutils vs BSD differences.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-linux-mac">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-linux-mac">
+<meta property="og:title" content="base64 Command in Linux & macOS">
+<meta property="og:description" content="Encode and decode Base64 from the terminal on Linux and macOS, with all flags and GNU vs BSD gotchas.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "base64 Command in Linux & macOS",
+  "description": "Encode and decode Base64 from the terminal on Linux and macOS, with all flags and GNU vs BSD gotchas.",
+  "url": "https://base64.dev/articles/base64-linux-mac",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "base64 Command (Linux & macOS)", "item": "https://base64.dev/articles/base64-linux-mac" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I base64 encode a string in Linux terminal?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use echo -n "your string" | base64. The -n flag suppresses the trailing newline — without it, the newline is included in the encoded output." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does base64 -d work on Linux but not macOS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Linux uses GNU coreutils where -d means decode. macOS uses BSD base64 where the decode flag is -D (uppercase). Use -D on macOS or -d on Linux." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I remove line wrapping from base64 output on Linux?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use base64 -w 0 to disable line wrapping on Linux. On macOS, output is not wrapped by default." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>base64 Command (Linux & macOS)</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">CLI</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>base64 Command in Linux & macOS</h1>
+      <p class="lead">The <code>base64</code> command is built into Linux (GNU coreutils) and macOS (BSD libc). They look the same but have subtle flag differences that break scripts. Here is everything you need.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#basics">Basic encode and decode from the terminal</a></li>
+          <li><a href="#files">Encode and decode files</a></li>
+          <li><a href="#gnu-vs-bsd">GNU vs BSD: -d vs -D and line wrapping</a></li>
+          <li><a href="#pipelines">Using base64 in pipelines and shell variables</a></li>
+          <li><a href="#echo-n">The echo -n gotcha</a></li>
+          <li><a href="#errors">Common errors and fixes</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="basics">Basic encode and decode from the terminal</h2>
+      <p>The <code>base64</code> command reads from standard input (or a file) and writes the encoded result to standard output. The simplest way to encode a string is to pipe it in with <code>echo</code>:</p>
+      <pre>$ echo -n "hello" | base64
+aGVsbG8=</pre>
+      <p>To decode, pass the <code>-d</code> flag (on Linux) and feed it the Base64 text. The command reverses the operation and prints the original bytes:</p>
+      <pre>$ echo "aGVsbG8=" | base64 -d
+hello</pre>
+      <p>Notice that we used <code>echo -n</code> when encoding but plain <code>echo</code> when decoding. On the encode side, the <code>-n</code> suppresses the trailing newline so it is not folded into the data. On the decode side, the trailing newline that <code>echo</code> adds is harmless — the decoder simply ignores characters that are not part of the Base64 alphabet. We cover this subtlety in detail in the <a href="#echo-n">echo -n gotcha</a> section.</p>
+      <div class="tip"><p>Run <code>base64 --help</code> on Linux or <code>man base64</code> on macOS to confirm which implementation you have. GNU coreutils prints a long <code>--help</code> screen; BSD base64 does not support <code>--help</code> and will error.</p></div>
+
+      <h2 id="files">Encode and decode files</h2>
+      <p>Both implementations accept a filename as a positional argument, so you do not need to pipe with <code>cat</code>. To encode a binary file such as an image into a Base64 text representation:</p>
+      <pre>$ base64 logo.png &gt; logo.b64</pre>
+      <p>This works equally on Linux and macOS. The <code>&gt;</code> redirects the encoded output into a new file. To turn that Base64 text back into the original binary, decode it and redirect to a fresh filename so you do not clobber the source:</p>
+      <pre># Linux (GNU)
+$ base64 -d logo.b64 &gt; logo-restored.png
+
+# macOS (BSD)
+$ base64 -D logo.b64 &gt; logo-restored.png</pre>
+      <p>You can verify a round trip succeeded by comparing checksums. If the hashes match, the encode/decode cycle was lossless:</p>
+      <pre>$ shasum logo.png logo-restored.png
+3a1f...  logo.png
+3a1f...  logo-restored.png</pre>
+      <div class="warn"><p>Never decode in place over the source file. A command like <code>base64 -d data.b64 &gt; data.b64</code> truncates the file before it is read, destroying your data. Always write to a new filename.</p></div>
+
+      <h2 id="gnu-vs-bsd">GNU vs BSD: -d vs -D and line wrapping</h2>
+      <p>This is the single most common source of "it works on my machine" failures with <code>base64</code>. Linux ships GNU coreutils, where the decode flag is lowercase <code>-d</code> (with a long form <code>--decode</code>). macOS ships the BSD implementation, where the decode flag is uppercase <code>-D</code>. They are not interchangeable:</p>
+      <pre># Linux — works
+$ echo "aGk=" | base64 -d
+hi
+
+# macOS — the SAME command fails
+$ echo "aGk=" | base64 -d
+usage: base64 ...
+# macOS wants the uppercase D:
+$ echo "aGk=" | base64 -D
+hi</pre>
+      <p>The second major difference is line wrapping. GNU <code>base64</code> wraps encoded output at 76 characters per line by default. To produce a single unbroken line — which you almost always want when embedding the result in JSON, a header, or an environment variable — use <code>-w 0</code> (wrap width zero means "do not wrap"):</p>
+      <pre>$ head -c 200 /dev/urandom | base64 -w 0
+# one long line, no breaks</pre>
+      <p>On macOS the BSD tool does <em>not</em> wrap output by default, and it does <em>not</em> understand <code>-w</code> at all — passing <code>-w 0</code> there is an error. If you need a portable script, the safest approach is to encode normally and strip newlines yourself with <code>tr</code>:</p>
+      <pre># Portable: works on both GNU and BSD
+$ base64 file.bin | tr -d '\n'</pre>
+      <div class="tip"><p>On macOS you can install GNU coreutils via Homebrew with <code>brew install coreutils</code>. It provides <code>gbase64</code>, which behaves exactly like the Linux command (<code>-d</code>, <code>-w</code>, and all). This lets you write one script that runs the same everywhere by calling <code>gbase64</code>.</p></div>
+
+      <h2 id="pipelines">Using base64 in pipelines and shell variables</h2>
+      <p>Because <code>base64</code> reads stdin and writes stdout, it slots cleanly into pipelines. A common pattern is building an HTTP Basic Auth header, which is the colon-joined <code>user:password</code> string encoded as Base64:</p>
+      <pre>$ printf '%s' "alice:s3cret" | base64
+YWxpY2U6czNjcmV0</pre>
+      <p>We use <code>printf '%s'</code> instead of <code>echo</code> here because <code>printf</code> never appends a newline and behaves identically across shells — making it the most reliable choice for credential encoding.</p>
+      <p>To capture encoded output in a shell variable, use command substitution. This is handy when you need the value later in the script:</p>
+      <pre>$ token=$(printf '%s' "alice:s3cret" | base64)
+$ curl -H "Authorization: Basic $token" https://api.example.com</pre>
+      <p>You can also decode straight into a variable, then act on it. For example, pulling a value out of a Kubernetes secret (which stores everything Base64-encoded) and using it inline:</p>
+      <pre>$ password=$(echo "$ENCODED_SECRET" | base64 -d)
+$ echo "Decoded length: ${#password}"</pre>
+      <div class="warn"><p>Command substitution with <code>$(...)</code> strips trailing newlines from the captured output. That is usually what you want, but be aware of it if you are decoding binary data into a variable — shell variables cannot hold NUL bytes, so always decode binary to a file, not a variable.</p></div>
+
+      <h2 id="echo-n">The echo -n gotcha</h2>
+      <p>This trips up almost everyone the first time. By default, <code>echo</code> appends a trailing newline character (<code>\n</code>, byte <code>0x0a</code>) to its output. Since Base64 encodes <em>every</em> byte it receives, that invisible newline changes the result:</p>
+      <pre>$ echo "hello" | base64
+aGVsbG8K          # note the trailing K — that's the newline
+
+$ echo -n "hello" | base64
+aGVsbG8=          # correct: 5 bytes only</pre>
+      <p>The difference is real and breaks things. If you encode a password or API token with a stray newline, the receiving system decodes a value that ends in <code>\n</code> and authentication fails — often with a confusing error that does not mention whitespace at all.</p>
+      <p>Two reliable fixes: use <code>echo -n</code> to suppress the newline, or use <code>printf '%s'</code> which never adds one. The <code>printf</code> form is preferable in portable scripts because some shells (notably <code>dash</code> and certain <code>sh</code> variants) treat <code>echo -n</code> inconsistently — they may print the literal text <code>-n</code> instead of honoring the flag:</p>
+      <pre># Most reliable across all shells
+$ printf '%s' "my-secret-token" | base64</pre>
+      <div class="tip"><p>When decoding, the opposite is true: trailing whitespace is forgiven. The decoder ignores newlines and other non-alphabet characters, so <code>echo "aGVsbG8=" | base64 -d</code> works fine even though <code>echo</code> added a newline to the Base64 input.</p></div>
+
+      <h2 id="errors">Common errors and fixes</h2>
+      <p>Here are the failures you are most likely to hit and how to resolve each one:</p>
+      <ul>
+        <li><strong><code>base64: invalid option -- 'D'</code> (Linux)</strong> — You used the macOS decode flag on Linux. Switch to lowercase <code>-d</code> or <code>--decode</code>.</li>
+        <li><strong><code>usage: base64 ...</code> after <code>-d</code> (macOS)</strong> — BSD base64 does not accept <code>-d</code>; it needs uppercase <code>-D</code>. Use <code>-D</code>, or install <code>coreutils</code> and call <code>gbase64 -d</code>.</li>
+        <li><strong><code>base64: invalid input</code></strong> — The input contains characters outside the Base64 alphabet or has a wrong length. GNU base64 is strict by default. Pass <code>-i</code> (GNU <code>--ignore-garbage</code>) to skip non-alphabet bytes, or check for stray quotes and spaces.</li>
+        <li><strong>Decoded value has an extra newline</strong> — You encoded with plain <code>echo</code> instead of <code>echo -n</code> or <code>printf '%s'</code>. Re-encode without the trailing newline.</li>
+        <li><strong>Long output wrapped across multiple lines</strong> — GNU wraps at 76 columns. Add <code>-w 0</code> (Linux only) or pipe through <code>tr -d '\n'</code> for a portable one-liner.</li>
+        <li><strong><code>Incorrect padding</code> errors downstream</strong> — The Base64 string was truncated or had its <code>=</code> padding stripped. Make sure the full value, including any trailing <code>=</code> characters, is preserved when you copy it.</li>
+      </ul>
+      <p>When a script must run on both Linux and macOS, the most robust pattern is to avoid the divergent decode flag entirely by detecting the platform, or by standardizing on a known implementation. A small wrapper makes scripts portable:</p>
+      <pre>decode() {
+  if base64 --help 2&gt;&amp;1 | grep -q -- '--decode'; then
+    base64 -d   # GNU
+  else
+    base64 -D   # BSD / macOS
+  fi
+}
+
+$ echo "aGVsbG8=" | decode
+hello</pre>
+      <div class="tip"><p>For a quick, zero-install round trip without worrying about flags or platforms at all, paste your string or drop a file into <a href="/">base64.dev</a> — it auto-detects whether to encode or decode and handles padding and newlines for you.</p></div>
+
+      <hr>
+
+      <h2 id="faq">FAQ</h2>
+      <h3>How do I base64 encode a string in Linux terminal?</h3>
+      <p>Use <code>echo -n "your string" | base64</code>. The <code>-n</code> flag suppresses the trailing newline — without it, the newline is included in the encoded output.</p>
+
+      <h3>Why does base64 -d work on Linux but not macOS?</h3>
+      <p>Linux uses GNU coreutils where <code>-d</code> means decode. macOS uses BSD base64 where the decode flag is <code>-D</code> (uppercase). Use <code>-D</code> on macOS or <code>-d</code> on Linux.</p>
+
+      <h3>How do I remove line wrapping from base64 output on Linux?</h3>
+      <p>Use <code>base64 -w 0</code> to disable line wrapping on Linux. On macOS, output is not wrapped by default.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-bash">Base64 in Bash Scripts</a></li>
+        <li><a href="/articles/base64-openssl">OpenSSL Base64</a></li>
+        <li><a href="/articles/what-is-base64">What is Base64?</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

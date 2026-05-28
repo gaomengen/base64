@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenSSL Base64 Encode & Decode — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 with OpenSSL using openssl enc -base64. Covers the -A no-linebreak flag, file encoding, and certificate workflows.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-openssl">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-openssl">
+<meta property="og:title" content="OpenSSL Base64 Encode & Decode">
+<meta property="og:description" content="Use openssl enc -base64 to encode and decode files and strings. Includes the critical -A flag and certificate use cases.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "OpenSSL Base64 Encode & Decode",
+  "description": "Use openssl enc -base64 to encode and decode files and strings. Includes the critical -A flag and certificate use cases.",
+  "url": "https://base64.dev/articles/base64-openssl",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles" },
+    { "@type": "ListItem", "position": 3, "name": "OpenSSL Base64", "item": "https://base64.dev/articles/base64-openssl" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I base64 encode a string with OpenSSL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo -n "your string" | openssl enc -base64 -A. The -A flag outputs a single line with no wrapping. Without -A, OpenSSL wraps every 64 characters which can break downstream tools." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode Base64 with OpenSSL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo "SGVsbG8=" | openssl enc -base64 -d -A. The -d flag means decode, -A means single-line (no line-break handling). You can also decode a file: openssl enc -base64 -d -A -in encoded.txt -out decoded.bin" }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between openssl base64 and the base64 command?",
+      "acceptedAnswer": { "@type": "Answer", "text": "They both do Base64 but with different defaults. openssl enc -base64 wraps at 64 chars by default; the base64 command wraps at 76 chars (GNU) or not at all (macOS). For certificate work, openssl is standard. For scripting, the base64 command is simpler." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">&#9681;</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>OpenSSL Base64</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">OpenSSL</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>OpenSSL Base64 Encode & Decode</h1>
+      <p class="lead">OpenSSL can encode and decode Base64 via <code>openssl enc -base64</code>. It is especially useful when working with certificates and keys, but has a critical gotcha: by default it wraps output at 64 characters per line.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#basics">Basic encode and decode</a></li>
+          <li><a href="#a-flag">The -A flag: single-line output</a></li>
+          <li><a href="#files">Encode and decode files</a></li>
+          <li><a href="#pipes">Using OpenSSL Base64 with pipes</a></li>
+          <li><a href="#pem">Working with PEM certificates</a></li>
+          <li><a href="#vs-base64">OpenSSL vs the base64 command</a></li>
+        </ol>
+      </div>
+
+      <h2 id="basics">Basic encode and decode with openssl enc -base64</h2>
+      <p>OpenSSL ships with a generic encoding/cipher subcommand, <code>enc</code>. Base64 is implemented as one of its encodings, so you reach it through <code>openssl enc -base64</code> (or the shorter alias <code>openssl base64</code>). The same command both encodes and decodes; the <code>-d</code> flag switches it into decode mode.</p>
+      <p>To encode a short string, pipe it into the command. Use <code>echo -n</code> so the shell does not append a trailing newline that would change the encoded result.</p>
+      <pre>$ echo -n "Hello, World" | openssl enc -base64
+SGVsbG8sIFdvcmxk</pre>
+      <p>To decode, add <code>-d</code>. OpenSSL reads the Base64 from standard input and writes the decoded bytes back out.</p>
+      <pre>$ echo "SGVsbG8sIFdvcmxk" | openssl enc -base64 -d
+Hello, World</pre>
+      <p>You can also use the alias form, which behaves identically. Both of these are equivalent:</p>
+      <pre>$ echo -n "data" | openssl base64
+$ echo -n "data" | openssl enc -base64</pre>
+      <div class="tip">
+        <p>The <code>-n</code> in <code>echo -n</code> matters. Without it, <code>echo</code> adds a newline byte (<code>0x0A</code>) to the input, and that byte gets encoded too — so <code>"Hello"</code> and <code>"Hello\n"</code> produce different Base64. For exact round-trips, always strip the trailing newline.</p>
+      </div>
+
+      <h2 id="a-flag">The -A flag: output as a single line (no wrapping)</h2>
+      <p>This is the single most important thing to know about OpenSSL Base64. By default, <code>openssl enc -base64</code> wraps its output to a maximum of 64 characters per line, inserting a newline after each chunk. That convention comes from PEM and MIME formatting, but it breaks any tool that expects one continuous Base64 string — JSON fields, HTTP headers, environment variables, and shell variable assignments.</p>
+      <p>Watch what happens when you encode something longer than 64 bytes without <code>-A</code>:</p>
+      <pre>$ echo -n "The quick brown fox jumps over the lazy dog. Pack my box." \
+  | openssl enc -base64
+VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4gUGFj
+ayBteSBib3gu
+</pre>
+      <p>The output spans two lines. Adding <code>-A</code> ("all on one line") produces a single, unwrapped string:</p>
+      <pre>$ echo -n "The quick brown fox jumps over the lazy dog. Pack my box." \
+  | openssl enc -base64 -A
+VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZy4gUGFjayBteSBib3gu</pre>
+      <p>The <code>-A</code> flag also matters on the decode side. When decoding without <code>-A</code>, OpenSSL processes the input line by line and is strict about line lengths; long single-line input can fail or be truncated. With <code>-A</code>, it treats the entire input as one block. The safe rule is to use <code>-A</code> on both encode and decode whenever you are handling a single-line Base64 string.</p>
+      <pre>$ echo "VGhlIHF1aWNrIGJyb3duIGZveA==" | openssl enc -base64 -d -A
+The quick brown fox</pre>
+      <div class="warn">
+        <p>Forgetting <code>-A</code> when decoding a long single-line string is a classic source of silent data corruption. Older OpenSSL builds may stop reading at the first 80-ish characters and produce partial output without any error. Always pair <code>-A</code> with single-line input.</p>
+      </div>
+
+      <h2 id="files">Encode and decode files</h2>
+      <p>Instead of piping through standard input and output, you can point OpenSSL directly at files with <code>-in</code> and <code>-out</code>. This avoids shell mangling of binary data and is the right approach for anything larger than a few bytes.</p>
+      <p>To encode a binary file — say an image — into a Base64 text file:</p>
+      <pre>$ openssl enc -base64 -A -in logo.png -out logo.b64</pre>
+      <p>To decode it back to the original bytes, add <code>-d</code> and swap the file roles:</p>
+      <pre>$ openssl enc -base64 -d -A -in logo.b64 -out logo.png</pre>
+      <p>You can verify the round-trip was byte-for-byte exact by comparing checksums of the original and decoded files:</p>
+      <pre>$ shasum logo.png logo.png.decoded
+3a7bd3e2360a3d29eea436fcfb7e44c7  logo.png
+3a7bd3e2360a3d29eea436fcfb7e44c7  logo.png.decoded</pre>
+      <p>If you omit <code>-out</code>, OpenSSL prints the result to the terminal. That is convenient for inspection but dangerous for binary output, since raw bytes can scramble your terminal. For decoding binary, always send the result to a file with <code>-out</code> or redirect it.</p>
+      <div class="tip">
+        <p>For files, whether you include <code>-A</code> is a style choice: with <code>-A</code> the encoded file is one long line; without it, the file is wrapped at 64 characters. As long as you decode with the same convention OpenSSL will read both, but a single line is friendlier to tools that read the value back into a variable.</p>
+      </div>
+
+      <h2 id="pipes">Using openssl base64 with pipes</h2>
+      <p>Because <code>openssl enc</code> reads stdin and writes stdout, it composes naturally with other commands in a pipeline. A common pattern is hashing or compressing data and then Base64-encoding the result so it is safe to embed in text.</p>
+      <p>For example, compute a SHA-256 digest of a file and Base64-encode the raw binary digest (this is the form used in Subresource Integrity and Content-Security-Policy hashes):</p>
+      <pre>$ openssl dgst -sha256 -binary app.js | openssl enc -base64 -A
+9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08</pre>
+      <p>You can also gzip a payload before encoding it, which is handy for packing data into a single environment variable:</p>
+      <pre>$ cat config.json | gzip | openssl enc -base64 -A
+H4sIAAAAAAAAA6tWSkksSVSyUlAvLknNTc0rUVCqVQIA...</pre>
+      <p>To reverse that pipeline, decode first, then decompress:</p>
+      <pre>$ echo "$PACKED" | openssl enc -base64 -d -A | gzip -d
+{"setting": "value"}</pre>
+      <p>Capturing the encoded output into a shell variable is one of the most common reasons people reach for <code>-A</code> — without it, the embedded newlines make the variable awkward to use:</p>
+      <pre>$ TOKEN=$(echo -n "$SECRET" | openssl enc -base64 -A)
+$ echo "Authorization: Basic $TOKEN"</pre>
+
+      <h2 id="pem">Working with PEM certificates (already Base64)</h2>
+      <p>If you work with TLS certificates and keys, you are already looking at Base64 every day. The PEM format is simply DER-encoded binary that has been Base64-encoded, wrapped at 64 characters per line, and bracketed with <code>-----BEGIN-----</code> / <code>-----END-----</code> header lines. That 64-character wrapping is exactly why OpenSSL's Base64 default wraps at 64.</p>
+      <p>A PEM certificate looks like this:</p>
+      <pre>-----BEGIN CERTIFICATE-----
+MIIDdzCCAl+gAwIBAgIEAgAAuTANBgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJJ
+RTESMBAGA1UEChMJQmFsdGltb3JlMRMwEQYDVQQLEwpDeWJlclRydXN0MSIwIAYD
+...
+-----END CERTIFICATE-----</pre>
+      <p>To see the actual Base64 body decoded into the underlying DER structure, you usually use the dedicated <code>x509</code> tool rather than raw Base64, because it understands the ASN.1 structure:</p>
+      <pre>$ openssl x509 -in cert.pem -text -noout</pre>
+      <p>But if you only want to convert between the PEM (Base64 text) and DER (raw binary) representations, you can do it explicitly. To extract the raw DER bytes from a PEM file, strip the header lines and Base64-decode the body — or just use OpenSSL's format conversion:</p>
+      <pre>$ openssl x509 -in cert.pem -outform DER -out cert.der</pre>
+      <p>Going the other direction, you can take DER bytes and re-encode them as PEM Base64. Manually, that is what the default 64-column wrapping is for:</p>
+      <pre>$ openssl enc -base64 -in cert.der -out cert-body.txt</pre>
+      <div class="warn">
+        <p>Do not use plain <code>openssl enc -base64</code> to "decode a certificate" and expect something readable. The Base64 body decodes to DER — a compact binary ASN.1 structure, not text. Use <code>openssl x509</code>, <code>openssl req</code>, or <code>openssl asn1parse</code> to actually inspect the contents.</p>
+      </div>
+
+      <h2 id="vs-base64">OpenSSL base64 vs the base64 command — when to use each</h2>
+      <p>Most systems also ship a standalone <code>base64</code> command. It and <code>openssl enc -base64</code> implement the same standard alphabet (RFC 4648) and produce interchangeable output, but their defaults and ergonomics differ.</p>
+      <ul>
+        <li><strong>Line wrapping defaults differ.</strong> <code>openssl enc -base64</code> wraps at 64 characters. GNU <code>base64</code> (Linux) wraps at 76 characters but accepts <code>-w 0</code> to disable wrapping. macOS/BSD <code>base64</code> does not wrap at all by default.</li>
+        <li><strong>Single-line flag differs.</strong> OpenSSL uses <code>-A</code>; GNU <code>base64</code> uses <code>-w 0</code>; BSD <code>base64</code> needs nothing because it never wraps.</li>
+        <li><strong>Decode flag differs.</strong> OpenSSL uses <code>-d</code>; the <code>base64</code> command uses <code>-d</code> (GNU) or <code>-D</code> (macOS).</li>
+      </ul>
+      <p>Use <strong>OpenSSL</strong> when you are already in a certificate, key, or cryptography workflow — converting DER to PEM, encoding a binary digest, or scripting alongside other <code>openssl</code> subcommands. It is also the most portable choice across Unix-like systems where the standalone <code>base64</code> flags vary between GNU and BSD.</p>
+      <p>Use the <strong>base64</strong> command when you want the simplest possible one-off encode or decode and you know which platform you are on. It has a smaller, more memorable interface and is slightly faster to type.</p>
+      <p>Here are the equivalent single-line encode commands across all three:</p>
+      <pre>$ echo -n "data" | openssl enc -base64 -A      # OpenSSL
+$ echo -n "data" | base64 -w 0                 # GNU / Linux
+$ echo -n "data" | base64                      # macOS / BSD</pre>
+      <div class="tip">
+        <p>If you need a script that runs unchanged on both Linux and macOS, reaching for <code>openssl enc -base64 -A</code> is often the cleanest answer because the flags are identical everywhere OpenSSL is installed.</p>
+      </div>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+
+      <h3>How do I base64 encode a string with OpenSSL?</h3>
+      <p>Use: <code>echo -n "your string" | openssl enc -base64 -A</code>. The <code>-A</code> flag outputs a single line with no wrapping. Without <code>-A</code>, OpenSSL wraps every 64 characters which can break downstream tools.</p>
+
+      <h3>How do I decode Base64 with OpenSSL?</h3>
+      <p>Use: <code>echo "SGVsbG8=" | openssl enc -base64 -d -A</code>. The <code>-d</code> flag means decode, <code>-A</code> means single-line (no line-break handling). You can also decode a file: <code>openssl enc -base64 -d -A -in encoded.txt -out decoded.bin</code></p>
+
+      <h3>What is the difference between openssl base64 and the base64 command?</h3>
+      <p>They both do Base64 but with different defaults. <code>openssl enc -base64</code> wraps at 64 chars by default; the <code>base64</code> command wraps at 76 chars (GNU) or not at all (macOS). For certificate work, openssl is standard. For scripting, the base64 command is simpler.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+        <li><a href="/articles/base64-linux-mac">base64 Command (Linux & macOS)</a></li>
+        <li><a href="/articles/base64-ssh-pem">SSH Keys & PEM Files</a></li>
+        <li><a href="/articles/base64-bash">Base64 in Bash</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any string or file — base64.dev auto-detects and converts it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev &rarr;</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>&copy; 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
