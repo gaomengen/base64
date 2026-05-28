@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in PHP — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in PHP using base64_encode() and base64_decode(). Covers URL-safe Base64, encoding images and files, and data URIs in PHP.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-php">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-php">
+<meta property="og:title" content="Base64 Encoding & Decoding in PHP">
+<meta property="og:description" content="Complete guide to Base64 in PHP: base64_encode, base64_decode, URL-safe variant, encoding files and images.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in PHP",
+  "url": "https://base64.dev/articles/base64-php",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in PHP", "item": "https://base64.dev/articles/base64-php" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PHP has a built-in base64_encode() function: $encoded = base64_encode('Hello'); To decode: $decoded = base64_decode($encoded);" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PHP does not have a built-in URL-safe Base64 function. Use: rtrim(strtr(base64_encode($data), '+/', '-_'), '=') to encode, and base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT)) to decode." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I validate Base64 input in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use base64_decode with the strict parameter: if (base64_decode($input, true) !== false) { // valid }. With strict=true, the function returns false for invalid characters instead of silently ignoring them." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in PHP</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">PHP</span>
+        <span class="article-read-time">4 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in PHP</h1>
+      <p class="lead">PHP has built-in <code>base64_encode()</code> and <code>base64_decode()</code> functions. They are simple, but URL-safe Base64 requires a manual conversion step.</p>
+
+      <h2>Basic Usage</h2>
+      <pre>&lt;?php
+
+// Encode
+$encoded = base64_encode("Hello, world!");
+echo $encoded; // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode
+$decoded = base64_decode("SGVsbG8sIHdvcmxkIQ==");
+echo $decoded; // "Hello, world!"
+
+// Validate before decoding
+$input = "SGVsbG8sIHdvcmxkIQ==";
+if (base64_decode($input, true) !== false) {
+    echo base64_decode($input);
+} else {
+    echo "Invalid Base64";
+}</pre>
+      <div class="tip">
+        <p><strong>Use the strict parameter:</strong> <code>base64_decode($str, true)</code> returns <code>false</code> instead of attempting to decode invalid input. Always pass <code>true</code> when validating user input.</p>
+      </div>
+
+      <h2>URL-Safe Base64</h2>
+      <p>PHP does not have a built-in URL-safe encoder, but it is easy to implement:</p>
+      <pre>&lt;?php
+
+function base64url_encode(string $data): string {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+function base64url_decode(string $data): string|false {
+    // Restore standard Base64 padding
+    $padded = strtr($data, '-_', '+/');
+    $padded = str_pad($padded, strlen($padded) + (4 - strlen($padded) % 4) % 4, '=');
+    return base64_decode($padded, true);
+}
+
+echo base64url_encode("Hello, world!"); // "SGVsbG8sIHdvcmxkIQ"
+echo base64url_decode("SGVsbG8sIHdvcmxkIQ"); // "Hello, world!"</pre>
+
+      <h2>Encoding Images and Files</h2>
+      <pre>&lt;?php
+
+// Encode a file to Base64
+function fileToBase64(string $path): string {
+    $contents = file_get_contents($path);
+    if ($contents === false) {
+        throw new RuntimeException("Could not read file: $path");
+    }
+    return base64_encode($contents);
+}
+
+// Decode Base64 back to file
+function base64ToFile(string $encoded, string $outputPath): void {
+    $decoded = base64_decode($encoded, true);
+    if ($decoded === false) {
+        throw new InvalidArgumentException("Invalid Base64 data");
+    }
+    file_put_contents($outputPath, $decoded);
+}
+
+$encoded = fileToBase64('image.png');
+base64ToFile($encoded, 'output.png');</pre>
+
+      <h2>Creating Data URIs</h2>
+      <pre>&lt;?php
+
+function fileToDataUri(string $path): string {
+    $mime = mime_content_type($path) ?: 'application/octet-stream';
+    $encoded = base64_encode(file_get_contents($path));
+    return "data:{$mime};base64,{$encoded}";
+}
+
+$dataUri = fileToDataUri('logo.png');
+// data:image/png;base64,iVBORw0KGgo...
+
+// Use in HTML
+echo '&lt;img src="' . htmlspecialchars($dataUri) . '" alt="Logo"&gt;';</pre>
+
+      <h2>Handling Large Files with Chunks</h2>
+      <pre>&lt;?php
+
+// Stream-encode a large file without loading it all into memory
+function encodeFileLarge(string $input, string $output): void {
+    $in = fopen($input, 'rb');
+    $out = fopen($output, 'w');
+
+    // Read in multiples of 3 bytes (Base64 requires 3-byte chunks)
+    while (!feof($in)) {
+        $chunk = fread($in, 57 * 1024); // 57 bytes → 76 Base64 chars
+        fwrite($out, base64_encode($chunk));
+    }
+
+    fclose($in);
+    fclose($out);
+}</pre>
+
+      <h2>Common Pitfalls</h2>
+      <h3>Whitespace in decoded output</h3>
+      <pre>&lt;?php
+// base64_decode silently ignores some invalid characters.
+// Always trim input from untrusted sources:
+$clean = preg_replace('/\s+/', '', $userInput);
+$decoded = base64_decode($clean, true);</pre>
+
+      <h3>Using base64 in URLs without URL-encoding</h3>
+      <pre>&lt;?php
+// Standard Base64 in a URL will break:
+$encoded = base64_encode("data"); // may contain + / =
+$url = "https://example.com/api?token=" . urlencode($encoded); // ✓
+
+// Better: use URL-safe Base64 and skip urlencode entirely:
+$url = "https://example.com/api?token=" . base64url_encode("data"); // ✓✓</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-python">Base64 in Python</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/articles/base64-image-encoding">Base64 Image Encoding</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Test your PHP Base64 encoding</h3>
+        <p>Paste the output of your PHP <code>base64_encode()</code> calls here to verify they decode correctly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

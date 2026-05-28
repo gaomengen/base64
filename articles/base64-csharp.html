@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in C# (.NET) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in C# using Convert.ToBase64String and Convert.FromBase64String. Covers strings, byte arrays, and URL-safe Base64 in .NET.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-csharp">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-csharp">
+<meta property="og:title" content="Base64 Encoding & Decoding in C# (.NET)">
+<meta property="og:description" content="Complete guide to Base64 in C#: Convert.ToBase64String, streams, URL-safe Base64, and working with byte arrays in .NET.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in C# (.NET)",
+  "url": "https://base64.dev/articles/base64-csharp",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in C#", "item": "https://base64.dev/articles/base64-csharp" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in C#?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Convert.ToBase64String(): string encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(\"Hello\")); To decode: string decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in C# .NET?",
+      "acceptedAnswer": { "@type": "Answer", "text": "In .NET 7+, use System.Buffers.Text.Base64Url or Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(). For older versions: Convert.ToBase64String(data).Replace('+','-').Replace('/','_').TrimEnd('=')" }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Convert.ToBase64String in C#?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Convert.ToBase64String() is the built-in .NET method for Base64 encoding a byte array. It is available in all .NET versions including .NET Framework and .NET Core/5+." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in C#</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">C#</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in C# (.NET)</h1>
+      <p class="lead">C# provides <code>Convert.ToBase64String()</code> and <code>Convert.FromBase64String()</code> in the standard library. .NET 5+ also added <code>Base64Url</code> helpers and span-based APIs for zero-allocation encoding.</p>
+
+      <h2>Basic Usage</h2>
+      <pre>using System;
+using System.Text;
+
+// Encode string to Base64
+string original = "Hello, world!";
+byte[] bytes = Encoding.UTF8.GetBytes(original);
+string encoded = Convert.ToBase64String(bytes);
+Console.WriteLine(encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode Base64 to string
+byte[] decodedBytes = Convert.FromBase64String(encoded);
+string decoded = Encoding.UTF8.GetString(decodedBytes);
+Console.WriteLine(decoded); // "Hello, world!"</pre>
+      <div class="tip">
+        <p><strong>Always use <code>Encoding.UTF8</code></strong> explicitly when converting strings to bytes. Avoid <code>Encoding.Default</code> which varies by platform.</p>
+      </div>
+
+      <h2>Line-Breaking Options</h2>
+      <pre>// No line breaks (default, recommended for most uses)
+string noBreaks = Convert.ToBase64String(bytes, Base64FormattingOptions.None);
+
+// Insert line breaks every 76 characters (MIME format)
+string withBreaks = Convert.ToBase64String(bytes, Base64FormattingOptions.InsertLineBreaks);</pre>
+
+      <h2>URL-Safe Base64 (.NET 7+)</h2>
+      <pre>// .NET 7+ has a dedicated Base64Url helper
+using System.Buffers.Text;
+
+// Or use Microsoft.AspNetCore.WebUtilities (available in earlier .NET)
+using Microsoft.AspNetCore.WebUtilities;
+
+string encoded = WebEncoders.Base64UrlEncode(bytes);
+byte[] decoded = WebEncoders.Base64UrlDecode(encoded);</pre>
+      <p>For older .NET versions without <code>Base64Url</code>, implement it manually:</p>
+      <pre>public static string ToBase64Url(byte[] data)
+{
+    return Convert.ToBase64String(data)
+        .Replace('+', '-')
+        .Replace('/', '_')
+        .TrimEnd('=');
+}
+
+public static byte[] FromBase64Url(string base64url)
+{
+    string base64 = base64url
+        .Replace('-', '+')
+        .Replace('_', '/');
+    // Restore padding
+    int pad = base64.Length % 4;
+    if (pad == 2) base64 += "==";
+    else if (pad == 3) base64 += "=";
+    return Convert.FromBase64String(base64);
+}</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>using System.IO;
+
+// Encode file to Base64 string
+string encoded = Convert.ToBase64String(File.ReadAllBytes("image.png"));
+
+// Decode Base64 back to file
+File.WriteAllBytes("output.png", Convert.FromBase64String(encoded));</pre>
+
+      <h2>Stream-Based Encoding (.NET)</h2>
+      <pre>using System;
+using System.IO;
+using System.Security.Cryptography;
+
+// Encode stream to Base64 (for large files)
+public static void EncodeToBase64Stream(Stream input, TextWriter output)
+{
+    using var toBase64 = new ToBase64Transform();
+    byte[] inputBuffer = new byte[3 * 1024]; // multiples of 3 for clean chunks
+    byte[] outputBuffer = new byte[4 * 1024];
+    int bytesRead;
+    while ((bytesRead = input.Read(inputBuffer, 0, inputBuffer.Length)) > 0)
+    {
+        int written = toBase64.TransformBlock(
+            inputBuffer, 0, bytesRead, outputBuffer, 0);
+        output.Write(Encoding.ASCII.GetString(outputBuffer, 0, written));
+    }
+    byte[] final = toBase64.TransformFinalBlock(inputBuffer, 0, 0);
+    output.Write(Encoding.ASCII.GetString(final));
+}</pre>
+
+      <h2>Span-Based API (.NET 5+)</h2>
+      <p>For high-performance scenarios, use the span-based APIs to avoid heap allocations:</p>
+      <pre>using System;
+using System.Text;
+
+// Zero-allocation encoding into a pre-allocated buffer
+byte[] inputBytes = Encoding.UTF8.GetBytes("Hello, world!");
+
+int outputLength = ((inputBytes.Length + 2) / 3) * 4;
+Span&lt;char&gt; output = stackalloc char[outputLength];
+
+bool success = Convert.TryToBase64Chars(inputBytes, output, out int charsWritten);
+if (success)
+{
+    Console.WriteLine(new string(output[..charsWritten]));
+}</pre>
+
+      <h2>Validating Base64 Input</h2>
+      <pre>public static bool IsValidBase64(string s)
+{
+    if (string.IsNullOrEmpty(s)) return false;
+    // Length must be multiple of 4
+    if (s.Length % 4 != 0) return false;
+    try
+    {
+        Convert.FromBase64String(s);
+        return true;
+    }
+    catch (FormatException)
+    {
+        return false;
+    }
+}</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-java">Base64 in Java</a></li>
+    <li><a href="/articles/base64-kotlin">Base64 in Kotlin</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Verify your C# Base64 output</h3>
+        <p>Copy the encoded string from your .NET application and paste it into base64.dev to decode it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

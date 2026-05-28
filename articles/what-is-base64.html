@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is Base64 Encoding? A Complete Guide — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Learn what Base64 encoding is, how it works, the 64-character alphabet, padding with '=', and when to use Base64 in your projects.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/what-is-base64">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/what-is-base64">
+<meta property="og:title" content="What is Base64 Encoding? A Complete Guide">
+<meta property="og:description" content="Learn what Base64 encoding is, how it works, the 64-character alphabet, padding with '=', and when to use Base64.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "What is Base64 Encoding? A Complete Guide",
+  "description": "A complete explanation of the Base64 scheme, how encoding and decoding work, the 64-character alphabet, padding, and real-world use cases.",
+  "url": "https://base64.dev/articles/what-is-base64",
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "What is Base64?", "item": "https://base64.dev/articles/what-is-base64" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Base64 encoding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64 is a binary-to-text encoding scheme that represents binary data as a string of printable ASCII characters. It uses an alphabet of 64 characters (A-Z, a-z, 0-9, +, /) to encode every 3 bytes of binary data into 4 characters." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is it called Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It is called Base64 because the encoding uses exactly 64 different characters to represent data — similar to how decimal uses base 10 (0-9) and binary uses base 2 (0-1)." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Base64 encrypt data?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Base64 is an encoding scheme, not encryption. It can be decoded by anyone without a key. Never use Base64 to protect sensitive data — use proper encryption like AES instead." }
+    },
+    {
+      "@type": "Question",
+      "name": "How much larger is Base64 encoded data?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64 encoded output is approximately 33% larger than the original binary data, because 3 bytes (24 bits) are represented as 4 characters (each 6 bits)." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>What is Base64?</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Fundamentals</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>What is Base64 Encoding?</h1>
+      <p class="lead">Base64 is a binary-to-text encoding scheme that converts binary data into a string of printable ASCII characters. It is not encryption — it is a way to safely transport binary data over channels that only handle text.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#how-it-works">How Base64 encoding works</a></li>
+          <li><a href="#alphabet">The 64-character alphabet</a></li>
+          <li><a href="#padding">Padding with =</a></li>
+          <li><a href="#size">Size overhead</a></li>
+          <li><a href="#use-cases">When to use Base64</a></li>
+          <li><a href="#not-encryption">Base64 is NOT encryption</a></li>
+          <li><a href="#variants">Variants</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="how-it-works">How Base64 Encoding Works</h2>
+      <p>Base64 works by taking binary input and processing it in groups of 3 bytes (24 bits). Each group is split into four 6-bit values. Since 2⁶ = 64, each 6-bit value maps to one of 64 printable characters. This is where the name "Base64" comes from.</p>
+      <p>Let's trace through an example encoding the string <code>Man</code>:</p>
+      <pre>M        a        n
+01001101 01100001 01101110   ← 3 bytes = 24 bits
+
+Split into four 6-bit groups:
+010011  010110  000101  101110
+  19      22      5      46
+
+Look up in alphabet:
+  T       W       F      u   →  "TWFu"</pre>
+      <p>So <code>Man</code> encodes to <code>TWFu</code>. Every 3 input bytes produce exactly 4 output characters.</p>
+
+      <h2 id="alphabet">The 64-Character Alphabet</h2>
+      <p>The standard Base64 alphabet (defined in RFC 4648) maps 6-bit values 0–63 to these characters:</p>
+      <pre>Value  Char   Value  Char   Value  Char   Value  Char
+  0     A      16     Q      32     g      48     w
+  1     B      17     R      33     h      49     x
+  2     C      18     S      34     i      50     y
+  3     D      19     T      35     j      51     z
+  4     E      20     U      36     k      52     0
+  5     F      21     V      37     l      53     1
+  6     G      22     W      38     m      54     2
+  7     H      23     X      39     n      55     3
+  8     I      24     Y      40     o      56     4
+  9     J      25     Z      41     p      57     5
+ 10     K      26     a      42     q      58     6
+ 11     L      27     b      43     r      59     7
+ 12     M      28     c      44     s      60     8
+ 13     N      29     d      45     t      61     9
+ 14     O      30     e      46     u      62     +
+ 15     P      31     f      47     v      63     /</pre>
+      <p>Characters 0–25 are uppercase A-Z, 26–51 are lowercase a-z, 52–61 are digits 0-9, and the final two are <code>+</code> and <code>/</code>.</p>
+
+      <h2 id="padding">Padding with =</h2>
+      <p>Base64 processes input in 3-byte chunks. If the input length is not a multiple of 3, the final group is padded:</p>
+      <ul>
+        <li>If 1 byte remains: two Base64 characters are emitted followed by <code>==</code></li>
+        <li>If 2 bytes remain: three Base64 characters are emitted followed by <code>=</code></li>
+      </ul>
+      <pre>Input: "M"     →  Output: "TQ=="   (1 byte → 2 chars + "==")
+Input: "Ma"    →  Output: "TWE="   (2 bytes → 3 chars + "=")
+Input: "Man"   →  Output: "TWFu"   (3 bytes → 4 chars, no padding)</pre>
+      <p>Padding ensures the output length is always a multiple of 4, which some decoders require. URL-safe Base64 often omits padding.</p>
+
+      <h2 id="size">Size Overhead</h2>
+      <p>Base64 always produces output that is approximately <strong>33% larger</strong> than the original binary data:</p>
+      <ul>
+        <li>3 input bytes → 4 output characters (plus any whitespace or padding)</li>
+        <li>A 1 KB binary file becomes approximately 1.37 KB as Base64</li>
+        <li>A 1 MB image becomes approximately 1.37 MB as a Base64 data URI</li>
+      </ul>
+      <p>This overhead is the main tradeoff when using Base64 for embedding images or transmitting binary payloads.</p>
+
+      <h2 id="use-cases">When to Use Base64</h2>
+      <p>Base64 is the right tool when you need to transport binary data through a text-only channel:</p>
+      <ul>
+        <li><strong>Email attachments (MIME):</strong> Email was designed for ASCII text. SMTP uses Base64 to attach binary files.</li>
+        <li><strong>Data URIs:</strong> Embedding images, fonts, or other assets directly in HTML or CSS without a separate HTTP request.</li>
+        <li><strong>JSON and XML payloads:</strong> JSON cannot natively contain binary data — Base64-encode binary fields.</li>
+        <li><strong>JWT (JSON Web Tokens):</strong> JWT headers and payloads are Base64URL-encoded JSON objects.</li>
+        <li><strong>PEM certificates:</strong> TLS/SSL certificates and private keys in PEM format are Base64-encoded DER data.</li>
+        <li><strong>HTTP Basic Authentication:</strong> The <code>Authorization: Basic</code> header contains <code>username:password</code> Base64-encoded.</li>
+        <li><strong>CSS inlining:</strong> Background images and fonts can be embedded as Base64 data URIs to reduce HTTP requests.</li>
+      </ul>
+
+      <h2 id="not-encryption">Base64 is NOT Encryption</h2>
+      <div class="warn">
+        <p><strong>Important:</strong> Base64 is encoding, not encryption. Anyone can decode a Base64 string instantly without a key. Do not use Base64 to "protect" sensitive data — use proper encryption (AES, RSA) for that purpose.</p>
+      </div>
+      <p>A common mistake is assuming Base64-encoded passwords or tokens are hidden. They are not. Base64 exists purely to make binary data safe for text-based transport — not to add security.</p>
+
+      <h2 id="variants">Variants of Base64</h2>
+      <p>Several Base64 variants exist for specific use cases:</p>
+      <ul>
+        <li><strong>Standard Base64 (RFC 4648 §4):</strong> Uses <code>+</code> and <code>/</code>, padded with <code>=</code>. The most common variant.</li>
+        <li><strong>URL-safe Base64 (RFC 4648 §5):</strong> Replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>. Padding is often omitted. Used in JWTs and URL parameters.</li>
+        <li><strong>MIME Base64 (RFC 2045):</strong> Standard alphabet but splits output into 76-character lines with CRLF. Used in email.</li>
+        <li><strong>Base64 with no padding:</strong> Omits trailing <code>=</code> characters. Common in compact tokens.</li>
+      </ul>
+      <p>The <a href="/articles/url-safe-base64">URL-safe Base64</a> variant is particularly important for developers working with JWTs or OAuth tokens.</p>
+
+      <hr>
+
+      <h2 id="faq">Frequently Asked Questions</h2>
+
+      <h3>Why is it called Base64?</h3>
+      <p>Just as decimal numbers use base 10 (10 possible digit values) and binary uses base 2, Base64 uses base 64 — meaning 64 possible values per character position. Each 6-bit group maps to one of 64 characters.</p>
+
+      <h3>Is Base64 compression?</h3>
+      <p>No — Base64 expands data by ~33%, the opposite of compression. It is purely an encoding scheme for transport safety, not size reduction.</p>
+
+      <h3>Can Base64 handle any binary data?</h3>
+      <p>Yes. Base64 can encode any byte sequence, including images, PDFs, audio files, executables, and arbitrary binary data.</p>
+
+      <h3>How do I decode a Base64 string?</h3>
+      <p>Use the tool at <a href="/">base64.dev</a> — paste your string and it auto-detects Base64 and decodes it instantly. Or use <code>atob()</code> in JavaScript, <code>base64.b64decode()</code> in Python, etc.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/articles/base64-vs-hex">Base64 vs Hex Encoding</a></li>
+    <li><a href="/articles/base64-jwt">Base64 in JWT</a></li>
+    <li><a href="/articles/base64-image-encoding">Base64 Image Encoding</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try Base64 encoding and decoding instantly</h3>
+        <p>Paste any text or Base64 string — auto-detected, no buttons needed.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

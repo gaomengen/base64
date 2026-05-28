@@ -1,0 +1,35 @@
+# base64.dev
+
+> base64.dev is a fast, privacy-first Base64 encoder and decoder for developers. No ads, no tracking, no sign-up. All encoding happens locally in the browser.
+
+## Tool
+
+- [Base64 Encoder & Decoder](https://base64.dev/): The main tool. Supports text, image, file, and URL-safe Base64 modes. Auto-detects whether input is plain text or Base64. Keyboard shortcuts included.
+
+## Guides & Articles
+
+- [What is Base64 Encoding?](https://base64.dev/articles/what-is-base64): Complete explanation of the Base64 scheme, the 64-character alphabet, padding, size overhead, and use cases.
+- [URL-Safe Base64 (RFC 4648)](https://base64.dev/articles/url-safe-base64): How URL-safe Base64 differs from standard Base64, when to use it, and how to convert between them.
+- [Base64 Image Encoding & Data URIs](https://base64.dev/articles/base64-image-encoding): How to embed images in HTML/CSS as Base64 data URIs, with code examples and performance tradeoffs.
+- [Base64 in JWT](https://base64.dev/articles/base64-jwt): How JSON Web Tokens use Base64URL encoding for headers, payloads, and signatures.
+- [Base64 vs Hex Encoding](https://base64.dev/articles/base64-vs-hex): Size comparison, use case breakdown, and when to choose each format.
+- [Base64 Data URIs Explained](https://base64.dev/articles/base64-data-uri): The data: URI scheme in depth — syntax, MIME types, browser limits, and performance.
+
+## Language Guides
+
+- [Base64 in JavaScript](https://base64.dev/articles/base64-javascript): btoa(), atob(), Unicode handling with TextEncoder, URL-safe Base64, and encoding files.
+- [Base64 in TypeScript](https://base64.dev/articles/base64-typescript): Type-safe Base64 utilities for browser and Node.js, including Zod validation schemas.
+- [Base64 in Node.js](https://base64.dev/articles/base64-nodejs): Buffer-based encoding/decoding, streams, URL-safe mode, and file handling in Node.js.
+- [Base64 in Python](https://base64.dev/articles/base64-python): The base64 module, b64encode/b64decode, URL-safe variants, and encoding files.
+- [Base64 in Java](https://base64.dev/articles/base64-java): java.util.Base64 — basic, URL-safe, and MIME encoders in Java 8+.
+- [Base64 in Go](https://base64.dev/articles/base64-go): encoding/base64 package — StdEncoding, URLEncoding, RawURLEncoding, and streaming.
+- [Base64 in Rust](https://base64.dev/articles/base64-rust): The base64 crate Engine API — standard, URL-safe, and custom alphabets.
+- [Base64 in PHP](https://base64.dev/articles/base64-php): base64_encode(), base64_decode(), URL-safe variant, and encoding files.
+- [Base64 in C# (.NET)](https://base64.dev/articles/base64-csharp): Convert.ToBase64String, span-based APIs, URL-safe Base64, and stream encoding.
+- [Base64 in Ruby](https://base64.dev/articles/base64-ruby): encode64 vs strict_encode64 vs urlsafe_encode64 and the critical differences between them.
+- [Base64 in Swift](https://base64.dev/articles/base64-swift): Data.base64EncodedString(), URL-safe extension, encoding images for iOS/macOS.
+- [Base64 in Kotlin](https://base64.dev/articles/base64-kotlin): java.util.Base64 on JVM/Android, android.util.Base64 for older API levels, Kotlin Multiplatform.
+
+## About
+
+- [About base64.dev](https://base64.dev/about): How and why base64.dev was built. Tech stack: vanilla HTML/CSS/JS, no frameworks, deployed on Vercel.

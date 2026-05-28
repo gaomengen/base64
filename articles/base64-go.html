@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in Go — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Go using the encoding/base64 package. Covers StdEncoding, URLEncoding, RawURLEncoding, and encoding files and byte slices.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-go">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-go">
+<meta property="og:title" content="Base64 Encoding & Decoding in Go (Golang)">
+<meta property="og:description" content="Complete guide to Base64 in Go: encoding/base64 package, StdEncoding vs URLEncoding, and working with byte slices.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in Go",
+  "url": "https://base64.dev/articles/base64-go",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Go", "item": "https://base64.dev/articles/base64-go" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Go?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use the encoding/base64 package: import \"encoding/base64\"; encoded := base64.StdEncoding.EncodeToString([]byte(\"Hello\")). To decode: decoded, err := base64.StdEncoding.DecodeString(encoded)." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between StdEncoding and URLEncoding in Go?",
+      "acceptedAnswer": { "@type": "Answer", "text": "StdEncoding uses the standard Base64 alphabet with + and / characters and = padding. URLEncoding replaces + with - and / with _, making it safe for URLs and filenames. RawURLEncoding does the same but omits padding — use it for JWTs." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use URL-safe Base64 in Go?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use base64.RawURLEncoding for JWTs and URL parameters (no padding), or base64.URLEncoding if you need padding. Example: encoded := base64.RawURLEncoding.EncodeToString(data)." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Go</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Go</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Go</h1>
+      <p class="lead">Go's <code>encoding/base64</code> package provides multiple encoding types in a consistent API. The key decision is which encoding to use: <code>StdEncoding</code>, <code>URLEncoding</code>, or <code>RawURLEncoding</code>.</p>
+
+      <h2>Basic Usage</h2>
+      <pre>package main
+
+import (
+    "encoding/base64"
+    "fmt"
+)
+
+func main() {
+    input := []byte("Hello, world!")
+
+    // Encode
+    encoded := base64.StdEncoding.EncodeToString(input)
+    fmt.Println(encoded) // "SGVsbG8sIHdvcmxkIQ=="
+
+    // Decode
+    decoded, err := base64.StdEncoding.DecodeString(encoded)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(string(decoded)) // "Hello, world!"
+}</pre>
+
+      <h2>Choosing an Encoding</h2>
+      <p>Go provides four built-in encodings:</p>
+      <pre>base64.StdEncoding      // + and /, padded with =
+base64.URLEncoding      // - and _, padded with =
+base64.RawStdEncoding   // + and /, NO padding
+base64.RawURLEncoding   // - and _, NO padding (most common for JWTs)</pre>
+      <div class="tip">
+        <p><strong>Rule of thumb:</strong> Use <code>StdEncoding</code> for general data encoding. Use <code>RawURLEncoding</code> for JWTs, URLs, and filenames.</p>
+      </div>
+
+      <h2>URL-Safe Base64</h2>
+      <pre>package main
+
+import (
+    "encoding/base64"
+    "fmt"
+)
+
+func main() {
+    data := []byte("data that needs URL-safe encoding: a+b/c=d")
+
+    // URL-safe with padding
+    encoded := base64.URLEncoding.EncodeToString(data)
+    fmt.Println(encoded)
+
+    // URL-safe without padding (common for JWTs)
+    encodedRaw := base64.RawURLEncoding.EncodeToString(data)
+    fmt.Println(encodedRaw)
+
+    // Decode (use matching decoder)
+    decoded, err := base64.RawURLEncoding.DecodeString(encodedRaw)
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println(string(decoded))
+}</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>package main
+
+import (
+    "encoding/base64"
+    "os"
+)
+
+func encodeFile(src, dst string) error {
+    data, err := os.ReadFile(src)
+    if err != nil {
+        return err
+    }
+    encoded := base64.StdEncoding.EncodeToString(data)
+    return os.WriteFile(dst, []byte(encoded), 0644)
+}
+
+func decodeFile(src, dst string) error {
+    data, err := os.ReadFile(src)
+    if err != nil {
+        return err
+    }
+    decoded, err := base64.StdEncoding.DecodeString(string(data))
+    if err != nil {
+        return err
+    }
+    return os.WriteFile(dst, decoded, 0644)
+}</pre>
+
+      <h2>Streaming with NewEncoder / NewDecoder</h2>
+      <p>For large files, use the streaming encoder and decoder to avoid loading everything into memory:</p>
+      <pre>package main
+
+import (
+    "encoding/base64"
+    "io"
+    "os"
+)
+
+// Stream-encode a file
+func streamEncode(input, output string) error {
+    in, _ := os.Open(input)
+    out, _ := os.Create(output)
+    defer in.Close()
+    defer out.Close()
+
+    encoder := base64.NewEncoder(base64.StdEncoding, out)
+    io.Copy(encoder, in)
+    return encoder.Close() // IMPORTANT: flush final bytes
+}
+
+// Stream-decode a file
+func streamDecode(input, output string) error {
+    in, _ := os.Open(input)
+    out, _ := os.Create(output)
+    defer in.Close()
+    defer out.Close()
+
+    decoder := base64.NewDecoder(base64.StdEncoding, in)
+    _, err := io.Copy(out, decoder)
+    return err
+}</pre>
+      <div class="warn">
+        <p><strong>Don't forget:</strong> Always call <code>encoder.Close()</code> after writing with <code>NewEncoder</code>. The encoder buffers incomplete groups internally — <code>Close()</code> flushes and pads the final output.</p>
+      </div>
+
+      <h2>Decoding with Error Handling</h2>
+      <pre>package main
+
+import (
+    "encoding/base64"
+    "fmt"
+)
+
+func safeDecode(s string) (string, error) {
+    // Try standard decoding first
+    decoded, err := base64.StdEncoding.DecodeString(s)
+    if err == nil {
+        return string(decoded), nil
+    }
+    // Fall back to URL-safe (handles both padded and unpadded)
+    decoded, err = base64.RawURLEncoding.DecodeString(s)
+    if err != nil {
+        return "", fmt.Errorf("invalid Base64: %w", err)
+    }
+    return string(decoded), nil
+}</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-rust">Base64 in Rust</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/articles/base64-nodejs">Base64 in Node.js</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Verify your Go Base64 output</h3>
+        <p>Paste your encoded string from Go into base64.dev to decode and inspect it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

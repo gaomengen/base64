@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in Rust — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Rust using the base64 crate. Covers the Engine API, standard vs URL-safe alphabet, encoding byte slices and files.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-rust">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-rust">
+<meta property="og:title" content="Base64 Encoding & Decoding in Rust">
+<meta property="og:description" content="Complete guide to Base64 in Rust using the base64 crate — Engine API, standard and URL-safe alphabets.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in Rust",
+  "url": "https://base64.dev/articles/base64-rust",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Rust", "item": "https://base64.dev/articles/base64-rust" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Rust?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Add the base64 crate to Cargo.toml, then use: use base64::{Engine as _, engine::general_purpose}; let encoded = general_purpose::STANDARD.encode(b\"Hello\");" }
+    },
+    {
+      "@type": "Question",
+      "name": "What Base64 crate should I use in Rust?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The base64 crate (crates.io/crates/base64) is the standard choice. Use version 0.22+ which provides the Engine-based API with general_purpose::STANDARD, URL_SAFE, and URL_SAFE_NO_PAD engines." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use URL-safe Base64 in Rust?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use general_purpose::URL_SAFE_NO_PAD for JWTs and tokens (no padding, URL-safe characters): let encoded = general_purpose::URL_SAFE_NO_PAD.encode(data);" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Rust</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Rust</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Rust</h1>
+      <p class="lead">Rust's standard library does not include Base64. The <code>base64</code> crate is the de facto standard — it provides a flexible Engine-based API that supports standard, URL-safe, and custom alphabets.</p>
+
+      <h2>Adding the Dependency</h2>
+      <pre># Cargo.toml
+[dependencies]
+base64 = "0.22"</pre>
+
+      <h2>Basic Encode and Decode</h2>
+      <pre>use base64::{Engine as _, engine::general_purpose};
+
+fn main() {
+    let input = b"Hello, world!";
+
+    // Encode to String
+    let encoded = general_purpose::STANDARD.encode(input);
+    println!("{}", encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+    // Decode to Vec&lt;u8&gt;
+    let decoded = general_purpose::STANDARD.decode(&encoded).unwrap();
+    println!("{}", String::from_utf8(decoded).unwrap()); // "Hello, world!"
+}</pre>
+
+      <h2>Available Engines</h2>
+      <pre>use base64::engine::general_purpose;
+
+// Standard Base64 with padding
+general_purpose::STANDARD            // + / with =
+
+// Standard Base64 without padding
+general_purpose::STANDARD_NO_PAD     // + / without =
+
+// URL-safe with padding
+general_purpose::URL_SAFE            // - _ with =
+
+// URL-safe without padding (most common for JWTs)
+general_purpose::URL_SAFE_NO_PAD     // - _ without =</pre>
+
+      <h2>URL-Safe Base64</h2>
+      <pre>use base64::{Engine as _, engine::general_purpose};
+
+let data = b"data for a URL parameter";
+
+// Encode URL-safe without padding
+let encoded = general_purpose::URL_SAFE_NO_PAD.encode(data);
+println!("{}", encoded); // No + / or = characters
+
+// Decode
+let decoded = general_purpose::URL_SAFE_NO_PAD.decode(&encoded).unwrap();
+assert_eq!(decoded, data);</pre>
+
+      <h2>Encoding to a Pre-allocated Buffer</h2>
+      <p>For performance-critical code, encode directly into a buffer to avoid allocation:</p>
+      <pre>use base64::{Engine as _, engine::general_purpose};
+
+let input = b"Hello, world!";
+
+// Calculate output size: ceil(input.len() / 3) * 4
+let encoded_len = base64::encoded_len(input.len(), true).unwrap();
+let mut buf = vec![0u8; encoded_len];
+
+let written = general_purpose::STANDARD
+    .encode_slice(input, &mut buf)
+    .unwrap();
+let encoded = std::str::from_utf8(&buf[..written]).unwrap();
+println!("{}", encoded);</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>use base64::{Engine as _, engine::general_purpose};
+use std::fs;
+
+fn encode_file(path: &str) -> Result&lt;String, Box&lt;dyn std::error::Error&gt;&gt; {
+    let bytes = fs::read(path)?;
+    Ok(general_purpose::STANDARD.encode(&bytes))
+}
+
+fn decode_to_file(encoded: &str, path: &str) -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let bytes = general_purpose::STANDARD.decode(encoded)?;
+    fs::write(path, bytes)?;
+    Ok(())
+}
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let encoded = encode_file("image.png")?;
+    decode_to_file(&encoded, "output.png")?;
+    Ok(())
+}</pre>
+
+      <h2>Error Handling</h2>
+      <pre>use base64::{Engine as _, engine::general_purpose, DecodeError};
+
+fn safe_decode(s: &str) -> Result&lt;Vec&lt;u8&gt;, DecodeError&gt; {
+    // Try standard first, then URL-safe
+    general_purpose::STANDARD
+        .decode(s)
+        .or_else(|_| general_purpose::URL_SAFE_NO_PAD.decode(s))
+}
+
+match safe_decode("SGVsbG8=") {
+    Ok(bytes) => println!("{}", String::from_utf8_lossy(&bytes)),
+    Err(e) => eprintln!("Decode error: {}", e),
+}</pre>
+
+      <h2>Custom Engine</h2>
+      <p>For exotic use cases (custom alphabet, non-standard padding), you can build a custom engine:</p>
+      <pre>use base64::engine::{GeneralPurpose, GeneralPurposeConfig};
+use base64::alphabet;
+
+let custom_engine = GeneralPurpose::new(
+    &alphabet::URL_SAFE,
+    GeneralPurposeConfig::new()
+        .with_decode_padding_mode(base64::engine::DecodePaddingMode::Indifferent)
+);
+
+let encoded = custom_engine.encode(b"data");</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-go">Base64 in Go</a></li>
+    <li><a href="/articles/base64-csharp">Base64 in C# (.NET)</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Debug your Rust Base64 output</h3>
+        <p>Paste the encoded string from your Rust program into base64.dev to inspect and decode it.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

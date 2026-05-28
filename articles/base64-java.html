@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in Java — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Java using java.util.Base64. Covers basic, URL-safe, and MIME encoders, plus encoding files and byte arrays in Java 8+.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-java">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-java">
+<meta property="og:title" content="Base64 Encoding & Decoding in Java">
+<meta property="og:description" content="Complete guide to Base64 in Java: java.util.Base64, basic/URL/MIME encoders, encoding files and byte arrays in Java 8+.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in Java",
+  "url": "https://base64.dev/articles/base64-java",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Java", "item": "https://base64.dev/articles/base64-java" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Java?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Since Java 8, use java.util.Base64: String encoded = Base64.getEncoder().encodeToString(\"Hello\".getBytes(StandardCharsets.UTF_8)); To decode: byte[] decoded = Base64.getDecoder().decode(encoded);" }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Java have built-in Base64 support?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Java 8+ includes java.util.Base64 with three encoder types: getEncoder() for standard Base64, getUrlEncoder() for URL-safe Base64, and getMimeEncoder() for MIME-formatted Base64 with line breaks." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use URL-safe Base64 in Java?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Base64.getUrlEncoder().withoutPadding() for URL-safe Base64 without padding (ideal for JWTs): String encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(data);" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Java</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Java</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Java</h1>
+      <p class="lead">Since Java 8, the standard library includes <code>java.util.Base64</code> — no external dependencies needed. It provides three encoder types: Basic, URL-safe, and MIME.</p>
+
+      <h2>Basic Encode and Decode</h2>
+      <pre>import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+
+// Encode
+String original = "Hello, world!";
+String encoded = Base64.getEncoder()
+    .encodeToString(original.getBytes(StandardCharsets.UTF_8));
+System.out.println(encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode
+byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+String decoded = new String(decodedBytes, StandardCharsets.UTF_8);
+System.out.println(decoded); // "Hello, world!"</pre>
+      <div class="tip">
+        <p><strong>Always use <code>StandardCharsets.UTF_8</code></strong> explicitly when converting between String and byte[]. Never rely on the default platform charset.</p>
+      </div>
+
+      <h2>Without Padding</h2>
+      <pre>// Encode without trailing '=' padding
+String encoded = Base64.getEncoder()
+    .withoutPadding()
+    .encodeToString("Hello".getBytes(StandardCharsets.UTF_8));
+System.out.println(encoded); // "SGVsbG8"
+
+// Decoder handles both padded and unpadded input
+byte[] decoded = Base64.getDecoder().decode(encoded);</pre>
+
+      <h2>URL-Safe Base64</h2>
+      <p>Use the URL encoder when the Base64 output will appear in URLs, filenames, or JWT tokens:</p>
+      <pre>// URL-safe encoding (replaces + with - and / with _)
+String urlSafe = Base64.getUrlEncoder()
+    .withoutPadding()
+    .encodeToString("Hello, world!".getBytes(StandardCharsets.UTF_8));
+System.out.println(urlSafe); // "SGVsbG8sIHdvcmxkIQ"
+
+// URL-safe decoding
+byte[] decoded = Base64.getUrlDecoder().decode(urlSafe);</pre>
+
+      <h2>MIME Base64 (for Email)</h2>
+      <p>The MIME encoder splits output into 76-character lines separated by CRLF, as required by email standards:</p>
+      <pre>// MIME encoding with line breaks
+byte[] largeData = new byte[200]; // some binary data
+String mimeEncoded = Base64.getMimeEncoder().encodeToString(largeData);
+// Output has \r\n every 76 chars
+
+// Custom line length (e.g., 64 chars)
+String customMime = Base64.getMimeEncoder(64, new byte[]{'\n'})
+    .encodeToString(largeData);
+
+// MIME decoding (ignores whitespace/line breaks)
+byte[] decoded = Base64.getMimeDecoder().decode(mimeEncoded);</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>import java.util.Base64;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+// Encode file to Base64 string
+byte[] fileBytes = Files.readAllBytes(Paths.get("image.png"));
+String encoded = Base64.getEncoder().encodeToString(fileBytes);
+
+// Decode Base64 back to file
+byte[] decoded = Base64.getDecoder().decode(encoded);
+Files.write(Paths.get("output.png"), decoded);</pre>
+
+      <h2>Streaming Large Files</h2>
+      <p>For large files, use the wrap stream approach to avoid loading the entire file into memory:</p>
+      <pre>import java.util.Base64;
+import java.io.*;
+
+// Encode large file with streaming
+try (InputStream in = new FileInputStream("large.bin");
+     OutputStream out = new FileOutputStream("large.b64");
+     OutputStream encoder = Base64.getEncoder().wrap(out)) {
+    byte[] buf = new byte[8192];
+    int n;
+    while ((n = in.read(buf)) != -1) {
+        encoder.write(buf, 0, n);
+    }
+}
+
+// Decode large file with streaming
+try (InputStream in = new FileInputStream("large.b64");
+     InputStream decoder = Base64.getDecoder().wrap(in);
+     OutputStream out = new FileOutputStream("decoded.bin")) {
+    byte[] buf = new byte[8192];
+    int n;
+    while ((n = decoder.read(buf)) != -1) {
+        out.write(buf, 0, n);
+    }
+}</pre>
+
+      <h2>Encoder Comparison</h2>
+      <pre>// Summary of the three encoder types:
+Base64.getEncoder()      // Standard: uses + and /, padded with =
+Base64.getUrlEncoder()   // URL-safe: uses - and _, padded with =
+Base64.getMimeEncoder()  // MIME: standard alphabet, 76-char line breaks
+
+// All three can be combined with .withoutPadding():
+Base64.getUrlEncoder().withoutPadding()  // Most common for JWTs</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-kotlin">Base64 in Kotlin</a></li>
+    <li><a href="/articles/base64-csharp">Base64 in C# (.NET)</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Verify your Java Base64 output online</h3>
+        <p>Copy the encoded string from your Java program and paste it here to decode and verify.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

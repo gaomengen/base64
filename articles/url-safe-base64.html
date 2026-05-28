@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL-Safe Base64 (RFC 4648) Explained — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="URL-safe Base64 replaces + with - and / with _ for use in URLs and filenames. Learn when and how to use it in JWTs, OAuth tokens, and URL parameters.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/url-safe-base64">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/url-safe-base64">
+<meta property="og:title" content="URL-Safe Base64 (RFC 4648) — What It Is and How to Use It">
+<meta property="og:description" content="URL-safe Base64 replaces + with - and / with _ for safe use in URLs, JWTs, and filenames. Complete guide with code examples.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "URL-Safe Base64 (RFC 4648) — What It Is and How to Use It",
+  "url": "https://base64.dev/articles/url-safe-base64",
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is URL-safe Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "URL-safe Base64 (RFC 4648 Section 5) is a variant of Base64 that replaces '+' with '-' and '/' with '_', making the output safe to use in URLs and filenames without percent-encoding. Padding '=' characters are often omitted as well." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why can't standard Base64 be used in URLs?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Standard Base64 uses '+' and '/' which have special meaning in URLs — '+' is interpreted as a space in query strings, and '/' separates URL path segments. URL encoding them (%2B, %2F) works but makes tokens longer and harder to read." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does URL-safe Base64 use padding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Padding is optional. RFC 4648 defines URL-safe Base64 with padding, but in practice most implementations (JWTs, OAuth PKCE) omit the trailing '=' characters to keep tokens shorter and cleaner in URLs." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "URL-Safe Base64", "item": "https://base64.dev/articles/url-safe-base64" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>URL-Safe Base64</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Fundamentals</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>URL-Safe Base64 (RFC 4648)</h1>
+      <p class="lead">Standard Base64 uses <code>+</code> and <code>/</code> — characters with special meaning in URLs. URL-safe Base64 swaps them for <code>-</code> and <code>_</code>, producing output that is safe for use in URLs, cookies, filenames, and JWT tokens without any percent-encoding.</p>
+
+      <h2>The Problem with Standard Base64 in URLs</h2>
+      <p>Standard Base64 uses three "problematic" characters:</p>
+      <ul>
+        <li><code>+</code> — interpreted as a space (<code>%20</code>) in URL query strings</li>
+        <li><code>/</code> — separates path segments in URLs (<code>/api/data</code>)</li>
+        <li><code>=</code> — used as a key-value separator in query strings</li>
+      </ul>
+      <pre>// Standard Base64 in a URL — BROKEN
+https://example.com/token?t=aGVsbG8+d29ybGQ=
+                              ↑ decoded as space  ↑ ends query string?
+
+// If percent-encoded — works but ugly
+https://example.com/token?t=aGVsbG8%2Bd29ybGQ%3D
+
+// URL-safe Base64 — clean
+https://example.com/token?t=aGVsbG8-d29ybGQ</pre>
+
+      <h2>The Solution: RFC 4648 Section 5</h2>
+      <p>URL-safe Base64 (defined in RFC 4648 §5) makes two substitutions:</p>
+      <pre>Standard  →  URL-Safe
+   +      →     -
+   /      →     _
+   =      →  (omitted, optional)</pre>
+      <p>Everything else stays the same — the 62 alphanumeric characters (A-Z, a-z, 0-9) are identical between both variants.</p>
+
+      <h2>With or Without Padding?</h2>
+      <p>The <code>=</code> padding characters are technically optional in URL-safe Base64. RFC 4648 defines both padded and unpadded variants:</p>
+      <ul>
+        <li><strong>Padded:</strong> output length is always a multiple of 4 (e.g., <code>SGVsbG8=</code>)</li>
+        <li><strong>Unpadded:</strong> trailing <code>=</code> characters are stripped (e.g., <code>SGVsbG8</code>)</li>
+      </ul>
+      <p>In practice, <strong>unpadded</strong> URL-safe Base64 is most common — JWTs, OAuth PKCE, and most modern APIs use it.</p>
+      <pre>// Padded URL-safe:   "SGVsbG8sIHdvcmxkIQ=="  → still has = at end
+// Unpadded URL-safe: "SGVsbG8sIHdvcmxkIQ"    → clean, no padding</pre>
+
+      <h2>Where URL-Safe Base64 Is Used</h2>
+      <ul>
+        <li><strong>JSON Web Tokens (JWT):</strong> All three parts (header, payload, signature) are unpadded URL-safe Base64</li>
+        <li><strong>OAuth 2.0 PKCE:</strong> The <code>code_verifier</code> and <code>code_challenge</code> parameters</li>
+        <li><strong>URL parameters:</strong> Passing binary tokens in GET request parameters</li>
+        <li><strong>Filenames:</strong> Base64-encoded filenames on filesystems that don't allow <code>/</code></li>
+        <li><strong>Cookies:</strong> Cookie values that must avoid special characters</li>
+        <li><strong>Email headers:</strong> Some MIME encodings</li>
+      </ul>
+
+      <h2>Converting Between Standard and URL-Safe</h2>
+      <pre>// JavaScript: standard → URL-safe
+function toBase64URL(standard) {
+  return standard
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+// JavaScript: URL-safe → standard (for decoding)
+function fromBase64URL(urlSafe) {
+  let base64 = urlSafe.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) base64 += '=';
+  return base64;
+}</pre>
+      <pre>## Python
+import base64
+
+encoded = base64.urlsafe_b64encode(b"Hello, world!")
+decoded = base64.urlsafe_b64decode(encoded)</pre>
+      <pre>## Go
+encoded := base64.RawURLEncoding.EncodeToString([]byte("Hello"))
+decoded, _ := base64.RawURLEncoding.DecodeString(encoded)</pre>
+
+      <h2>Decoding URL-Safe Base64 with Standard Decoders</h2>
+      <p>Many standard Base64 decoders reject URL-safe input because of the <code>-</code> and <code>_</code> characters. Always convert back to standard first:</p>
+      <pre>// Browser
+const decoded = atob(urlSafeBase64
+  .replace(/-/g, '+')
+  .replace(/_/g, '/')
+  .padEnd(Math.ceil(urlSafeBase64.length / 4) * 4, '='));</pre>
+
+      <h2>FAQ</h2>
+      <h3>Is URL-safe Base64 the same as Base64URL?</h3>
+      <p>Yes — "Base64URL" and "URL-safe Base64" refer to the same encoding defined in RFC 4648 §5. The JWT specification calls it Base64URL.</p>
+
+      <h3>Can I use URL-safe Base64 in HTTP Basic Auth?</h3>
+      <p>No. HTTP Basic Authentication requires standard Base64 (RFC 4648 §4), not the URL-safe variant. The <code>Authorization: Basic</code> header value must use standard Base64.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-jwt">Base64 in JWT</a></li>
+    <li><a href="/articles/what-is-base64">What is Base64 Encoding?</a></li>
+    <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+    <li><a href="/articles/base64-python">Base64 in Python</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Try URL-Safe Base64 encoding</h3>
+        <p>Switch to the "URL Safe" tab on base64.dev to encode and decode URL-safe Base64 instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

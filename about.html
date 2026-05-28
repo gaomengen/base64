@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="base64.dev is a fast, clean, privacy-first Base64 encoder and decoder built for developers. No ads, no tracking, no sign-up required.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/about">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/about">
+<meta property="og:title" content="About — base64.dev">
+<meta property="og:description" content="base64.dev is a fast, clean, privacy-first Base64 tool built for developers.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "About", "item": "https://base64.dev/about" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<style>
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+.about-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+.about-card-icon { font-size: 22px; margin-bottom: 10px; }
+.about-card-title { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.about-card-desc { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+.stat-row { display: flex; gap: 12px; margin: 24px 0; }
+.stat { flex: 1; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; text-align: center; }
+.stat-value { font-family: var(--font-sans); font-size: 32px; font-weight: 700; color: var(--accent); display: block; }
+.stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: block; }
+@media(max-width:600px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .stat-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>About</span>
+    </div>
+
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">About</span>
+      </div>
+      <h1>About base64.dev</h1>
+      <p class="lead">base64.dev is a fast, no-nonsense Base64 encoder and decoder built for developers who need a tool that just works — no ads, no tracking, no pop-ups, no sign-up.</p>
+
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-value">0</span>
+          <span class="stat-label">Ads</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">0</span>
+          <span class="stat-label">Trackers</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">4</span>
+          <span class="stat-label">Modes</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">∞</span>
+          <span class="stat-label">Free forever</span>
+        </div>
+      </div>
+
+      <h2>Why base64.dev?</h2>
+      <p>Every time I needed to encode or decode a Base64 string, the same few sites came up — bloated with ads, full of dark patterns, and slow to load. I wanted something minimal, instant, and private. So I built it.</p>
+      <p>The entire tool is a single HTML file with zero external dependencies (except the fonts). There is no backend, no database, no analytics that follow you around. All encoding and decoding happens locally in your browser.</p>
+
+      <h2>Features</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-card-icon">⚡</div>
+          <div class="about-card-title">Instant auto-detection</div>
+          <p class="about-card-desc">Paste anything — the tool detects whether it's plain text or Base64 and converts it automatically.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🖼</div>
+          <div class="about-card-title">Image & file support</div>
+          <p class="about-card-desc">Drag and drop images or any file to get a Base64 data URI or raw Base64 string instantly.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🔗</div>
+          <div class="about-card-title">URL-safe mode</div>
+          <p class="about-card-desc">RFC 4648 compliant URL-safe encoding — replaces <code>+</code>/<code>/</code> with <code>-</code>/<code>_</code> for use in JWTs and URLs.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">⌨</div>
+          <div class="about-card-title">Keyboard shortcuts</div>
+          <p class="about-card-desc">Full keyboard support — encode, decode, swap, copy, clear, all without touching the mouse.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🌙</div>
+          <div class="about-card-title">Dark & light mode</div>
+          <p class="about-card-desc">Follows your preference and remembers it. No flash of wrong theme on load.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🔒</div>
+          <div class="about-card-title">Private by design</div>
+          <p class="about-card-desc">Everything runs in your browser. Your data never leaves your machine.</p>
+        </div>
+      </div>
+
+      <h2>Tech stack</h2>
+      <p>The tool is intentionally minimal: a single HTML file with vanilla JavaScript, no frameworks, no build step, no npm. It's deployed as a static site on Vercel and served globally via CDN.</p>
+      <pre>HTML5 + CSS3 + Vanilla JavaScript
+Google Fonts (JetBrains Mono, Outfit)
+Vercel (static hosting + CDN)
+Vercel Web Analytics</pre>
+      <p>All encoding logic uses the browser's native <code>TextEncoder</code>, <code>TextDecoder</code>, <code>btoa()</code>, <code>atob()</code>, and <code>FileReader</code> APIs. No third-party encoding libraries.</p>
+
+      <h2>Articles & guides</h2>
+      <p>Beyond the tool itself, base64.dev also hosts practical guides on Base64 for developers — covering every major programming language and common use cases like JWTs, data URIs, and URL-safe encoding. Browse them at <a href="/articles/">base64.dev/articles</a>.</p>
+
+      <h2>Feedback & issues</h2>
+      <p>Found a bug, have a feature request, or want to say hi? Open an issue on <a href="https://github.com/gaomengen/base64" target="_blank" rel="noopener">GitHub</a>.</p>
+
+      <div class="cta-box">
+        <h3>Ready to encode something?</h3>
+        <p>Go back to the tool — it's waiting.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

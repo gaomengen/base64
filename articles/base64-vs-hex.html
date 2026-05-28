@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 vs Hex Encoding — When to Use Which — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Compare Base64 and hexadecimal (hex) encoding. Understand size differences, readability, use cases, and when each encoding format is the right choice.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-vs-hex">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-vs-hex">
+<meta property="og:title" content="Base64 vs Hex Encoding — When to Use Which">
+<meta property="og:description" content="Compare Base64 and hex encoding: size overhead, readability, use cases, and when to choose each format.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Base64 vs Hex Encoding — When to Use Which",
+  "url": "https://base64.dev/articles/base64-vs-hex",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 vs Hex", "item": "https://base64.dev/articles/base64-vs-hex" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Should I use Base64 or hex encoding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Base64 when size efficiency matters (JWTs, data URIs, API payloads, email attachments) — it is ~33% larger than binary. Use hex when byte-level human readability matters (cryptographic hashes, MAC addresses, memory dumps, CSS colors)." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Base64 more compact than hex?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Base64 adds ~33% overhead (3 bytes become 4 characters). Hex adds 100% overhead (1 byte becomes 2 characters). For the same binary data, Base64 output is roughly half the size of hex output." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why are SHA-256 hashes displayed as hex instead of Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Convention. Hex is easier to visually inspect byte-by-byte and compare, and has been the traditional format for cryptographic hashes since before Base64 was common. Many tools (git, openssl, sha256sum) output hex by default." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 vs Hex</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Comparison</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 vs Hex Encoding</h1>
+      <p class="lead">Both Base64 and hexadecimal (hex) encode binary data as text — but they make different tradeoffs between size efficiency and human readability. Here's when to use each.</p>
+
+      <h2>How They Work</h2>
+      <p><strong>Hex (Base16)</strong> encodes each byte as two hexadecimal digits (0-9, a-f). Each hex digit represents 4 bits, so 1 byte = 2 characters.</p>
+      <p><strong>Base64</strong> groups 3 bytes and encodes them as 4 characters. Each character represents 6 bits.</p>
+      <pre>Input: 3 bytes = [0x48, 0x65, 0x6C]  = "Hel"
+
+Hex:    "48656c"         → 6 characters  (200% of original)
+Base64: "SGVs"           → 4 characters  (133% of original)</pre>
+
+      <h2>Size Comparison</h2>
+      <pre>Encoding    Characters  Overhead   Bits per char
+─────────────────────────────────────────────
+Binary      —           0%         8 bits
+Hex         16          100%       4 bits
+Base64      64          ~33%       6 bits
+Base85      85          ~25%       6.5 bits</pre>
+      <p>Encoding the same 1 KB of binary data:</p>
+      <pre>Original:   1,024 bytes
+Hex:        2,048 bytes  (+100%)
+Base64:     1,368 bytes  (+33.6%)</pre>
+      <p>Base64 is significantly more space-efficient than hex. For large files (images, PDFs), this difference matters.</p>
+
+      <h2>Alphabet Comparison</h2>
+      <pre>Hex alphabet (16 chars):
+0123456789abcdef
+
+Base64 alphabet (64 chars):
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/</pre>
+      <p>Hex is more human-readable — each byte maps to exactly two characters, and you can easily read byte values. Base64 is more compact but harder to read byte-by-byte.</p>
+
+      <h2>When to Use Hex</h2>
+      <ul>
+        <li><strong>Cryptographic hashes:</strong> MD5, SHA-1, SHA-256 are almost always displayed as hex (<code>sha256: a1b2c3d4...</code>)</li>
+        <li><strong>Color values in CSS:</strong> <code>#ff6b6b</code>, <code>#0891b2</code></li>
+        <li><strong>Memory addresses and byte dumps:</strong> Debugger output, hex editors</li>
+        <li><strong>MAC addresses and UUIDs:</strong> <code>00:1A:2B:3C:4D:5E</code>, <code>550e8400-e29b-41d4-a716-446655440000</code></li>
+        <li><strong>Database-stored binary:</strong> PostgreSQL <code>bytea</code> columns often display as hex</li>
+        <li><strong>When byte-level inspection matters:</strong> Hex lets you see exactly what each byte is</li>
+      </ul>
+
+      <h2>When to Use Base64</h2>
+      <ul>
+        <li><strong>File and image transfer:</strong> Email attachments, data URIs, API responses with binary fields</li>
+        <li><strong>JWT tokens:</strong> JWTs use Base64URL for compact encoded JSON payloads</li>
+        <li><strong>TLS/SSL certificates (PEM format):</strong> The Base64-encoded DER data between BEGIN/END markers</li>
+        <li><strong>HTTP Basic Auth:</strong> <code>Authorization: Basic dXNlcjpwYXNzd29yZA==</code></li>
+        <li><strong>SSH public keys:</strong> <code>ssh-rsa AAAA...</code></li>
+        <li><strong>Anywhere size matters:</strong> Base64's 33% overhead is much better than hex's 100%</li>
+      </ul>
+
+      <h2>Code Examples</h2>
+      <pre>// JavaScript: same data, both encodings
+const data = crypto.getRandomValues(new Uint8Array(16)); // 16 random bytes
+
+// Hex
+const hex = Array.from(data).map(b => b.toString(16).padStart(2, '0')).join('');
+// e.g., "a1b2c3d4e5f6789012345678abcdef01" (32 chars)
+
+// Base64
+const base64 = btoa(String.fromCharCode(...data));
+// e.g., "oQ+TpNRn..." (24 chars + padding)</pre>
+      <pre>## Python: hash as hex vs base64
+import hashlib, base64
+
+data = b"hello world"
+digest = hashlib.sha256(data).digest()  # 32 bytes
+
+hex_str    = digest.hex()               # 64 hex chars
+base64_str = base64.b64encode(digest).decode()  # 44 base64 chars
+
+print(hex_str[:32] + "...")
+# b94d27b9934d3e08a52e52d7da7dabfac484efe04294e6...
+print(base64_str)
+# uU0nusNkPkv5ZNnCxeUKWA==</pre>
+
+      <h2>Quick Reference</h2>
+      <pre>Use case                    Format    Why
+─────────────────────────────────────────────────────────────
+SHA-256 hash display        Hex       Convention, readable
+JWT token                   Base64URL Compact, URL-safe
+PEM certificate             Base64    Standard (RFC 7468)
+Data URI (CSS/HTML image)   Base64    ~33% overhead vs 100% for hex
+UUID / GUID                 Hex       Convention
+SSH key                     Base64    Convention
+HTTP Basic Auth             Base64    RFC 7617
+Password hash storage       Hex       Convention (bcrypt uses Base64)
+PostgreSQL bytea            Hex       Default display format
+JSON binary field           Base64    Compact, JSON-friendly</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/what-is-base64">What is Base64 Encoding?</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/articles/base64-data-uri">Base64 Data URIs</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Encode or decode Base64 instantly</h3>
+        <p>Paste any text or binary data into base64.dev to encode or decode it — no sign-up needed.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

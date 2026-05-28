@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in Ruby — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Ruby using the Base64 module. Covers encode64, strict_encode64, urlsafe_encode64, and the differences between each method.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-ruby">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-ruby">
+<meta property="og:title" content="Base64 Encoding & Decoding in Ruby">
+<meta property="og:description" content="Complete guide to Base64 in Ruby: encode64, strict_encode64, urlsafe_encode64 and the important differences between them.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in Ruby",
+  "url": "https://base64.dev/articles/base64-ruby",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Ruby", "item": "https://base64.dev/articles/base64-ruby" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Ruby?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use require 'base64' then Base64.strict_encode64('Hello'). Always use strict_encode64 rather than encode64 — the plain encode64 adds newline characters every 60 chars which causes bugs in HTTP headers and JSON." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between encode64 and strict_encode64 in Ruby?",
+      "acceptedAnswer": { "@type": "Answer", "text": "encode64 adds a newline (\\n) every 60 characters and at the end. strict_encode64 is RFC 4648 compliant with no line breaks. Always use strict_encode64 unless you specifically need MIME-formatted output." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in Ruby?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Base64.urlsafe_encode64(data, padding: false) for URL-safe Base64 without padding. Decode with Base64.urlsafe_decode64(encoded)." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Ruby</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Ruby</span>
+        <span class="article-read-time">4 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Ruby</h1>
+      <p class="lead">Ruby's standard library includes a <code>Base64</code> module with three encoding methods. The most important thing to know: <code>encode64</code> adds newlines, but <code>strict_encode64</code> does not — always use the strict variant for general use.</p>
+
+      <h2>Basic Usage</h2>
+      <pre>require 'base64'
+
+# Encode
+encoded = Base64.strict_encode64("Hello, world!")
+puts encoded  # "SGVsbG8sIHdvcmxkIQ=="
+
+# Decode
+decoded = Base64.strict_decode64("SGVsbG8sIHdvcmxkIQ==")
+puts decoded  # "Hello, world!"</pre>
+
+      <h2>The Three Encoding Methods</h2>
+      <p>Ruby's Base64 module provides three encoding methods — and they produce different output:</p>
+      <pre>require 'base64'
+
+data = "Hello, world!"
+
+# encode64: adds a newline (\n) every 60 characters
+Base64.encode64(data)
+# => "SGVsbG8sIHdvcmxkIQ==\n"   ← has trailing newline!
+
+# strict_encode64: RFC 4648 compliant, NO newlines
+Base64.strict_encode64(data)
+# => "SGVsbG8sIHdvcmxkIQ=="     ← clean
+
+# urlsafe_encode64: URL-safe (-/_), NO padding by default
+Base64.urlsafe_encode64(data)
+# => "SGVsbG8sIHdvcmxkIQ=="    (padding optional)</pre>
+      <div class="warn">
+        <p><strong>Common bug:</strong> Using <code>encode64</code> instead of <code>strict_encode64</code> embeds newlines in the output. This causes issues when the Base64 string is used in JSON, HTTP headers, or URLs. <strong>Always prefer <code>strict_encode64</code>.</strong></p>
+      </div>
+
+      <h2>URL-Safe Base64</h2>
+      <pre>require 'base64'
+
+data = "data for a URL: a+b/c=d"
+
+# Encode URL-safe (padding=true by default in Ruby 3.x)
+encoded = Base64.urlsafe_encode64(data, padding: false)
+puts encoded  # No +, /, or = characters
+
+# Decode URL-safe
+decoded = Base64.urlsafe_decode64(encoded)
+puts decoded  # "data for a URL: a+b/c=d"</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>require 'base64'
+
+# Encode file to Base64 string
+encoded = Base64.strict_encode64(File.binread("image.png"))
+File.write("image.b64", encoded)
+
+# Decode Base64 back to file
+decoded = Base64.strict_decode64(File.read("image.b64"))
+File.binwrite("output.png", decoded)</pre>
+
+      <h2>Creating Data URIs</h2>
+      <pre>require 'base64'
+require 'mime/types'
+
+def file_to_data_uri(path)
+  mime = MIME::Types.type_for(path).first&.content_type || 'application/octet-stream'
+  encoded = Base64.strict_encode64(File.binread(path))
+  "data:#{mime};base64,#{encoded}"
+end
+
+puts file_to_data_uri("logo.png")
+# "data:image/png;base64,iVBORw0KGgo..."</pre>
+
+      <h2>Decoding Methods</h2>
+      <pre>require 'base64'
+
+encoded = "SGVsbG8sIHdvcmxkIQ=="
+
+# decode64: handles newlines in input (lenient)
+Base64.decode64(encoded)
+
+# strict_decode64: strict RFC 4648, raises on invalid chars
+begin
+  Base64.strict_decode64(encoded)
+rescue ArgumentError => e
+  puts "Invalid Base64: #{e.message}"
+end
+
+# urlsafe_decode64: handles - and _ instead of + and /
+Base64.urlsafe_decode64("SGVsbG8sIHdvcmxkIQ")</pre>
+
+      <h2>Rails / ActiveSupport</h2>
+      <p>If you're in a Rails project, ActiveSupport extends Base64 with convenience methods:</p>
+      <pre>require 'active_support/core_ext/string/encoding'
+
+# Available via ActiveSupport::Base64
+encoded = ::Base64.strict_encode64("Hello")
+
+# Or for URL-safe tokens in Rails:
+token = SecureRandom.base64(32)  # URL-safe random token</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-python">Base64 in Python</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/articles/what-is-base64">What is Base64 Encoding?</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Verify your Ruby Base64 output</h3>
+        <p>Paste the output of your Ruby Base64 encoding into base64.dev to decode and verify it.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

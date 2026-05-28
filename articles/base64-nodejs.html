@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 in Node.js — Encode & Decode with Buffer — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Node.js using Buffer. Covers strings, files, streams, URL-safe Base64, and comparing Buffer with btoa/atob in Node.js 16+.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-nodejs">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-nodejs">
+<meta property="og:title" content="Base64 in Node.js — Encode & Decode with Buffer">
+<meta property="og:description" content="Complete guide to Base64 in Node.js using Buffer — strings, files, streams, and URL-safe Base64.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 in Node.js — Encode & Decode with Buffer",
+  "url": "https://base64.dev/articles/base64-nodejs",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Node.js", "item": "https://base64.dev/articles/base64-nodejs" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Node.js?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Buffer: const encoded = Buffer.from('Hello, world!').toString('base64'). To decode: const decoded = Buffer.from(encoded, 'base64').toString('utf8'). No external packages needed." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I encode a file to Base64 in Node.js?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Read the file with fs.readFileSync and call toString('base64'): const fs = require('fs'); const encoded = fs.readFileSync('image.png').toString('base64')." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use URL-safe Base64 in Node.js?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Node.js 16+ supports base64url natively: Buffer.from('Hello').toString('base64url'). For older versions: Buffer.from('Hello').toString('base64').replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'')" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Node.js</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Node.js</span>
+        <span class="article-read-time">5 min read</span>
+      </div>
+      <h1>Base64 in Node.js</h1>
+      <p class="lead">Node.js <code>Buffer</code> is the idiomatic way to handle Base64. It works with strings, binary data, and files out of the box — no extra packages needed. Node.js 16+ also added global <code>btoa()</code> and <code>atob()</code> for browser compatibility.</p>
+
+      <h2>Encoding and Decoding Strings</h2>
+      <pre>// Encode a string to Base64
+const encoded = Buffer.from('Hello, world!').toString('base64');
+console.log(encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode Base64 back to a string
+const decoded = Buffer.from('SGVsbG8sIHdvcmxkIQ==', 'base64').toString('utf8');
+console.log(decoded); // "Hello, world!"</pre>
+      <div class="tip">
+        <p><strong>No Unicode issues:</strong> Unlike browser <code>btoa()</code>, <code>Buffer.from(str)</code> defaults to UTF-8, so emoji and non-ASCII characters work correctly without extra steps.</p>
+      </div>
+
+      <h2>URL-Safe Base64 (Node 16+)</h2>
+      <pre>// base64url encoding — no +, /, or = characters
+const encoded = Buffer.from('Hello, world!').toString('base64url');
+console.log(encoded); // "SGVsbG8sIHdvcmxkIQ"
+
+// Decode base64url
+const decoded = Buffer.from(encoded, 'base64url').toString('utf8');
+console.log(decoded); // "Hello, world!"</pre>
+      <p>For older Node versions, implement it manually:</p>
+      <pre>function toBase64URL(str) {
+  return Buffer.from(str).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function fromBase64URL(b64url) {
+  let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  return Buffer.from(b64, 'base64').toString('utf8');
+}</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>const fs = require('fs');
+
+// Encode a file to Base64 string
+const fileBuffer = fs.readFileSync('image.png');
+const encoded = fileBuffer.toString('base64');
+console.log(`Encoded size: ${encoded.length} chars`);
+
+// Decode Base64 back to a file
+const decoded = Buffer.from(encoded, 'base64');
+fs.writeFileSync('output.png', decoded);</pre>
+
+      <h2>Streaming Large Files</h2>
+      <pre>const fs = require('fs');
+const { pipeline } = require('stream/promises');
+
+// Encode large file using streams
+async function encodeFileStream(input, output) {
+  const readable = fs.createReadStream(input);
+  const writeable = fs.createWriteStream(output, { encoding: 'ascii' });
+
+  let buffer = Buffer.alloc(0);
+  for await (const chunk of readable) {
+    buffer = Buffer.concat([buffer, chunk]);
+    // Process in 3-byte aligned chunks
+    const aligned = Math.floor(buffer.length / 3) * 3;
+    if (aligned > 0) {
+      writeable.write(buffer.slice(0, aligned).toString('base64'));
+      buffer = buffer.slice(aligned);
+    }
+  }
+  // Flush remaining bytes
+  if (buffer.length > 0) writeable.write(buffer.toString('base64'));
+  writeable.end();
+}</pre>
+
+      <h2>HTTP Responses — Sending Binary as Base64</h2>
+      <pre>const http = require('http');
+const fs = require('fs');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/image-base64') {
+    const imageBuffer = fs.readFileSync('logo.png');
+    const base64 = imageBuffer.toString('base64');
+    const dataUri = `data:image/png;base64,${base64}`;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ image: base64, dataUri }));
+  }
+});
+
+server.listen(3000);</pre>
+
+      <h2>btoa() and atob() in Node.js 16+</h2>
+      <pre>// Available globally in Node 16+ for browser compatibility
+const encoded = btoa('Hello');      // "SGVsbG8="
+const decoded = atob('SGVsbG8=');   // "Hello"
+
+// Note: btoa/atob still have the same Unicode limitation as browsers.
+// For Unicode strings, Buffer is the better choice in Node.js.</pre>
+
+      <h2>Working with Streams and Base64 Transform</h2>
+      <pre>const { Transform } = require('stream');
+
+class Base64Encode extends Transform {
+  constructor() {
+    super();
+    this._buffer = Buffer.alloc(0);
+  }
+  _transform(chunk, enc, cb) {
+    this._buffer = Buffer.concat([this._buffer, chunk]);
+    const aligned = Math.floor(this._buffer.length / 3) * 3;
+    if (aligned > 0) {
+      this.push(this._buffer.slice(0, aligned).toString('base64'));
+      this._buffer = this._buffer.slice(aligned);
+    }
+    cb();
+  }
+  _flush(cb) {
+    if (this._buffer.length) this.push(this._buffer.toString('base64'));
+    cb();
+  }
+}
+
+// Usage
+fs.createReadStream('input.bin')
+  .pipe(new Base64Encode())
+  .pipe(fs.createWriteStream('output.b64'));</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+    <li><a href="/articles/base64-typescript">Base64 in TypeScript</a></li>
+    <li><a href="/articles/base64-go">Base64 in Go</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Inspect your Node.js Base64 output</h3>
+        <p>Paste the encoded string from your Node.js script into base64.dev to decode and verify it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

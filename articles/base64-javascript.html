@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in JavaScript — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in JavaScript using btoa(), atob(), TextEncoder, and Buffer. Covers Unicode strings, browser vs Node.js, and URL-safe Base64.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-javascript">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-javascript">
+<meta property="og:title" content="Base64 Encoding & Decoding in JavaScript">
+<meta property="og:description" content="Complete guide to Base64 in JavaScript: btoa(), atob(), Unicode support, Node.js Buffer, and URL-safe Base64.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in JavaScript",
+  "description": "Complete guide to Base64 in JavaScript: btoa(), atob(), Unicode strings with TextEncoder, Node.js Buffer, and URL-safe Base64.",
+  "url": "https://base64.dev/articles/base64-javascript",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in JavaScript", "item": "https://base64.dev/articles/base64-javascript" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode a string to Base64 in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use btoa() for ASCII strings: btoa('Hello') returns 'SGVsbG8='. For Unicode strings, encode to UTF-8 first using TextEncoder, then convert to a binary string before passing to btoa()." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does btoa() throw an error on Unicode strings?",
+      "acceptedAnswer": { "@type": "Answer", "text": "btoa() only handles Latin-1 (ISO-8859-1) characters. Characters with code points above 255 cause an InvalidCharacterError. You must encode to UTF-8 bytes first using TextEncoder, then convert to a binary string." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do Base64 in Node.js?",
+      "acceptedAnswer": { "@type": "Answer", "text": "In Node.js, use Buffer: Buffer.from('Hello').toString('base64') to encode, and Buffer.from('SGVsbG8=', 'base64').toString('utf8') to decode. Buffer handles Unicode correctly without any extra steps." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in JavaScript</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">JavaScript</span>
+        <span class="article-read-time">6 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in JavaScript</h1>
+      <p class="lead">JavaScript provides built-in <code>btoa()</code> and <code>atob()</code> functions for Base64. However, they only handle Latin-1 characters — Unicode strings require a different approach. Here's everything you need.</p>
+
+      <div class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li><a href="#basic">Basic: btoa() and atob()</a></li>
+          <li><a href="#unicode">Handling Unicode strings</a></li>
+          <li><a href="#nodejs">Node.js with Buffer</a></li>
+          <li><a href="#url-safe">URL-safe Base64</a></li>
+          <li><a href="#binary">Encoding binary / ArrayBuffer</a></li>
+          <li><a href="#files">Encoding files in the browser</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="basic">Basic: btoa() and atob()</h2>
+      <p>The browser (and modern Node.js v16+) provides two global functions:</p>
+      <ul>
+        <li><code>btoa(string)</code> — binary string to Base64 (encode)</li>
+        <li><code>atob(base64)</code> — Base64 to binary string (decode)</li>
+      </ul>
+      <pre>// Encode
+const encoded = btoa("Hello, world!");
+console.log(encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode
+const decoded = atob("SGVsbG8sIHdvcmxkIQ==");
+console.log(decoded); // "Hello, world!"</pre>
+      <div class="tip">
+        <p><strong>Tip:</strong> The name <code>btoa</code> stands for "binary to ASCII" and <code>atob</code> for "ASCII to binary" — the naming is confusing but historical.</p>
+      </div>
+
+      <h2 id="unicode">Handling Unicode Strings</h2>
+      <p>The biggest pitfall: <code>btoa()</code> throws an <code>InvalidCharacterError</code> for any character with a code point above 255 (emoji, non-Latin scripts, etc.).</p>
+      <pre>btoa("Hello 🌍"); // ❌ InvalidCharacterError</pre>
+      <p>The correct approach is to encode to UTF-8 bytes first, then convert those bytes to a binary string:</p>
+      <pre>// Encode Unicode string to Base64
+function encodeBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  const binary = String.fromCharCode(...bytes);
+  return btoa(binary);
+}
+
+// Decode Base64 to Unicode string
+function decodeBase64(base64) {
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+console.log(encodeBase64("Hello 🌍")); // "SGVsbG8g8J+MjQ=="
+console.log(decodeBase64("SGVsbG8g8J+MjQ==")); // "Hello 🌍"</pre>
+      <p>For large strings, spread syntax (<code>...</code>) may hit stack limits. Use a loop instead:</p>
+      <pre>function encodeBase64Safe(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (let i = 0; i &lt; bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}</pre>
+
+      <h2 id="nodejs">Node.js with Buffer</h2>
+      <p>In Node.js, the <code>Buffer</code> class is the idiomatic way to work with Base64. It handles Unicode automatically:</p>
+      <pre>// Encode string to Base64
+const encoded = Buffer.from("Hello, world! 🌍").toString("base64");
+console.log(encoded); // "SGVsbG8sIHdvcmxkISDwn4yN"
+
+// Decode Base64 to string
+const decoded = Buffer.from("SGVsbG8sIHdvcmxkISDwn4yN", "base64").toString("utf8");
+console.log(decoded); // "Hello, world! 🌍"</pre>
+      <p>You can also encode binary files:</p>
+      <pre>const fs = require("fs");
+
+// Encode file to Base64
+const fileBuffer = fs.readFileSync("image.png");
+const base64 = fileBuffer.toString("base64");
+
+// Decode Base64 back to file
+const decoded = Buffer.from(base64, "base64");
+fs.writeFileSync("output.png", decoded);</pre>
+      <p>Note: <code>btoa()</code> and <code>atob()</code> are also available globally in Node.js 16+ if you prefer consistency between browser and server code.</p>
+
+      <h2 id="url-safe">URL-Safe Base64</h2>
+      <p>Standard Base64 contains <code>+</code> and <code>/</code> which are special characters in URLs. URL-safe Base64 (RFC 4648 §5) replaces them with <code>-</code> and <code>_</code>:</p>
+      <pre>// Encode to URL-safe Base64
+function toBase64URL(str) {
+  return encodeBase64(str)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, ""); // remove padding
+}
+
+// Decode URL-safe Base64
+function fromBase64URL(base64url) {
+  // Restore standard Base64
+  let base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  // Add padding if needed
+  while (base64.length % 4) base64 += "=";
+  return decodeBase64(base64);
+}
+
+// In Node.js:
+const encoded = Buffer.from("Hello").toString("base64url"); // Node 16+
+const decoded = Buffer.from(encoded, "base64url").toString("utf8");</pre>
+
+      <h2 id="binary">Encoding Binary / ArrayBuffer</h2>
+      <p>To encode raw binary data (e.g., from a crypto operation or WebSocket message):</p>
+      <pre>// ArrayBuffer or Uint8Array to Base64
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i &lt; bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+// Base64 to ArrayBuffer
+function base64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i &lt; binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}</pre>
+
+      <h2 id="files">Encoding Files in the Browser</h2>
+      <p>Use the <code>FileReader</code> API to read a file as a Base64 data URI:</p>
+      <pre>function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result); // data:mime;base64,...
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Usage with file input
+input.addEventListener("change", async (e) => {
+  const dataUri = await fileToBase64(e.target.files[0]);
+  console.log(dataUri); // "data:image/png;base64,iVBOR..."
+});</pre>
+      <p>Or with the modern <code>arrayBuffer()</code> method:</p>
+      <pre>async function fileToBase64Modern(file) {
+  const buffer = await file.arrayBuffer();
+  return arrayBufferToBase64(buffer);
+}</pre>
+
+      <hr>
+      <h2 id="faq">FAQ</h2>
+      <h3>Why does btoa() throw "InvalidCharacterError"?</h3>
+      <p><code>btoa()</code> only accepts characters with char codes 0–255 (Latin-1). Anything outside that range — emoji, Chinese characters, mathematical symbols — throws an error. Use the <code>TextEncoder</code> approach or Node.js <code>Buffer</code> to handle Unicode correctly.</p>
+
+      <h3>Is there a performance difference between btoa() and Buffer?</h3>
+      <p>For typical string sizes, the difference is negligible. For large binary data (megabytes), Node.js <code>Buffer</code> is faster because it is implemented in native C++. In the browser, the loop-based approach avoids stack overflow for very large inputs.</p>
+
+      <h3>How do I check if a string is valid Base64?</h3>
+      <pre>function isBase64(str) {
+  try {
+    return btoa(atob(str)) === str;
+  } catch {
+    return false;
+  }
+}</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-typescript">Base64 in TypeScript</a></li>
+    <li><a href="/articles/base64-nodejs">Base64 in Node.js</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Test your Base64 strings instantly</h3>
+        <p>Paste any JavaScript Base64 output into base64.dev to verify it decodes correctly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

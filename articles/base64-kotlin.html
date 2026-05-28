@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encoding & Decoding in Kotlin — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="How to encode and decode Base64 in Kotlin using java.util.Base64 on Android and JVM, plus Kotlin Multiplatform approaches with ktor-utils.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-kotlin">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-kotlin">
+<meta property="og:title" content="Base64 Encoding & Decoding in Kotlin">
+<meta property="og:description" content="Complete guide to Base64 in Kotlin for JVM, Android, and Kotlin Multiplatform — java.util.Base64 and ktor-utils.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Base64 Encoding & Decoding in Kotlin",
+  "url": "https://base64.dev/articles/base64-kotlin",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 in Kotlin", "item": "https://base64.dev/articles/base64-kotlin" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I encode Base64 in Kotlin?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On JVM/Android API 26+: val encoded = Base64.getEncoder().encodeToString(\"Hello\".toByteArray(Charsets.UTF_8)). Or as an extension: fun String.encodeToBase64() = Base64.getEncoder().encodeToString(toByteArray(Charsets.UTF_8))" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use Base64 on Android in Kotlin?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For Android API 26+, use java.util.Base64. For older API levels, use android.util.Base64: val encoded = android.util.Base64.encodeToString(data, android.util.Base64.NO_WRAP)" }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in Kotlin?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Base64.getUrlEncoder().withoutPadding(): val encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(\"Hello\".toByteArray(Charsets.UTF_8))" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles/">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Kotlin</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Kotlin</span>
+        <span class="article-read-time">4 min read</span>
+      </div>
+      <h1>Base64 Encoding & Decoding in Kotlin</h1>
+      <p class="lead">On JVM and Android (API 26+), Kotlin uses <code>java.util.Base64</code>. For Kotlin Multiplatform, use <code>kotlinx-io</code> or <code>ktor-utils</code> for cross-platform support.</p>
+
+      <h2>JVM / Android (API 26+)</h2>
+      <pre>import java.util.Base64
+
+// Encode string to Base64
+val original = "Hello, world!"
+val encoded = Base64.getEncoder()
+    .encodeToString(original.toByteArray(Charsets.UTF_8))
+println(encoded) // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode Base64 to string
+val decoded = Base64.getDecoder()
+    .decode(encoded)
+    .toString(Charsets.UTF_8)
+println(decoded) // "Hello, world!"</pre>
+
+      <h2>Extension Functions</h2>
+      <p>Adding extension functions makes Base64 feel idiomatic in Kotlin:</p>
+      <pre>import java.util.Base64
+
+fun String.encodeToBase64(): String =
+    Base64.getEncoder().encodeToString(toByteArray(Charsets.UTF_8))
+
+fun String.decodeFromBase64(): String =
+    Base64.getDecoder().decode(this).toString(Charsets.UTF_8)
+
+fun ByteArray.encodeToBase64(): String =
+    Base64.getEncoder().encodeToString(this)
+
+fun String.decodeFromBase64ToBytes(): ByteArray =
+    Base64.getDecoder().decode(this)
+
+// Usage
+val encoded = "Hello, world!".encodeToBase64() // "SGVsbG8sIHdvcmxkIQ=="
+val decoded = encoded.decodeFromBase64()        // "Hello, world!"</pre>
+
+      <h2>URL-Safe Base64</h2>
+      <pre>import java.util.Base64
+
+fun String.encodeToBase64URL(): String =
+    Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(toByteArray(Charsets.UTF_8))
+
+fun String.decodeFromBase64URL(): String =
+    Base64.getUrlDecoder()
+        .decode(this)
+        .toString(Charsets.UTF_8)
+
+// Usage (common for JWTs)
+val token = "user:secret".encodeToBase64URL()
+println(token) // no +, /, or = characters</pre>
+
+      <h2>Android (API &lt; 26)</h2>
+      <p>For older Android versions, use <code>android.util.Base64</code>:</p>
+      <pre>import android.util.Base64 as AndroidBase64
+
+// Encode
+val encoded = AndroidBase64.encodeToString(
+    "Hello".toByteArray(Charsets.UTF_8),
+    AndroidBase64.NO_WRAP  // no newlines
+)
+
+// Decode
+val decoded = AndroidBase64.decode(encoded, AndroidBase64.DEFAULT)
+    .toString(Charsets.UTF_8)
+
+// URL-safe
+val urlSafe = AndroidBase64.encodeToString(
+    "Hello".toByteArray(),
+    AndroidBase64.URL_SAFE or AndroidBase64.NO_PADDING or AndroidBase64.NO_WRAP
+)</pre>
+
+      <h2>Encoding Files</h2>
+      <pre>import java.util.Base64
+import java.io.File
+
+// Encode file to Base64 string
+fun File.toBase64(): String =
+    Base64.getEncoder().encodeToString(readBytes())
+
+// Decode Base64 back to file
+fun String.decodeBase64ToFile(outputPath: String) {
+    File(outputPath).writeBytes(Base64.getDecoder().decode(this))
+}
+
+// Usage
+val encoded = File("image.png").toBase64()
+encoded.decodeBase64ToFile("output.png")</pre>
+
+      <h2>Kotlin Multiplatform with ktor-utils</h2>
+      <pre>// build.gradle.kts
+dependencies {
+    implementation("io.ktor:ktor-utils:2.3.x")
+}
+
+// Common code (all platforms)
+import io.ktor.util.*
+
+val encoded = "Hello".encodeBase64()
+val decoded = encoded.decodeBase64String()
+
+// URL-safe
+val urlEncoded = "Hello".encodeBase64Url()  // Not in ktor, manual:
+fun String.encodeBase64Url(): String =
+    encodeBase64()
+        .replace('+', '-').replace('/', '_').trimEnd('=')</pre>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/base64-java">Base64 in Java</a></li>
+    <li><a href="/articles/base64-swift">Base64 in Swift</a></li>
+    <li><a href="/articles/base64-csharp">Base64 in C# (.NET)</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Verify your Kotlin Base64 output</h3>
+        <p>Paste the Base64 string from your Kotlin or Android app into base64.dev to decode it instantly.</p>
+        <a href="/" class="cta-btn">Open base64.dev →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles/">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
