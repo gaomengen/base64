@@ -32,6 +32,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<style>
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 28px}
+.chip{font-family:var(--font-mono);font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--border-focus);color:var(--text-primary);background:var(--bg-tertiary)}
+.chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.article-card-new{font-family:var(--font-mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);background:var(--green-dim);border:1px solid var(--green);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;display:inline-block}
+.article-card.hidden{display:none}
+.no-results{display:none;padding:40px 0;text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary)}
+.no-results.visible{display:block}
+</style>
 </head>
 <body>
 <div class="container">
@@ -54,179 +64,188 @@
     </div>
 
     <h1>Base64 Guides & Tutorials</h1>
-    <p class="lead">Practical guides on Base64 encoding and decoding — from how it works to using it in every major programming language.</p>
+    <p class="lead">32 practical guides on Base64 — from core concepts to every major language and platform.</p>
 
-    <div class="section-heading">Concepts</div>
-    <div class="articles-grid">
-      <a href="/articles/what-is-base64" class="article-card">
-        <span class="article-card-tag">Fundamentals</span>
+    <div class="filter-bar" role="group" aria-label="Filter articles">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="languages">Languages</button>
+      <button class="chip" data-filter="cli">CLI & Tools</button>
+      <button class="chip" data-filter="concepts">Concepts</button>
+      <button class="chip" data-filter="use-case">Use Cases</button>
+      <button class="chip" data-filter="troubleshooting">Troubleshooting</button>
+      <button class="chip" data-filter="devops">DevOps</button>
+    </div>
+
+    <div class="articles-grid" id="articles-grid">
+
+      <!-- ── New articles (2026-05-28) ── -->
+
+      <a href="/articles/base64-linux-mac" class="article-card" data-category="cli">
+        <span class="article-card-tag">CLI<span class="article-card-new">New</span></span>
+        <span class="article-card-title">base64 Command (Linux & macOS)</span>
+        <span class="article-card-desc">Flags, GNU vs BSD differences, -w 0 line wrapping, and shell pipeline patterns.</span>
+      </a>
+      <a href="/articles/base64-invalid-padding" class="article-card" data-category="troubleshooting">
+        <span class="article-card-tag">Troubleshooting<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Fix Invalid Base64 Errors</span>
+        <span class="article-card-desc">Diagnose and fix padding errors, whitespace issues, and wrong variant errors across all languages.</span>
+      </a>
+      <a href="/articles/base64-basic-auth" class="article-card" data-category="use-case">
+        <span class="article-card-tag">Use Case<span class="article-card-new">New</span></span>
+        <span class="article-card-title">HTTP Basic Auth & Base64</span>
+        <span class="article-card-desc">How Basic Authentication encodes credentials in the Authorization header, with security warnings.</span>
+      </a>
+      <a href="/articles/base64-encodings-comparison" class="article-card" data-category="concepts">
+        <span class="article-card-tag">Concepts<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 vs Base32, Base58 & Base85</span>
+        <span class="article-card-desc">Compare all binary-to-text encoding schemes: size overhead, alphabet, and when to use each.</span>
+      </a>
+      <a href="/articles/base64-openssl" class="article-card" data-category="cli">
+        <span class="article-card-tag">CLI<span class="article-card-new">New</span></span>
+        <span class="article-card-title">OpenSSL Base64</span>
+        <span class="article-card-desc">openssl enc -base64, the critical -A no-linebreak flag, and certificate workflows.</span>
+      </a>
+      <a href="/articles/base64-ssh-pem" class="article-card" data-category="devops">
+        <span class="article-card-tag">DevOps<span class="article-card-new">New</span></span>
+        <span class="article-card-title">SSH Keys & PEM Certificates</span>
+        <span class="article-card-desc">Encode private keys for env vars, Docker, Kubernetes, and CI/CD pipelines.</span>
+      </a>
+      <a href="/articles/base64-react" class="article-card" data-category="use-case">
+        <span class="article-card-tag">Use Case<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 File Upload in React</span>
+        <span class="article-card-desc">Convert files and images to Base64 with FileReader in React, with TypeScript types.</span>
+      </a>
+      <a href="/articles/base64-c" class="article-card" data-category="languages">
+        <span class="article-card-tag">C<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 in C</span>
+        <span class="article-card-desc">Lookup-table encoder/decoder implementation, URL-safe variant, and OpenSSL EVP API.</span>
+      </a>
+      <a href="/articles/base64-bash" class="article-card" data-category="cli">
+        <span class="article-card-tag">Bash<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 in Bash Scripts</span>
+        <span class="article-card-desc">The echo -n newline gotcha, file encoding, env variables, and multi-line handling.</span>
+      </a>
+      <a href="/articles/base64-padding" class="article-card" data-category="concepts">
+        <span class="article-card-tag">Concepts<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 Padding Explained</span>
+        <span class="article-card-desc">Why = signs exist, how padding is calculated from input length, and when it can be omitted.</span>
+      </a>
+      <a href="/articles/base64-powershell" class="article-card" data-category="cli">
+        <span class="article-card-tag">PowerShell<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 in PowerShell</span>
+        <span class="article-card-desc">[Convert]::ToBase64String, the UTF-16 encoding trap, and cross-platform usage.</span>
+      </a>
+      <a href="/articles/base64-dart" class="article-card" data-category="languages">
+        <span class="article-card-tag">Dart<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 in Dart & Flutter</span>
+        <span class="article-card-desc">dart:convert base64 and base64Url codecs, image encoding, and HTTP usage.</span>
+      </a>
+      <a href="/articles/base64-json" class="article-card" data-category="use-case">
+        <span class="article-card-tag">Use Case<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Binary Data in JSON</span>
+        <span class="article-card-desc">How and when to embed binary in JSON with Base64 — tradeoffs and multipart alternatives.</span>
+      </a>
+      <a href="/articles/base64-cpp" class="article-card" data-category="languages">
+        <span class="article-card-tag">C++<span class="article-card-new">New</span></span>
+        <span class="article-card-title">Base64 in C++</span>
+        <span class="article-card-desc">std::string implementation, Boost.Beast base64, and OpenSSL EVP API.</span>
+      </a>
+
+      <!-- ── Original articles (2026-04-25) ── -->
+
+      <a href="/articles/what-is-base64" class="article-card" data-category="concepts">
+        <span class="article-card-tag">Concepts</span>
         <span class="article-card-title">What is Base64 Encoding?</span>
         <span class="article-card-desc">A complete explanation of the Base64 scheme, the 64-character alphabet, padding, and when to use it.</span>
       </a>
-      <a href="/articles/url-safe-base64" class="article-card">
-        <span class="article-card-tag">Fundamentals</span>
+      <a href="/articles/url-safe-base64" class="article-card" data-category="concepts">
+        <span class="article-card-tag">Concepts</span>
         <span class="article-card-title">URL-Safe Base64 (RFC 4648)</span>
         <span class="article-card-desc">How URL-safe Base64 differs from standard Base64, and when to use it in JWTs, URLs, and filenames.</span>
       </a>
-      <a href="/articles/base64-image-encoding" class="article-card">
+      <a href="/articles/base64-image-encoding" class="article-card" data-category="use-case">
         <span class="article-card-tag">Use Case</span>
         <span class="article-card-title">Image to Base64 Data URI</span>
         <span class="article-card-desc">Embed images directly in HTML and CSS using Base64 data URIs. When to use them and when to avoid.</span>
       </a>
-      <a href="/articles/base64-jwt" class="article-card">
+      <a href="/articles/base64-jwt" class="article-card" data-category="use-case">
         <span class="article-card-tag">Use Case</span>
         <span class="article-card-title">Base64 in JSON Web Tokens (JWT)</span>
         <span class="article-card-desc">How JWTs use Base64URL encoding for headers, payloads, and signatures.</span>
       </a>
-      <a href="/articles/base64-vs-hex" class="article-card">
-        <span class="article-card-tag">Comparison</span>
+      <a href="/articles/base64-vs-hex" class="article-card" data-category="concepts">
+        <span class="article-card-tag">Concepts</span>
         <span class="article-card-title">Base64 vs Hex Encoding</span>
-        <span class="article-card-desc">When to choose Base64 over hexadecimal encoding, and vice versa. Size comparison and use case breakdown.</span>
+        <span class="article-card-desc">When to choose Base64 over hexadecimal encoding, and vice versa. Size comparison and use cases.</span>
       </a>
-      <a href="/articles/base64-data-uri" class="article-card">
+      <a href="/articles/base64-data-uri" class="article-card" data-category="use-case">
         <span class="article-card-tag">Use Case</span>
         <span class="article-card-title">Base64 Data URIs Explained</span>
-        <span class="article-card-desc">The data: URI scheme in depth — syntax, MIME types, browser support, and performance considerations.</span>
+        <span class="article-card-desc">The data: URI scheme in depth — syntax, MIME types, browser support, and performance.</span>
       </a>
-      <a href="/articles/base64-padding" class="article-card">
-        <span class="article-card-tag">Concepts</span>
-        <span class="article-card-title">Base64 Padding Explained</span>
-        <span class="article-card-desc">Why = signs exist, how padding is calculated, and when it can be omitted.</span>
-      </a>
-      <a href="/articles/base64-invalid-padding" class="article-card">
-        <span class="article-card-tag">Troubleshooting</span>
-        <span class="article-card-title">Fix Invalid Base64 Errors</span>
-        <span class="article-card-desc">Diagnose and fix padding errors, whitespace issues, and wrong variant errors.</span>
-      </a>
-      <a href="/articles/base64-encodings-comparison" class="article-card">
-        <span class="article-card-tag">Concepts</span>
-        <span class="article-card-title">Base64 vs Base32, Base58 & Base85</span>
-        <span class="article-card-desc">Compare all binary-to-text encoding schemes: size, alphabet, and use cases.</span>
-      </a>
-      <a href="/articles/base64-basic-auth" class="article-card">
-        <span class="article-card-tag">Use Case</span>
-        <span class="article-card-title">HTTP Basic Auth & Base64</span>
-        <span class="article-card-desc">How Basic Authentication encodes credentials in the Authorization header.</span>
-      </a>
-      <a href="/articles/base64-json" class="article-card">
-        <span class="article-card-tag">Use Case</span>
-        <span class="article-card-title">Binary Data in JSON</span>
-        <span class="article-card-desc">Embed binary data in JSON with Base64 — tradeoffs and multipart alternatives.</span>
-      </a>
-      <a href="/articles/base64-ssh-pem" class="article-card">
-        <span class="article-card-tag">DevOps</span>
-        <span class="article-card-title">SSH Keys & PEM Certificates</span>
-        <span class="article-card-desc">Encode private keys for env vars, Docker, Kubernetes, and CI/CD pipelines.</span>
-      </a>
-      <a href="/articles/base64-react" class="article-card">
-        <span class="article-card-tag">Use Case</span>
-        <span class="article-card-title">File Upload in React</span>
-        <span class="article-card-desc">Convert files and images to Base64 with FileReader in React.</span>
-      </a>
-    </div>
-
-    <div class="section-heading">Language Guides</div>
-    <div class="articles-grid">
-      <a href="/articles/base64-javascript" class="article-card">
+      <a href="/articles/base64-javascript" class="article-card" data-category="languages">
         <span class="article-card-tag">JavaScript</span>
         <span class="article-card-title">Base64 in JavaScript</span>
         <span class="article-card-desc">btoa(), atob(), TextEncoder, Buffer in Node.js, and handling Unicode strings correctly.</span>
       </a>
-      <a href="/articles/base64-typescript" class="article-card">
+      <a href="/articles/base64-typescript" class="article-card" data-category="languages">
         <span class="article-card-tag">TypeScript</span>
         <span class="article-card-title">Base64 in TypeScript</span>
         <span class="article-card-desc">Type-safe Base64 encoding and decoding in TypeScript for browser and Node.js environments.</span>
       </a>
-      <a href="/articles/base64-nodejs" class="article-card">
+      <a href="/articles/base64-nodejs" class="article-card" data-category="languages">
         <span class="article-card-tag">Node.js</span>
         <span class="article-card-title">Base64 in Node.js</span>
-        <span class="article-card-desc">Using Node.js Buffer to encode and decode Base64 strings, files, and streams without external libraries.</span>
+        <span class="article-card-desc">Using Node.js Buffer to encode and decode Base64 strings, files, and streams.</span>
       </a>
-      <a href="/articles/base64-python" class="article-card">
+      <a href="/articles/base64-python" class="article-card" data-category="languages">
         <span class="article-card-tag">Python</span>
         <span class="article-card-title">Base64 in Python</span>
-        <span class="article-card-desc">The base64 module, b64encode/b64decode, URL-safe variants, and encoding binary files in Python.</span>
+        <span class="article-card-desc">The base64 module, b64encode/b64decode, URL-safe variants, and encoding binary files.</span>
       </a>
-      <a href="/articles/base64-java" class="article-card">
+      <a href="/articles/base64-java" class="article-card" data-category="languages">
         <span class="article-card-tag">Java</span>
         <span class="article-card-title">Base64 in Java</span>
-        <span class="article-card-desc">java.util.Base64 encoder and decoder — basic, URL-safe, and MIME variants in Java 8+.</span>
+        <span class="article-card-desc">java.util.Base64 — basic, URL-safe, and MIME encoders in Java 8+.</span>
       </a>
-      <a href="/articles/base64-go" class="article-card">
+      <a href="/articles/base64-go" class="article-card" data-category="languages">
         <span class="article-card-tag">Go</span>
         <span class="article-card-title">Base64 in Go</span>
-        <span class="article-card-desc">encoding/base64 package — StdEncoding, URLEncoding, RawURLEncoding and working with byte slices.</span>
+        <span class="article-card-desc">encoding/base64 package — StdEncoding, URLEncoding, RawURLEncoding, and byte slices.</span>
       </a>
-      <a href="/articles/base64-rust" class="article-card">
+      <a href="/articles/base64-rust" class="article-card" data-category="languages">
         <span class="article-card-tag">Rust</span>
         <span class="article-card-title">Base64 in Rust</span>
-        <span class="article-card-desc">Using the base64 crate to encode and decode data in Rust with zero-copy efficiency.</span>
+        <span class="article-card-desc">Using the base64 crate Engine API with standard and URL-safe alphabets.</span>
       </a>
-      <a href="/articles/base64-php" class="article-card">
+      <a href="/articles/base64-php" class="article-card" data-category="languages">
         <span class="article-card-tag">PHP</span>
         <span class="article-card-title">Base64 in PHP</span>
-        <span class="article-card-desc">base64_encode(), base64_decode(), and handling URL-safe Base64 and binary file data in PHP.</span>
+        <span class="article-card-desc">base64_encode(), base64_decode(), URL-safe Base64, and encoding binary file data.</span>
       </a>
-      <a href="/articles/base64-csharp" class="article-card">
+      <a href="/articles/base64-csharp" class="article-card" data-category="languages">
         <span class="article-card-tag">C#</span>
         <span class="article-card-title">Base64 in C# (.NET)</span>
-        <span class="article-card-desc">Convert.ToBase64String, FromBase64String, and working with byte arrays and streams in .NET.</span>
+        <span class="article-card-desc">Convert.ToBase64String, FromBase64String, byte arrays, streams, and URL-safe Base64.</span>
       </a>
-      <a href="/articles/base64-ruby" class="article-card">
+      <a href="/articles/base64-ruby" class="article-card" data-category="languages">
         <span class="article-card-tag">Ruby</span>
         <span class="article-card-title">Base64 in Ruby</span>
-        <span class="article-card-desc">Base64.encode64, strict_encode64, urlsafe_encode64 and the differences between them.</span>
+        <span class="article-card-desc">encode64 vs strict_encode64 vs urlsafe_encode64 and the critical differences.</span>
       </a>
-      <a href="/articles/base64-swift" class="article-card">
+      <a href="/articles/base64-swift" class="article-card" data-category="languages">
         <span class="article-card-tag">Swift</span>
         <span class="article-card-title">Base64 in Swift</span>
-        <span class="article-card-desc">Data.base64EncodedString() and Data(base64Encoded:) in Swift for iOS and macOS apps.</span>
+        <span class="article-card-desc">Data.base64EncodedString() and Data(base64Encoded:) for iOS and macOS apps.</span>
       </a>
-      <a href="/articles/base64-kotlin" class="article-card">
+      <a href="/articles/base64-kotlin" class="article-card" data-category="languages">
         <span class="article-card-tag">Kotlin</span>
         <span class="article-card-title">Base64 in Kotlin</span>
-        <span class="article-card-desc">java.util.Base64 in Kotlin, multiplatform approaches, and Ktor base64 utilities.</span>
-      </a>
-      <a href="/articles/base64-c" class="article-card">
-        <span class="article-card-tag">C</span>
-        <span class="article-card-title">Base64 in C</span>
-        <span class="article-card-desc">Lookup-table implementation, URL-safe variant, and OpenSSL EVP API.</span>
-      </a>
-      <a href="/articles/base64-cpp" class="article-card">
-        <span class="article-card-tag">C++</span>
-        <span class="article-card-title">Base64 in C++</span>
-        <span class="article-card-desc">std::string implementation, Boost.Beast, and OpenSSL EVP API.</span>
-      </a>
-      <a href="/articles/base64-dart" class="article-card">
-        <span class="article-card-tag">Dart</span>
-        <span class="article-card-title">Base64 in Dart & Flutter</span>
-        <span class="article-card-desc">dart:convert base64 and base64Url, image encoding, and HTTP usage.</span>
+        <span class="article-card-desc">java.util.Base64 in Kotlin, multiplatform approaches, and Ktor utilities.</span>
       </a>
     </div>
 
-    <div class="section-heading">CLI & Tools</div>
-      <div class="articles-grid">
-      <a href="/articles/base64-linux-mac" class="article-card">
-        <span class="article-card-tag">CLI</span>
-        <span class="article-card-title">base64 Command (Linux & macOS)</span>
-        <span class="article-card-desc">Flags, GNU vs BSD differences, and shell pipeline patterns.</span>
-      </a>
-      <a href="/articles/base64-openssl" class="article-card">
-        <span class="article-card-tag">CLI</span>
-        <span class="article-card-title">OpenSSL Base64</span>
-        <span class="article-card-desc">openssl enc -base64, the -A flag, and certificate workflows.</span>
-      </a>
-      <a href="/articles/base64-bash" class="article-card">
-        <span class="article-card-tag">Bash</span>
-        <span class="article-card-title">Base64 in Bash Scripts</span>
-        <span class="article-card-desc">The echo -n newline gotcha, file encoding, and env variable handling.</span>
-      </a>
-      <a href="/articles/base64-powershell" class="article-card">
-        <span class="article-card-tag">PowerShell</span>
-        <span class="article-card-title">Base64 in PowerShell</span>
-        <span class="article-card-desc">Convert::ToBase64String, the UTF-16 trap, and cross-platform usage.</span>
-      </a>
-      </div>
+    <p class="no-results" id="no-results">No articles in this category yet.</p>
 
     <div class="cta-box">
       <h3>Need to encode or decode Base64 right now?</h3>
@@ -253,6 +272,27 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+
+(function() {
+  var chips = document.querySelectorAll('.chip');
+  var cards = document.querySelectorAll('.article-card');
+  var noResults = document.getElementById('no-results');
+
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var filter = this.dataset.filter;
+      chips.forEach(function(c) { c.classList.remove('active'); });
+      this.classList.add('active');
+      var visible = 0;
+      cards.forEach(function(card) {
+        var show = filter === 'all' || card.dataset.category === filter;
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      noResults.classList.toggle('visible', visible === 0);
+    });
+  });
+})();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
