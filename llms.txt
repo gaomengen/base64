@@ -6,6 +6,15 @@
 
 - [Base64 Encoder & Decoder](https://base64.dev/): The main tool. Supports text, image, file, and URL-safe Base64 modes. Auto-detects whether input is plain text or Base64. Keyboard shortcuts included.
 
+## Converters (in-browser tools)
+
+- [Image to Base64](https://base64.dev/image-to-base64): Drop a PNG/JPG/GIF/SVG/WebP image and get a Base64 data URI for HTML or CSS. Runs locally, no upload.
+- [Base64 to Image](https://base64.dev/base64-to-image): Decode a Base64 string or data URI back into a previewable, downloadable image. Auto-detects the format from the bytes.
+- [Base64 to PDF](https://base64.dev/base64-to-pdf): Decode Base64 into a PDF, preview it inline, and download it. Fully client-side — safe for confidential documents.
+- [Base64 to Hex](https://base64.dev/base64-to-hex): Convert a Base64 string to the hexadecimal representation of its bytes, with optional spaced/uppercase output.
+- [Hex to Base64](https://base64.dev/hex-to-base64): Convert a hex string (spaces, colons, and 0x prefixes accepted) to standard or URL-safe Base64.
+- [Base64 to JSON](https://base64.dev/base64-to-json): Decode Base64 (or base64url) to text and pretty-print it as JSON. Handles JWT payload segments.
+
 ## Guides & Articles
 
 - [What is Base64 Encoding?](https://base64.dev/articles/what-is-base64): Complete explanation of the Base64 scheme, the 64-character alphabet, padding, size overhead, and use cases.

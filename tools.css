@@ -1,0 +1,45 @@
+/* tools.css — interactive widget styles for base64.dev conversion pages.
+   Loaded alongside /articles/style.v2.css (which provides tokens, header,
+   breadcrumb, typography, footer). */
+
+.tool-widget{display:flex;flex-direction:column;gap:12px;margin:8px 0 36px}
+.tool-panel{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .15s}
+.tool-panel:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-tertiary)}
+.panel-label{font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);display:flex;align-items:center;gap:8px}
+.panel-label .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.panel-actions{display:flex;gap:4px}
+.small-btn{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.small-btn:hover{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-focus)}
+.small-btn.copied{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.tool-widget textarea{width:100%;min-height:150px;padding:16px;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-mono);font-size:14px;line-height:1.6;resize:vertical;display:block}
+.tool-widget textarea::placeholder{color:var(--text-tertiary)}
+
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:36px;text-align:center;cursor:pointer;transition:all .2s}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:var(--accent-dim)}
+.dropzone-text{font-size:14px;color:var(--text-secondary)}
+.dropzone-hint{font-size:12px;color:var(--text-tertiary);margin-top:4px;font-family:var(--font-mono)}
+
+.media-preview{border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;background:var(--bg-secondary);display:none}
+.media-preview.visible{display:block}
+.media-preview img{max-width:100%;max-height:340px;display:block;margin:0 auto}
+.media-preview iframe{width:100%;height:480px;border:0;display:block;background:#fff}
+.preview-info{padding:10px 16px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+.tool-status{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary);min-height:18px}
+.tool-status .status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-tertiary);flex:none}
+.tool-status.ok .status-dot{background:var(--green)}
+.tool-status.ok{color:var(--green)}
+.tool-status.err .status-dot{background:var(--red)}
+.tool-status.err{color:var(--red)}
+
+.tool-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:13px;font-weight:600;padding:9px 18px;border-radius:var(--radius);border:none;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;background:var(--bg-secondary);color:var(--text-secondary);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:9px 18px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--border-focus);color:var(--text-primary)}
+
+@media(max-width:640px){
+  .tool-widget textarea{min-height:120px;font-size:13px;padding:12px}
+  .media-preview iframe{height:360px}
+}
