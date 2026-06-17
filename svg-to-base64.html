@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG to Base64 Converter (CSS Data URI) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Convert an SVG to a Base64 data URI for CSS background-image. Drop an .svg and copy the data:image/svg+xml;base64 string. Runs locally in your browser — no upload.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/svg-to-base64">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/svg-to-base64">
+<meta property="og:title" content="SVG to Base64 Converter (CSS Data URI)">
+<meta property="og:description" content="Drop an SVG and get a Base64 data URI for CSS background-image. Runs locally — no upload, fully private.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SVG to Base64 Converter (CSS Data URI)">
+<meta name="twitter:description" content="Drop an SVG and get a Base64 data URI for CSS background-image. Runs locally — no upload.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SVG to Base64 Converter",
+  "url": "https://base64.dev/svg-to-base64",
+  "description": "Convert an SVG file to a Base64 data URI in the browser for use as a CSS background-image.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to convert an SVG to Base64",
+  "description": "Turn an SVG file into a Base64 data URI you can paste into CSS as a background-image.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Drop your SVG", "text": "Drag an .svg file onto the drop zone, or click to browse and select it." },
+    { "@type": "HowToStep", "position": 2, "name": "Copy the data URI", "text": "The Base64 data URI (data:image/svg+xml;base64,...) appears instantly. Click Copy." },
+    { "@type": "HowToStep", "position": 3, "name": "Paste into your CSS", "text": "Use it as a CSS background-image: url(\"data:image/svg+xml;base64,...\") value." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I convert an SVG to Base64 for CSS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Drop the .svg file onto the converter on this page. It reads the file locally with the FileReader API and outputs a data URI of the form data:image/svg+xml;base64,PHN2ZyB4bWxu... Paste that into a CSS background-image: url(\"...\") declaration." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Base64 or URL-encoding better for inline SVG?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because an SVG is plain text, URL-encoding (percent-encoding) only escapes a handful of characters and usually produces a smaller string than Base64, which adds about 33% overhead. URL-encoding is the lighter choice for inline CSS, while Base64 is the safest single blob when you want to avoid worrying about which characters need escaping." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is my SVG data URI not showing in CSS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Make sure the MIME type is image/svg+xml (not text/xml or image/svg), and that the quotes inside url() are escaped or alternated correctly — wrap the data URI in double quotes and ensure the SVG markup does not contain unescaped double quotes that break the value." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this SVG converter private?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — the conversion runs entirely in your browser with JavaScript. The SVG is read locally and never uploaded to any server, so private or sensitive artwork stays on your machine." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "SVG to Base64", "item": "https://base64.dev/svg-to-base64" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>SVG to Base64</span>
+    </div>
+
+    <h1>SVG to Base64 Converter</h1>
+    <p class="lead">Drop an SVG and get a Base64 <strong>data URI</strong> you can paste straight into a CSS <code>background-image</code>. Everything runs in your browser — the file is never uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an SVG here or click to browse">
+        <div class="dropzone-text">Drop an SVG here or click to browse</div>
+        <div class="dropzone-hint">SVG files</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/svg+xml,.svg" hidden>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the converted SVG">
+        <div class="preview-info">
+          <span id="previewName">—</span>
+          <span id="previewSize">—</span>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> DATA URI</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="rawBtn" title="Toggle between full data URI and raw Base64">Raw Base64</button>
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Base64 output</label>
+        <textarea id="output" readonly placeholder="The Base64 data URI appears here after you add an SVG..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an SVG</span></div>
+    </div>
+
+    <h2>How to convert an SVG to Base64</h2>
+    <p>Drag your <code>.svg</code> file onto the drop zone above (or click to browse). The tool reads it locally with the browser's <code>FileReader</code> API and produces a <strong>data URI</strong> — a string of the form <code>data:image/svg+xml;base64,PHN2ZyB4bWxu…</code> that embeds the whole SVG inline. Click <strong>Copy</strong>, then paste it into your CSS. Use the <strong>Raw Base64</strong> toggle if you want only the encoded payload without the <code>data:</code> prefix.</p>
+
+    <h2>Using an SVG data URI in CSS</h2>
+    <p>The most common use is a CSS <code>background-image</code>. Wrap the data URI in <code>url("…")</code>:</p>
+<pre>.icon {
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0i...");
+  background-repeat: no-repeat;
+  background-size: contain;
+}</pre>
+    <p>You can also use it anywhere a CSS image is accepted — for example a <code>list-style-image</code>, a <code>mask-image</code>, or a <code>border-image</code>. The leading <code>data:image/svg+xml;base64,</code> prefix tells the browser the payload is an SVG, so the MIME type must stay exactly that.</p>
+
+    <h2>Base64 vs URL-encoding for SVG</h2>
+    <p>Unlike PNG or JPEG, an SVG is <strong>plain text</strong>, and that changes the math. There are two common ways to inline it in CSS:</p>
+    <ul>
+      <li><strong>Base64</strong> re-encodes the entire file into a 64-character alphabet, which inflates the size by about <strong>33%</strong> regardless of the content.</li>
+      <li><strong>URL-encoding</strong> (percent-encoding) leaves most of the SVG readable and only escapes a few characters such as <code>&lt;</code>, <code>&gt;</code>, <code>#</code>, and quotes. For typical SVG markup this is usually <strong>smaller</strong> than the Base64 version.</li>
+    </ul>
+    <p>So for <strong>inline CSS where every byte counts</strong>, URL-encoding is often the lighter option. Reach for <strong>Base64 when you want a single, universally safe blob</strong> — one opaque string with no characters that can break the surrounding markup, easy to copy, paste, and store. This tool outputs Base64; if you need the percent-encoded form instead, URL-encode the raw SVG text directly.</p>
+    <div class="tip"><p><strong>Tip:</strong> URL-encoding wins on size for most SVGs, but Base64 sidesteps every quoting and escaping edge case. If a percent-encoded SVG ever renders inconsistently across browsers, the Base64 version is the safe fallback.</p></div>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The conversion happens entirely client-side in JavaScript. Your SVG is read into memory in the browser and encoded locally — it is <strong>never sent to a server</strong>. You can confirm this by opening DevTools → Network: adding an SVG fires no upload request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I convert an SVG to Base64 for CSS?</h3>
+    <p>Drop the <code>.svg</code> onto the converter above. It reads the file locally and outputs a data URI like <code>data:image/svg+xml;base64,PHN2ZyB4bWxu…</code> — paste that into a <code>background-image: url("…")</code> declaration.</p>
+    <h3>Is Base64 or URL-encoding better for inline SVG?</h3>
+    <p>Because an SVG is plain text, URL-encoding only escapes a handful of characters and is usually <strong>smaller</strong> than Base64, which adds ~33% overhead. Use URL-encoding when you want the lightest inline CSS; use Base64 when you want one safe, opaque blob that never breaks the surrounding markup.</p>
+    <h3>Why is my SVG data URI not showing in CSS?</h3>
+    <p>Check two things: the MIME type must be <code>image/svg+xml</code> (not <code>text/xml</code> or <code>image/svg</code>), and the quotes must be escaped correctly — wrap the data URI in double quotes in <code>url("…")</code> and make sure the SVG markup itself doesn't contain unescaped double quotes that close the value early. Base64 avoids the quoting problem entirely.</p>
+    <h3>How do I go the other way (Base64 back to an SVG)?</h3>
+    <p>Use the <a href="/base64-to-image">Base64 to Image</a> tool to decode a data URI or raw Base64 back into a viewable, downloadable image, including SVGs.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+        <li><a href="/png-to-base64">PNG to Base64</a></li>
+        <li><a href="/articles/base64-data-uri">Data URIs Explained</a></li>
+        <li><a href="/articles/base64-image-encoding">Image Encoding Guide</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need text, files, or URL-safe Base64?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('fileInput'), output = $('output');
+  var preview = $('preview'), previewImg = $('previewImg'), previewName = $('previewName'), previewSize = $('previewSize');
+  var status = $('status'), copyBtn = $('copyBtn'), rawBtn = $('rawBtn');
+  var dataURI = '', rawMode = false;
+
+  function render() {
+    if (!dataURI) { output.value = ''; return; }
+    output.value = rawMode ? (dataURI.split(',')[1] || '') : dataURI;
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    var isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name);
+    if (!isSvg) { B64.setStatus(status, 'err', 'That file is not an SVG.'); return; }
+    var r = new FileReader();
+    r.onload = function (e) {
+      dataURI = e.target.result;
+      previewImg.src = dataURI;
+      previewName.textContent = file.name;
+      previewSize.textContent = B64.fmtSize(file.size) + ' → ' + B64.fmtSize((dataURI.split(',')[1] || '').length) + ' Base64';
+      preview.classList.add('visible');
+      render();
+      B64.setStatus(status, 'ok', 'Encoded ' + file.name);
+    };
+    r.onerror = function () { B64.setStatus(status, 'err', 'Could not read that file.'); };
+    r.readAsDataURL(file);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+  document.body.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.body.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  rawBtn.addEventListener('click', function () {
+    rawMode = !rawMode;
+    rawBtn.textContent = rawMode ? 'Data URI' : 'Raw Base64';
+    rawBtn.classList.toggle('copied', rawMode);
+    render();
+  });
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

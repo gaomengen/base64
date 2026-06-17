@@ -14,6 +14,19 @@
 - [Base64 to Hex](https://base64.dev/base64-to-hex): Convert a Base64 string to the hexadecimal representation of its bytes, with optional spaced/uppercase output.
 - [Hex to Base64](https://base64.dev/hex-to-base64): Convert a hex string (spaces, colons, and 0x prefixes accepted) to standard or URL-safe Base64.
 - [Base64 to JSON](https://base64.dev/base64-to-json): Decode Base64 (or base64url) to text and pretty-print it as JSON. Handles JWT payload segments.
+- [File to Base64](https://base64.dev/file-to-base64): Encode any file (PDF, binary, archive, image) to a raw Base64 string or data URI. Runs locally.
+- [Base64 to File](https://base64.dev/base64-to-file): Decode any Base64 string and download it as a file, with the type auto-detected from the bytes.
+- [PNG to Base64](https://base64.dev/png-to-base64): Convert a PNG to a Base64 data URI for HTML/CSS.
+- [JPG to Base64](https://base64.dev/jpg-to-base64): Convert a JPG/JPEG to a Base64 data URI.
+- [SVG to Base64](https://base64.dev/svg-to-base64): Convert an SVG to a Base64 data URI for CSS background-image (with the URL-encoding tradeoff explained).
+- [PDF to Base64](https://base64.dev/pdf-to-base64): Encode a PDF to a Base64 string or data URI.
+- [MP3 / Audio to Base64](https://base64.dev/mp3-to-base64): Encode MP3/WAV/OGG audio to a Base64 string or data URI.
+- [Base64 to PNG](https://base64.dev/base64-to-png): Decode a Base64 string or data URI into a downloadable PNG image.
+
+## Calculators & utilities
+
+- [Base64 Size Calculator](https://base64.dev/base64-size-calculator): Compute Base64 size and overhead. Bytes ↔ Base64 length, the exact ~33% increase, formula explained.
+- [Base64URL Encode & Decode](https://base64.dev/base64url): URL-safe Base64 (RFC 4648 §5) with the -_ alphabet and no padding — for JWTs, URLs, and filenames.
 
 ## Encode & decode by language (live tool + code)
 
@@ -34,6 +47,9 @@ Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Bas
 - [C++](https://base64.dev/base64-encode-cpp): self-contained std::string encoder + OpenSSL EVP.
 - [C](https://base64.dev/base64-encode-c): portable lookup-table encoder/decoder + OpenSSL EVP.
 - [Bash](https://base64.dev/base64-encode-bash): the base64 command, echo -n gotcha, -w 0 line wrapping.
+- [PowerShell](https://base64.dev/base64-encode-powershell): [Convert]::ToBase64String with the UTF-16 vs UTF-8 trap.
+- [Dart & Flutter](https://base64.dev/base64-encode-dart): dart:convert base64Encode / base64Decode / base64Url.
+- [Perl](https://base64.dev/base64-encode-perl): MIME::Base64 encode_base64 / decode_base64, one-liners, the newline gotcha.
 
 ## Guides & Articles
 

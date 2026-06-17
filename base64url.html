@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64URL Encode & Decode (URL-Safe) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Encode and decode URL-safe Base64 (Base64URL, RFC 4648 §5) online. Uses the - and _ alphabet with no padding — for JWTs, URLs, and filenames. Runs locally.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64url">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64url">
+<meta property="og:title" content="Base64URL Encode & Decode (URL-Safe)">
+<meta property="og:description" content="Encode/decode URL-safe Base64 (RFC 4648 §5) with the -_ alphabet and no padding. For JWTs, URLs, filenames.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64URL Encode & Decode (URL-Safe)">
+<meta name="twitter:description" content="URL-safe Base64 (RFC 4648 §5): -_ alphabet, no padding. For JWTs, URLs, filenames.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64URL Encoder & Decoder",
+  "url": "https://base64.dev/base64url",
+  "description": "Encode and decode URL-safe Base64 (Base64URL, RFC 4648 Section 5) in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to encode and decode Base64URL",
+  "description": "Convert text to URL-safe Base64 and back using the RFC 4648 §5 alphabet.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Enter your text", "text": "Type or paste text into the input field." },
+    { "@type": "HowToStep", "position": 2, "name": "Encode", "text": "Click Encode → to get URL-safe Base64 using - and _ with no padding." },
+    { "@type": "HowToStep", "position": 3, "name": "Decode", "text": "Paste a Base64URL string and click Decode to recover the original text." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Base64URL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64URL is the URL- and filename-safe variant of Base64 defined in RFC 4648 Section 5. It replaces the two non-URL-safe characters '+' and '/' with '-' and '_', and usually drops the '=' padding, so the result can be placed directly in URLs, query strings, and filenames without further escaping." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between Base64 and Base64URL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "They encode the same bytes; only the last two alphabet characters differ. Standard Base64 uses '+' and '/' and keeps '=' padding. Base64URL uses '-' and '_' and typically omits padding. To convert standard to URL-safe: replace '+' with '-', '/' with '_', and strip trailing '='." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Base64URL use padding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Usually not. Base64URL commonly omits the '=' padding (as JWTs do). Decoders restore it by padding the string to a multiple of 4 before decoding. This tool strips padding when encoding and restores it automatically when decoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "Are JWTs encoded with Base64URL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. A JWT's header and payload are Base64URL-encoded JSON, joined with dots and followed by a Base64URL signature. That is why JWTs contain '-' and '_' but never '+', '/', or '='." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64URL", "item": "https://base64.dev/base64url" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64URL</span>
+    </div>
+
+    <h1>Base64URL Encode &amp; Decode</h1>
+    <p class="lead">URL-safe Base64 (<strong>Base64URL</strong>, RFC 4648 §5) swaps <code>+</code>/<code>/</code> for <code>-</code>/<code>_</code> and drops <code>=</code> padding, so it drops straight into URLs, query strings, and filenames. Encode and decode below — it all runs locally.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> INPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+        </div>
+        <textarea id="input" aria-label="Input text or Base64URL" placeholder="Type text to encode, or paste Base64URL to decode..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-actions">
+        <button class="btn-primary" id="encodeBtn">Encode →</button>
+        <button class="btn-ghost" id="decodeBtn">← Decode</button>
+      </div>
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+        </div>
+        <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Enter text, then Encode or Decode</span></div>
+    </div>
+
+    <h2>What is Base64URL?</h2>
+    <p>Standard Base64 uses <code>+</code> and <code>/</code> as its last two characters and pads with <code>=</code> — all three of which have special meaning in URLs and filenames. <strong>Base64URL</strong> (RFC 4648 Section 5) fixes this by using <code>-</code> instead of <code>+</code>, <code>_</code> instead of <code>/</code>, and omitting the <code>=</code> padding. The encoded bytes are identical; only the alphabet changes.</p>
+
+    <h2>Converting standard Base64 to URL-safe</h2>
+    <p>If you already have a standard Base64 string, the conversion is a character swap:</p>
+<pre>urlsafe = standard.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');</pre>
+    <p>To go back, replace <code>-</code> → <code>+</code> and <code>_</code> → <code>/</code>, then re-add <code>=</code> padding until the length is a multiple of 4. This tool does both automatically — paste either variant into the decoder and it just works.</p>
+
+    <h2>Where Base64URL is used</h2>
+    <ul>
+      <li><strong>JWTs / JOSE</strong> — a token's header and payload are Base64URL-encoded JSON, which is why JWTs contain <code>-</code> and <code>_</code> but never <code>+</code>, <code>/</code>, or <code>=</code>.</li>
+      <li><strong>URLs &amp; query strings</strong> — pass binary or tokens without percent-encoding.</li>
+      <li><strong>Filenames &amp; cache keys</strong> — <code>/</code> would create directories; <code>_</code> is safe.</li>
+    </ul>
+
+    <h2>Is this private?</h2>
+    <p>Yes — encoding and decoding happen entirely in your browser. Nothing is uploaded, which matters since Base64URL strings are often JWTs containing identifiers.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>What is Base64URL?</h3>
+    <p>The URL- and filename-safe Base64 variant (RFC 4648 §5): <code>-</code> and <code>_</code> instead of <code>+</code> and <code>/</code>, usually with no padding.</p>
+    <h3>What's the difference between Base64 and Base64URL?</h3>
+    <p>Same bytes, different last two alphabet characters and padding. Swap <code>+→-</code>, <code>/→_</code>, and strip <code>=</code> to convert.</p>
+    <h3>Does Base64URL use padding?</h3>
+    <p>Usually no — it's commonly omitted (as in JWTs). Decoders restore it before decoding; this tool does that for you.</p>
+    <h3>Are JWTs Base64URL?</h3>
+    <p>Yes — JWT header, payload, and signature are all Base64URL-encoded.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/articles/url-safe-base64">URL-Safe Base64 Guide</a></li>
+        <li><a href="/base64-to-json">Base64 to JSON</a></li>
+        <li><a href="/articles/base64-jwt">Base64 in JWT</a></li>
+        <li><a href="/articles/base64-padding">Base64 Padding</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need standard Base64, images, or files?</h3>
+      <p>The main base64.dev tool handles text, images, files, and standard Base64 with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), output = $('output'), status = $('status');
+
+  $('encodeBtn').addEventListener('click', function () {
+    var v = input.value;
+    if (!v) { B64.setStatus(status, '', 'Enter text to encode'); return; }
+    output.value = B64.encodeText(v, true);
+    B64.setStatus(status, 'ok', 'Encoded → Base64URL');
+  });
+
+  $('decodeBtn').addEventListener('click', function () {
+    var v = input.value.trim();
+    if (!v) { B64.setStatus(status, '', 'Paste Base64URL to decode'); return; }
+    try {
+      output.value = B64.decodeText(v);
+      B64.setStatus(status, 'ok', 'Decoded → text');
+    } catch (e) {
+      output.value = '';
+      B64.setStatus(status, 'err', 'Invalid Base64URL (or non-text data)');
+    }
+  });
+
+  $('clearBtn').addEventListener('click', function () {
+    input.value = ''; output.value = '';
+    B64.setStatus(status, '', 'Enter text, then Encode or Decode');
+    input.focus();
+  });
+
+  B64.wireCopy($('copyBtn'), function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

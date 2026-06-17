@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 to File Converter (Decode & Download) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Paste any Base64 string and download it as a file. The type is auto-detected from the bytes. Runs locally in your browser — no upload, fully private.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-to-file">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-to-file">
+<meta property="og:title" content="Base64 to File Converter (Decode & Download)">
+<meta property="og:description" content="Paste any Base64 string and download it as a file, with the type auto-detected. Runs locally — no upload, fully private.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 to File Converter (Decode & Download)">
+<meta name="twitter:description" content="Paste any Base64 string and download it as a file, with the type auto-detected. Runs locally — no upload.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 to File Converter",
+  "url": "https://base64.dev/base64-to-file",
+  "description": "Decode any Base64 string back into a downloadable file in the browser. The file type is auto-detected from the decoded bytes — PNG, JPEG, GIF, WebP, SVG, PDF, or a raw .bin.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to convert Base64 to a file",
+  "description": "Turn any Base64 string back into a downloadable file with its type auto-detected.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Paste your Base64", "text": "Paste a full data URI (data:...;base64,...) or just the raw Base64 payload into the input box." },
+    { "@type": "HowToStep", "position": 2, "name": "The type is detected", "text": "The tool decodes the bytes locally and sniffs the file type from the leading bytes (the magic number) — PNG, JPEG, GIF, WebP, SVG, PDF, or unknown." },
+    { "@type": "HowToStep", "position": 3, "name": "Download the file", "text": "Click Download file to save the decoded bytes with the right extension, or .bin if the type is unknown." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I convert Base64 to a file?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste a full data URI (data:...;base64,...) or just the raw Base64 payload into the converter on this page. It decodes the bytes locally, sniffs the file type from the leading bytes (the magic number), and lets you download the result with the correct extension — or as a .bin file if the type can't be identified." }
+    },
+    {
+      "@type": "Question",
+      "name": "What file types are detected?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The tool reads each file's magic bytes to identify PNG, JPEG, GIF, WebP, SVG, and PDF. Anything else still decodes correctly and downloads as a .bin file — the bytes are exactly right, only the extension defaults to binary." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why won't my Base64 decode?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Usually the string is truncated or a copy/paste introduced stray characters. URL-safe Base64 without padding is fine — the tool restores the -_ characters to +/ and re-adds = padding automatically. If the input still isn't valid Base64, you'll see an error." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it private to decode Base64 files online?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On base64.dev, yes — the Base64 is decoded entirely in your browser with JavaScript. Nothing is uploaded to any server, so even private or sensitive files stay on your machine. You can confirm it in DevTools → Network: decoding fires no request." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 to File", "item": "https://base64.dev/base64-to-file" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 to File</span>
+    </div>
+
+    <h1>Base64 to File Converter</h1>
+    <p class="lead">Paste any Base64 string — or a <strong>data URI</strong> — and download it as a file, with the type detected automatically. Everything runs in your browser; nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> BASE64 INPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <textarea id="input" aria-label="Base64 or data URI input" placeholder="Paste Base64 or a data:...;base64,... URI here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the decoded image">
+        <div class="preview-info">
+          <span id="previewType">—</span>
+          <span id="previewSize">—</span>
+        </div>
+      </div>
+
+      <div class="tool-actions">
+        <button class="btn-primary" id="downloadBtn">Download file</button>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Paste a Base64 string to begin</span></div>
+    </div>
+
+    <h2>How to convert Base64 to a file</h2>
+    <p>Paste your data into the box above. You can give it a <strong>full data URI</strong> — a string of the form <code>data:application/pdf;base64,JVBERi0…</code> — or just the <strong>raw Base64 payload</strong> without the <code>data:</code> prefix. The tool decodes the bytes locally and <strong>sniffs the type from the leading bytes</strong>: the magic number at the start of the file that identifies PNG, JPEG, GIF, WebP, SVG, or PDF. When it's an image, you get a live preview. Then click <strong>Download file</strong> to save the result with the right extension.</p>
+
+    <h2>What file types are detected?</h2>
+    <p>The tool inspects each file's <strong>magic bytes</strong> — the signature at the very start of the data — to recognize:</p>
+    <ul>
+      <li><strong>PNG</strong>, <strong>JPEG</strong>, <strong>GIF</strong>, and <strong>WebP</strong> images (these also show a live preview).</li>
+      <li><strong>SVG</strong> vector images.</li>
+      <li><strong>PDF</strong> documents.</li>
+    </ul>
+    <p>Anything else still decodes perfectly — it just downloads as a <code>.bin</code> file. The bytes are exactly correct; only the extension defaults to binary because the format isn't one of the recognized signatures. If you know what it should be, rename the file after downloading.</p>
+
+    <h2>Why won't it decode?</h2>
+    <p>If you get an error or unexpected bytes, one of these is usually the cause:</p>
+    <ul>
+      <li><strong>The Base64 is truncated.</strong> A partial copy cuts off the end, so the bytes don't form a complete, valid file.</li>
+      <li><strong>It's URL-safe Base64 without padding.</strong> That's fine here — the tool automatically converts <code>-</code> and <code>_</code> back to <code>+</code> and <code>/</code> and re-adds the missing <code>=</code> padding before decoding.</li>
+      <li><strong>A copy/paste added stray characters.</strong> Line breaks and spaces are stripped automatically, but quotes, HTML entities, or a stray prefix can corrupt the payload.</li>
+    </ul>
+    <div class="tip"><p><strong>Tip:</strong> if you only have a snippet, make sure you copied the entire Base64 string — these can be tens of thousands of characters long for a real file.</p></div>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The decoding happens entirely client-side in JavaScript. The Base64 you paste is decoded into bytes in the browser and turned into a downloadable blob locally — it is <strong>never sent to a server</strong>. You can confirm this by opening DevTools → Network: pasting and decoding fires no request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I convert Base64 to a file?</h3>
+    <p>Paste a full data URI or the raw Base64 payload into the box above. The tool decodes the bytes locally, sniffs the type from the leading bytes, and lets you download the result with the correct extension — or as a <code>.bin</code> file if the type can't be identified.</p>
+    <h3>What file types are detected?</h3>
+    <p>PNG, JPEG, GIF, WebP, SVG, and PDF are detected from their magic bytes. Anything else downloads as <code>.bin</code> — still the correct bytes, just a binary extension.</p>
+    <h3>Why won't my Base64 decode?</h3>
+    <p>Usually the string is truncated, or a copy/paste introduced stray characters. URL-safe Base64 without padding is handled automatically. If the input still isn't valid Base64, you'll see an error.</p>
+    <h3>Is it private to decode Base64 files online?</h3>
+    <p>Yes. Decoding runs entirely in your browser — nothing is uploaded, so even private or sensitive files stay on your machine.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/file-to-base64">File to Base64</a></li>
+        <li><a href="/base64-to-image">Base64 to Image</a></li>
+        <li><a href="/base64-to-pdf">Base64 to PDF</a></li>
+        <li><a href="/articles/base64-ssh-pem">Encode Keys & Certs</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need to encode a file?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), preview = $('preview'), previewImg = $('previewImg');
+  var previewType = $('previewType'), previewSize = $('previewSize');
+  var status = $('status'), downloadBtn = $('downloadBtn'), clearBtn = $('clearBtn');
+  var curBytes = null, curMime = '', curFilename = '', curUrl = '';
+
+  var EXT = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+    'image/svg+xml': 'svg',
+    'application/pdf': 'pdf'
+  };
+
+  function revoke() {
+    if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = ''; }
+  }
+
+  function reset(text) {
+    revoke();
+    curBytes = null; curMime = ''; curFilename = '';
+    preview.classList.remove('visible');
+    previewImg.removeAttribute('src');
+    previewType.textContent = '—';
+    previewSize.textContent = '—';
+    B64.setStatus(status, '', text || 'Waiting for input');
+  }
+
+  function decode() {
+    var value = input.value.trim();
+    if (!value) { reset('Waiting for input'); return; }
+    var bytes;
+    try {
+      bytes = B64.base64ToBytes(value);
+    } catch (e) {
+      reset();
+      B64.setStatus(status, 'err', "That doesn't look like valid Base64.");
+      return;
+    }
+    revoke();
+    var mime = B64.sniffMime(bytes);
+    var ext = (mime && EXT[mime]) || 'bin';
+    var dlMime = mime || 'application/octet-stream';
+    curBytes = bytes;
+    curMime = dlMime;
+    curFilename = 'decoded.' + ext;
+
+    var sizeStr = B64.fmtSize(bytes.length);
+    if (mime && mime.indexOf('image/') === 0) {
+      var blob = new Blob([bytes], { type: mime });
+      curUrl = URL.createObjectURL(blob);
+      previewImg.src = curUrl;
+      preview.classList.add('visible');
+      previewType.textContent = mime;
+      previewSize.textContent = sizeStr;
+      B64.setStatus(status, 'ok', 'Decoded ' + sizeStr + ' → ' + mime);
+    } else {
+      preview.classList.remove('visible');
+      previewImg.removeAttribute('src');
+      previewType.textContent = mime || 'unknown';
+      previewSize.textContent = sizeStr;
+      if (mime) {
+        B64.setStatus(status, 'ok', 'Decoded ' + sizeStr + ' → ' + mime);
+      } else {
+        B64.setStatus(status, 'ok', 'Decoded ' + sizeStr + ' → unknown — will download as .bin');
+      }
+    }
+  }
+
+  previewImg.addEventListener('error', function () {
+    if (!input.value.trim()) return;
+    preview.classList.remove('visible');
+    B64.setStatus(status, 'err', "That doesn't look like a valid image, but you can still download the file.");
+  });
+
+  input.addEventListener('input', decode);
+
+  downloadBtn.addEventListener('click', function () {
+    if (!curBytes) return;
+    B64.downloadBytes(curBytes, curFilename, curMime || 'application/octet-stream');
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    reset('Paste a Base64 string to begin');
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
