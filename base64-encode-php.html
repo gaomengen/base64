@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode & Decode in PHP — Tool + Code — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Base64 encode and decode in PHP with a live online tool plus copy-paste code. Uses base64_encode() and base64_decode(), the URL-safe variant, and files.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-encode-php">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-encode-php">
+<meta property="og:title" content="Base64 Encode & Decode in PHP — Tool + Code">
+<meta property="og:description" content="Live Base64 encoder/decoder plus the canonical PHP code: base64_encode, base64_decode, URL-safe, and files.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 Encode & Decode in PHP — Tool + Code">
+<meta name="twitter:description" content="Live Base64 encoder/decoder plus copy-paste PHP code (base64_encode / base64_decode).">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 Encoder & Decoder for PHP",
+  "url": "https://base64.dev/base64-encode-php",
+  "description": "Online Base64 encoder and decoder with copy-paste PHP code using base64_encode and base64_decode.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Base64 encode and decode in PHP",
+  "description": "Encode and decode Base64 in PHP using the built-in base64_encode and base64_decode functions.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Encode a string", "text": "Call base64_encode(\"Hello, world!\") to get SGVsbG8sIHdvcmxkIQ== — no library or import needed." },
+    { "@type": "HowToStep", "position": 2, "name": "Decode", "text": "Call base64_decode(\"SGVsbG8sIHdvcmxkIQ==\") to get the original string back." },
+    { "@type": "HowToStep", "position": 3, "name": "Validate in strict mode", "text": "Pass true as the second argument: base64_decode($input, true) returns false on invalid input instead of guessing." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode a string in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use the built-in base64_encode() function: base64_encode(\"Hello, world!\") returns \"SGVsbG8sIHdvcmxkIQ==\". No import or library is required — it ships with PHP." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I Base64 decode in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use base64_decode(): base64_decode(\"SGVsbG8sIHdvcmxkIQ==\") returns \"Hello, world!\". Pass true as the second argument, base64_decode($s, true), to get false on invalid input instead of a best-effort guess." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "PHP has no built-in URL-safe function. Encode with rtrim(strtr(base64_encode($data), '+/', '-_'), '='), which swaps + and / for - and _ and drops padding. To decode, swap them back with strtr($s, '-_', '+/'), restore padding, then base64_decode." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I validate Base64 input in PHP?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use the strict parameter: base64_decode($input, true). With strict mode on, the function returns false when the input contains characters outside the Base64 alphabet, instead of silently ignoring them." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 in PHP", "item": "https://base64.dev/base64-encode-php" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in PHP</span>
+    </div>
+
+    <h1>Base64 Encode &amp; Decode in PHP</h1>
+    <p class="lead">Encode or decode below — it runs locally in your browser — then grab the canonical <strong>PHP</strong> code. PHP ships with <code>base64_encode()</code> and <code>base64_decode()</code> built in, so there is nothing to install; the only wrinkle is the URL-safe variant, which needs a manual swap.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> INPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+        </div>
+        <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+        </div>
+        <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+    </div>
+
+    <h2>Encode and decode a string</h2>
+    <p>Both functions take and return a plain string — no byte handling required:</p>
+<pre>&lt;?php
+
+// Encode
+$encoded = base64_encode("Hello, world!");
+echo $encoded; // SGVsbG8sIHdvcmxkIQ==
+
+// Decode
+$decoded = base64_decode("SGVsbG8sIHdvcmxkIQ==");
+echo $decoded; // Hello, world!</pre>
+    <div class="tip"><p><strong>Tip:</strong> pass <code>true</code> as the second argument to decode in strict mode — <code>base64_decode($s, true)</code> returns <code>false</code> on invalid input instead of guessing, so always use it when validating untrusted data.</p></div>
+
+    <h2>URL-safe Base64</h2>
+    <p>For JWTs, URLs, and filenames, swap <code>+/</code> for <code>-_</code> and drop the <code>=</code> padding. PHP has no built-in, so define your own:</p>
+<pre>&lt;?php
+
+// URL-safe encode, padding stripped
+function base64url_encode(string $data): string {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+// URL-safe decode, restoring + / and padding
+function base64url_decode(string $data): string|false {
+    $padded = strtr($data, '-_', '+/');
+    $padded = str_pad($padded, strlen($padded) + (4 - strlen($padded) % 4) % 4, '=');
+    return base64_decode($padded, true);
+}
+
+echo base64url_encode("Hello, world!"); // SGVsbG8sIHdvcmxkIQ</pre>
+
+    <h2>Encode a file</h2>
+<pre>&lt;?php
+
+$encoded = base64_encode(file_get_contents('img.png'));
+
+// As a data URI for HTML/CSS:
+$dataUri = "data:image/png;base64,{$encoded}";</pre>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I Base64 encode a string in PHP?</h3>
+    <p>Use the built-in <code>base64_encode()</code>: <code>base64_encode("Hello, world!")</code> returns <code>"SGVsbG8sIHdvcmxkIQ=="</code>. No import or library is needed.</p>
+    <h3>How do I Base64 decode in PHP?</h3>
+    <p><code>base64_decode("SGVsbG8sIHdvcmxkIQ==")</code> returns <code>"Hello, world!"</code>; pass <code>true</code> as the second argument to fail on invalid input.</p>
+    <h3>How do I do URL-safe Base64?</h3>
+    <p>Swap the alphabet with <code>strtr($b64, '+/', '-_')</code> and drop padding via <code>rtrim($b64, '=')</code>; reverse with <code>strtr($s, '-_', '+/')</code> before decoding.</p>
+    <h3>How do I validate Base64 input in PHP?</h3>
+    <p>Use strict mode: <code>base64_decode($input, true)</code> returns <code>false</code> when the input has characters outside the Base64 alphabet.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/articles/base64-php">Full PHP guide</a></li>
+        <li><a href="/base64-encode-python">Base64 in Python</a></li>
+        <li><a href="/articles/url-safe-base64">URL-safe Base64</a></li>
+        <li><a href="/base64-to-json">Base64 to JSON</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need image, file, or URL-safe modes?</h3>
+      <p>The main base64.dev tool handles text, images, files, and URL-safe Base64 with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+  B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

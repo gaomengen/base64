@@ -107,7 +107,47 @@
     return null;
   }
 
+  // Heuristic: does this string look like Base64 (incl. URL-safe / data URI)?
+  // Biased toward detection — a false positive harmlessly falls back to encoding
+  // (decodeText throws on non-UTF-8), but a false negative would wrongly re-encode
+  // real Base64 the user pasted to decode.
+  function looksBase64(str) {
+    if (!str || str.trim().length < 8) return false;
+    var t = str.trim();
+    if (/^data:[^;]+;base64,/.test(t)) return true;
+    var c = t.replace(/\s/g, '').replace(/=+$/, '');
+    if (c.length < 8) return false;
+    // All standard Base64 chars OR all URL-safe chars (not mixed punctuation/prose).
+    return /^[A-Za-z0-9+/]+$/.test(c) || /^[A-Za-z0-9_-]+$/.test(c);
+  }
+
+  // Generic auto-detect text encode/decode widget shared by the tool pages.
+  // opts: { input, output, status, copyBtn?, clearBtn? } (element ids)
+  function wireTextTool(opts) {
+    var input = document.getElementById(opts.input);
+    var output = document.getElementById(opts.output);
+    var status = document.getElementById(opts.status);
+    function run() {
+      var v = input.value;
+      if (!v.trim()) { output.value = ''; setStatus(status, '', 'Type or paste to encode / decode'); return; }
+      if (looksBase64(v)) {
+        try { output.value = decodeText(v); setStatus(status, 'ok', 'Decoded — Base64 → text'); return; } catch (e) {}
+      }
+      output.value = encodeText(v, false);
+      setStatus(status, 'ok', 'Encoded — text → Base64');
+    }
+    if (input) input.addEventListener('input', run);
+    if (opts.copyBtn) wireCopy(document.getElementById(opts.copyBtn), function () { return output.value; });
+    if (opts.clearBtn) {
+      var cb = document.getElementById(opts.clearBtn);
+      if (cb) cb.addEventListener('click', function () { input.value = ''; output.value = ''; setStatus(status, '', 'Cleared'); input.focus(); });
+    }
+    return run;
+  }
+
   window.B64 = {
+    looksBase64: looksBase64,
+    wireTextTool: wireTextTool,
     bytesToBase64: bytesToBase64,
     base64ToBytes: base64ToBytes,
     encodeText: encodeText,

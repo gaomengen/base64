@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode & Decode in Bash — Tool + Code — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Base64 encode and decode in Bash with a live online tool plus copy-paste code. Uses the base64 command, the echo -n newline gotcha, base64 -d, and files.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-encode-bash">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-encode-bash">
+<meta property="og:title" content="Base64 Encode & Decode in Bash — Tool + Code">
+<meta property="og:description" content="Live Base64 encoder/decoder plus the canonical Bash code: the base64 command, echo -n, base64 -d, and files.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 Encode & Decode in Bash — Tool + Code">
+<meta name="twitter:description" content="Live Base64 encoder/decoder plus copy-paste Bash code (base64 command).">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 Encoder & Decoder for Bash",
+  "url": "https://base64.dev/base64-encode-bash",
+  "description": "Online Base64 encoder and decoder with copy-paste Bash code using the base64 command.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Base64 encode and decode in Bash",
+  "description": "Encode and decode Base64 in Bash using the base64 command-line tool.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Encode a string", "text": "Pipe text into base64 with echo -n: echo -n \"Hello, world!\" | base64 returns SGVsbG8sIHdvcmxkIQ==." },
+    { "@type": "HowToStep", "position": 2, "name": "Use echo -n", "text": "Always use echo -n — without -n, echo appends a trailing newline that changes the Base64 output." },
+    { "@type": "HowToStep", "position": 3, "name": "Decode", "text": "Pipe Base64 into base64 -d: echo \"SGVsbG8sIHdvcmxkIQ==\" | base64 -d returns the original text." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode a string in Bash?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Pipe the string into the base64 command with echo -n: echo -n \"Hello, world!\" | base64 returns SGVsbG8sIHdvcmxkIQ==. The -n flag prevents echo from adding a trailing newline that would change the output." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I Base64 decode in Bash?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Add the decode flag: echo \"SGVsbG8sIHdvcmxkIQ==\" | base64 -d returns Hello, world!. The decode flag is -d on GNU/Linux and -D on macOS, which ships the BSD version." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I avoid line wrapping in Base64 output?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On GNU/Linux use base64 -w 0 to disable wrapping and get a single line. On BSD/macOS there is no -w; pipe the output through tr -d '\\n' to strip the line breaks portably." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my Base64 have an extra character or wrong output?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Almost always because echo added a trailing newline. echo \"text\" | base64 encodes your text plus a \\n byte; echo -n \"text\" | base64 does not. Always use echo -n or printf \"%s\" so the newline is not included." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 in Bash", "item": "https://base64.dev/base64-encode-bash" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in Bash</span>
+    </div>
+
+    <h1>Base64 Encode &amp; Decode in Bash</h1>
+    <p class="lead">Encode or decode below — it runs locally in your browser — then grab the canonical <strong>Bash</strong> code. The <code>base64</code> command ships on almost every Unix-like system, but watch the <code>echo</code> trap: by default <code>echo</code> appends a trailing newline that changes the encoded output.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> INPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+        </div>
+        <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+        </div>
+        <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+    </div>
+
+    <h2>Encode and decode a string</h2>
+    <p>Pipe text into the <code>base64</code> command to encode, and add <code>-d</code> to decode:</p>
+<pre>$ echo -n "Hello, world!" | base64
+SGVsbG8sIHdvcmxkIQ==
+
+$ echo "SGVsbG8sIHdvcmxkIQ==" | base64 -d
+Hello, world!</pre>
+    <div class="tip"><p><strong>Tip:</strong> ALWAYS use <code>echo -n</code> — without <code>-n</code>, <code>echo</code> appends a trailing newline that changes the Base64 output. The decode flag is <code>-d</code> on GNU/Linux and <code>-D</code> on macOS (BSD).</p></div>
+
+    <h2>Avoid line wrapping</h2>
+    <p>GNU <code>base64</code> wraps output at 76 characters by default. For a single line — needed for env vars and tokens — disable wrapping:</p>
+<pre># GNU / Linux: single-line output, no wrapping
+$ echo -n "Hello, world!" | base64 -w 0
+
+# BSD / macOS: no -w flag, so strip newlines portably
+$ echo -n "Hello, world!" | base64 | tr -d '\n'</pre>
+
+    <h2>Encode a file / env vars</h2>
+    <p>Pass a filename straight to <code>base64</code> (no <code>echo</code>, so no newline trap), then store it in a variable:</p>
+<pre># encode a file to a single line
+$ base64 -w 0 key.pem &gt; key.b64
+
+# store it in an env var, then decode at the point of use
+$ export KEY_B64=$(base64 -w 0 key.pem)
+$ printf "%s" "$KEY_B64" | base64 -d &gt; key.pem</pre>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I Base64 encode a string in Bash?</h3>
+    <p>Pipe it into the <code>base64</code> command with <code>echo -n</code>: <code>echo -n "Hello, world!" | base64</code> returns <code>SGVsbG8sIHdvcmxkIQ==</code>.</p>
+    <h3>How do I Base64 decode in Bash?</h3>
+    <p>Add the decode flag: <code>echo "SGVsbG8sIHdvcmxkIQ==" | base64 -d</code> (<code>-D</code> on macOS) returns the original text.</p>
+    <h3>How do I avoid line wrapping in Base64 output?</h3>
+    <p>On Linux use <code>base64 -w 0</code>; on BSD/macOS there is no <code>-w</code>, so pipe through <code>tr -d '\n'</code> to get a single line.</p>
+    <h3>Why does my Base64 have an extra character / wrong output?</h3>
+    <p>Because <code>echo</code> without <code>-n</code> appends a trailing newline, so you encode your text plus a <code>\n</code> byte. Always use <code>echo -n</code> or <code>printf "%s"</code>.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/articles/base64-bash">Full Bash guide</a></li>
+        <li><a href="/articles/base64-linux-mac">base64 command (Linux/macOS)</a></li>
+        <li><a href="/articles/base64-openssl">OpenSSL Base64</a></li>
+        <li><a href="/base64-to-hex">Base64 to Hex</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need image, file, or URL-safe modes?</h3>
+      <p>The main base64.dev tool handles text, images, files, and URL-safe Base64 with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+  B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

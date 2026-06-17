@@ -15,6 +15,26 @@
 - [Hex to Base64](https://base64.dev/hex-to-base64): Convert a hex string (spaces, colons, and 0x prefixes accepted) to standard or URL-safe Base64.
 - [Base64 to JSON](https://base64.dev/base64-to-json): Decode Base64 (or base64url) to text and pretty-print it as JSON. Handles JWT payload segments.
 
+## Encode & decode by language (live tool + code)
+
+Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Base64 code for that language.
+
+- [Python](https://base64.dev/base64-encode-python): base64.b64encode / b64decode, URL-safe, files.
+- [JavaScript](https://base64.dev/base64-encode-javascript): btoa / atob with the TextEncoder Unicode-safe pattern.
+- [TypeScript](https://base64.dev/base64-encode-typescript): type-safe wrappers, browser vs Node Buffer.
+- [Node.js](https://base64.dev/base64-encode-nodejs): Buffer.from(...).toString('base64') and 'base64url'.
+- [Java](https://base64.dev/base64-encode-java): java.util.Base64 getEncoder / getUrlEncoder.
+- [Go](https://base64.dev/base64-encode-go): encoding/base64 StdEncoding / URLEncoding / RawURLEncoding.
+- [Rust](https://base64.dev/base64-encode-rust): the base64 crate Engine API (general_purpose::STANDARD).
+- [PHP](https://base64.dev/base64-encode-php): base64_encode / base64_decode and the URL-safe variant.
+- [C#](https://base64.dev/base64-encode-csharp): Convert.ToBase64String / FromBase64String with Encoding.UTF8.
+- [Ruby](https://base64.dev/base64-encode-ruby): strict_encode64 vs encode64, urlsafe_encode64.
+- [Swift](https://base64.dev/base64-encode-swift): Data.base64EncodedString() / Data(base64Encoded:).
+- [Kotlin](https://base64.dev/base64-encode-kotlin): kotlin.io.encoding.Base64, java.util.Base64, android.util.Base64.
+- [C++](https://base64.dev/base64-encode-cpp): self-contained std::string encoder + OpenSSL EVP.
+- [C](https://base64.dev/base64-encode-c): portable lookup-table encoder/decoder + OpenSSL EVP.
+- [Bash](https://base64.dev/base64-encode-bash): the base64 command, echo -n gotcha, -w 0 line wrapping.
+
 ## Guides & Articles
 
 - [What is Base64 Encoding?](https://base64.dev/articles/what-is-base64): Complete explanation of the Base64 scheme, the 64-character alphabet, padding, size overhead, and use cases.

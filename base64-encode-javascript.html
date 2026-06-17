@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Encode &amp; Decode in JavaScript — Tool + Code — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Base64 encode and decode in JavaScript with a live online tool plus copy-paste code. Uses btoa() and atob(), with TextEncoder for Unicode-safe strings and URL-safe Base64.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-encode-javascript">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-encode-javascript">
+<meta property="og:title" content="Base64 Encode & Decode in JavaScript — Tool + Code">
+<meta property="og:description" content="Live Base64 encoder/decoder plus the canonical JavaScript code: btoa(), atob(), TextEncoder for Unicode, and URL-safe Base64.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 Encode & Decode in JavaScript — Tool + Code">
+<meta name="twitter:description" content="Live Base64 encoder/decoder plus copy-paste JavaScript code (btoa, atob, TextEncoder).">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 Encoder & Decoder for JavaScript",
+  "url": "https://base64.dev/base64-encode-javascript",
+  "description": "Online Base64 encoder and decoder with copy-paste JavaScript code using btoa(), atob(), and TextEncoder.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Base64 encode and decode in JavaScript",
+  "description": "Encode and decode Base64 in JavaScript using the built-in btoa() and atob() functions.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Encode with btoa", "text": "Call btoa('Hello') to get 'SGVsbG8=' — btoa() turns a binary string into Base64." },
+    { "@type": "HowToStep", "position": 2, "name": "Handle Unicode", "text": "For non-Latin1 text, encode to UTF-8 with new TextEncoder().encode(str) first, then btoa() the resulting bytes — btoa() throws InvalidCharacterError on emoji or accents." },
+    { "@type": "HowToStep", "position": 3, "name": "Decode with atob", "text": "Call atob('SGVsbG8=') to get the binary string back, then TextDecoder to recover Unicode text." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode a string in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use the built-in btoa() function for ASCII strings: btoa('Hello') returns 'SGVsbG8='. For Unicode strings, encode to UTF-8 bytes first with new TextEncoder().encode(str), build a binary string, then pass it to btoa()." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I Base64 decode in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use atob(): atob('SGVsbG8=') returns the binary string 'Hello'. For Unicode, run the result through Uint8Array.from(binary, c => c.charCodeAt(0)) and new TextDecoder().decode(bytes) to recover the original text." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does btoa() throw an InvalidCharacterError?",
+      "acceptedAnswer": { "@type": "Answer", "text": "btoa() only accepts Latin-1 characters (code points 0-255). Emoji, accented letters, or non-Latin scripts throw InvalidCharacterError. Encode the string to UTF-8 bytes with TextEncoder first, then Base64-encode those bytes." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I do URL-safe Base64 in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Take the standard btoa() output and replace the URL-unsafe characters: .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '') to drop padding. To decode, restore + and / and re-pad to a multiple of 4 before atob()." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 in JavaScript", "item": "https://base64.dev/base64-encode-javascript" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 in JavaScript</span>
+    </div>
+
+    <h1>Base64 Encode &amp; Decode in JavaScript</h1>
+    <p class="lead">Encode or decode below — it runs locally in your browser — then grab the canonical <strong>JavaScript</strong> code. The built-in <code>btoa()</code> and <code>atob()</code> only handle Latin-1, so Unicode text needs <code>TextEncoder</code> / <code>TextDecoder</code> first.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> INPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+        </div>
+        <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+          <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+        </div>
+        <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+    </div>
+
+    <h2>Encode and decode a string</h2>
+    <p>For plain ASCII, <code>btoa()</code> encodes and <code>atob()</code> decodes:</p>
+<pre>// Encode
+const encoded = btoa("Hello, world!");
+console.log(encoded); // "SGVsbG8sIHdvcmxkIQ=="
+
+// Decode
+const decoded = atob("SGVsbG8sIHdvcmxkIQ==");
+console.log(decoded); // "Hello, world!"</pre>
+    <p>For Unicode (emoji, accents, non-Latin scripts), encode to UTF-8 bytes first, then convert to a binary string for <code>btoa()</code>:</p>
+<pre>// Unicode-safe encode
+function encodeBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  const binary = String.fromCharCode(...bytes);
+  return btoa(binary);
+}
+
+// Unicode-safe decode
+function decodeBase64(base64) {
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+encodeBase64("Hello 🌍"); // "SGVsbG8g8J+MjQ=="</pre>
+    <div class="tip"><p><strong>Tip:</strong> <code>btoa()</code> only accepts Latin-1 (code points 0–255). Passing emoji or accented text raises <code>InvalidCharacterError</code> — always run Unicode strings through <code>TextEncoder</code> first.</p></div>
+
+    <h2>URL-safe Base64</h2>
+    <p>For JWTs, URLs, and filenames, swap <code>+</code> and <code>/</code> for <code>-</code> and <code>_</code> and drop the padding:</p>
+<pre>// Encode to URL-safe Base64
+function toBase64URL(str) {
+  return encodeBase64(str)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, ""); // remove padding
+}
+
+// Decode URL-safe Base64
+function fromBase64URL(base64url) {
+  let base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) base64 += "="; // restore padding
+  return decodeBase64(base64);
+}</pre>
+
+    <h2>Encode a file</h2>
+    <p>In the browser, use the <code>FileReader</code> API to read a file as a Base64 data URI:</p>
+<pre>function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result); // data:mime;base64,...
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Usage with a file input
+input.addEventListener("change", async (e) => {
+  const dataUri = await fileToBase64(e.target.files[0]);
+  console.log(dataUri); // "data:image/png;base64,iVBOR..."
+});</pre>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I Base64 encode a string in JavaScript?</h3>
+    <p>Use <code>btoa("Hello")</code> for ASCII, which returns <code>"SGVsbG8="</code>. For Unicode, encode to UTF-8 with <code>new TextEncoder().encode(str)</code> first, then <code>btoa()</code> the binary string.</p>
+    <h3>How do I Base64 decode in JavaScript?</h3>
+    <p><code>atob("SGVsbG8=")</code> returns the binary string <code>"Hello"</code>; for Unicode, pass the bytes through <code>new TextDecoder().decode()</code>.</p>
+    <h3>Why does btoa() throw an InvalidCharacterError?</h3>
+    <p><code>btoa()</code> only accepts Latin-1 characters (0–255). Emoji and non-Latin text throw — encode to UTF-8 bytes with <code>TextEncoder</code> first.</p>
+    <h3>How do I do URL-safe Base64?</h3>
+    <p>Apply <code>.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")</code> to the standard output, then reverse it before <code>atob()</code>.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/articles/base64-javascript">Full JavaScript guide</a></li>
+        <li><a href="/base64-encode-python">Base64 in Python</a></li>
+        <li><a href="/articles/url-safe-base64">URL-safe Base64</a></li>
+        <li><a href="/base64-to-json">Base64 to JSON</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need image, file, or URL-safe modes?</h3>
+      <p>The main base64.dev tool handles text, images, files, and URL-safe Base64 with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+  B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
