@@ -5,6 +5,7 @@
 ## Tool
 
 - [Base64 Encoder & Decoder](https://base64.dev/): The main tool. Supports text, image, file, and URL-safe Base64 modes. Auto-detects whether input is plain text or Base64. Keyboard shortcuts included.
+- [All Tools & Converters](https://base64.dev/tools): Index of every base64.dev converter, calculator, and per-language encode/decode tool.
 
 ## Converters (in-browser tools)
 
