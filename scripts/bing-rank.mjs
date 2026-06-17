@@ -29,8 +29,24 @@ const API = 'https://ssl.bing.com/webmaster/api.svc/json';
 const KEY = loadKey();
 const SITE = process.argv[2] || 'https://base64.dev';
 
+// Collect output so we can also emit a GitHub Actions step summary.
+const lines = [];
+const log = (...a) => { const s = a.join(' '); lines.push(s); console.log(s); };
+function writeSummary() {
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '```\n' + lines.join('\n') + '\n```\n');
+  }
+}
+
 if (!KEY) {
-  console.error('No BING_WEBMASTER_API_KEY found. Add it to .env.local:\n  BING_WEBMASTER_API_KEY=your_key_here');
+  const msg = 'No BING_WEBMASTER_API_KEY found. In CI add it as a repo secret; locally add it to .env.local.';
+  if (process.env.GITHUB_ACTIONS) {
+    // Don't fail the scheduled workflow red just because the secret isn't set yet.
+    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '> ' + msg + '\n');
+    console.log(msg);
+    process.exit(0);
+  }
+  console.error(msg);
   process.exit(1);
 }
 
@@ -50,7 +66,7 @@ async function call(method) {
 }
 
 async function main() {
-  console.log(`\nBing Webmaster — ${SITE}\n${'='.repeat(40)}`);
+  log(`\nBing Webmaster — ${SITE}\n${'='.repeat(40)}`);
 
   try {
     const traffic = await call('GetRankAndTrafficStats');
@@ -59,22 +75,22 @@ async function main() {
       impressions: r.Impressions ?? 0,
       clicks: r.Clicks ?? 0,
     })).sort((a, b) => a.date.localeCompare(b.date)).slice(-14);
-    console.log('\nRank & Traffic (last 14 data points):');
-    if (!rows.length) console.log('  (no data yet — normal for a freshly verified/submitted site)');
-    for (const r of rows) console.log(`  ${r.date}  impressions=${r.impressions}  clicks=${r.clicks}`);
+    log('\nRank & Traffic (last 14 data points):');
+    if (!rows.length) log('  (no data yet — normal for a freshly verified/submitted site)');
+    for (const r of rows) log(`  ${r.date}  impressions=${r.impressions}  clicks=${r.clicks}`);
     const totImp = rows.reduce((s, r) => s + r.impressions, 0);
     const totClk = rows.reduce((s, r) => s + r.clicks, 0);
-    console.log(`  ── totals: impressions=${totImp}  clicks=${totClk}`);
-  } catch (e) { console.log('\nRank & Traffic: ' + e.message); }
+    log(`  ── totals: impressions=${totImp}  clicks=${totClk}`);
+  } catch (e) { log('\nRank & Traffic: ' + e.message); }
 
   try {
     const queries = await call('GetQueryStats');
     const top = (queries || [])
       .map((q) => ({ query: q.Query, impressions: q.Impressions ?? 0, clicks: q.Clicks ?? 0, pos: q.AvgImpressionPosition ?? q.Position }))
       .sort((a, b) => b.impressions - a.impressions).slice(0, 15);
-    console.log('\nTop queries by impressions:');
-    if (!top.length) console.log('  (none yet)');
-    for (const q of top) console.log(`  ${String(q.impressions).padStart(5)} imp  ${String(q.clicks).padStart(4)} clk  pos~${q.pos}  ${q.query}`);
+    log('\nTop queries by impressions:');
+    if (!top.length) log('  (none yet)');
+    for (const q of top) log(`  ${String(q.impressions).padStart(5)} imp  ${String(q.clicks).padStart(4)} clk  pos~${q.pos}  ${q.query}`);
   } catch (e) { console.log('\nQuery stats: ' + e.message); }
 
   try {
@@ -82,12 +98,13 @@ async function main() {
     const top = (pages || [])
       .map((p) => ({ url: p.Query || p.Url, impressions: p.Impressions ?? 0, clicks: p.Clicks ?? 0 }))
       .sort((a, b) => b.impressions - a.impressions).slice(0, 15);
-    console.log('\nTop pages by impressions:');
-    if (!top.length) console.log('  (none yet)');
-    for (const p of top) console.log(`  ${String(p.impressions).padStart(5)} imp  ${String(p.clicks).padStart(4)} clk  ${p.url}`);
+    log('\nTop pages by impressions:');
+    if (!top.length) log('  (none yet)');
+    for (const p of top) log(`  ${String(p.impressions).padStart(5)} imp  ${String(p.clicks).padStart(4)} clk  ${p.url}`);
   } catch (e) { console.log('\nPage stats: ' + e.message); }
 
-  console.log('');
+  log('');
+  writeSummary();
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

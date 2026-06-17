@@ -19,6 +19,8 @@
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-06-17",
   "headline": "OpenSSL Base64 Encode & Decode",
   "description": "Use openssl enc -base64 to encode and decode files and strings. Includes the critical -A flag and certificate use cases.",
   "url": "https://base64.dev/articles/base64-openssl",
@@ -46,12 +48,12 @@
     {
       "@type": "Question",
       "name": "How do I base64 encode a string with OpenSSL?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo -n "your string" | openssl enc -base64 -A. The -A flag outputs a single line with no wrapping. Without -A, OpenSSL wraps every 64 characters which can break downstream tools." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo -n \"your string\" | openssl enc -base64 -A. The -A flag outputs a single line with no wrapping. Without -A, OpenSSL wraps every 64 characters which can break downstream tools." }
     },
     {
       "@type": "Question",
       "name": "How do I decode Base64 with OpenSSL?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo "SGVsbG8=" | openssl enc -base64 -d -A. The -d flag means decode, -A means single-line (no line-break handling). You can also decode a file: openssl enc -base64 -d -A -in encoded.txt -out decoded.bin" }
+      "acceptedAnswer": { "@type": "Answer", "text": "Use: echo \"SGVsbG8=\" | openssl enc -base64 -d -A. The -d flag means decode, -A means single-line (no line-break handling). You can also decode a file: openssl enc -base64 -d -A -in encoded.txt -out decoded.bin" }
     },
     {
       "@type": "Question",
@@ -87,6 +89,7 @@
       <div class="article-meta">
         <span class="article-tag">OpenSSL</span>
         <span class="article-read-time">5 min read</span>
+        <span class="article-read-time">Updated Jun 17, 2026</span>
       </div>
       <h1>OpenSSL Base64 Encode & Decode</h1>
       <p class="lead">OpenSSL can encode and decode Base64 via <code>openssl enc -base64</code>. It is especially useful when working with certificates and keys, but has a critical gotcha: by default it wraps output at 64 characters per line.</p>

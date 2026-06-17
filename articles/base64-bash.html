@@ -19,6 +19,8 @@
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-06-17",
   "headline": "Base64 in Bash & Shell Scripts",
   "description": "Encode and decode Base64 in Bash scripts. The echo -n gotcha, file encoding, env vars, and multi-line handling.",
   "url": "https://base64.dev/articles/base64-bash",
@@ -46,20 +48,17 @@
     {
       "@type": "Question",
       "name": "Why does my base64 output differ between machines?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Usually a newline issue. echo "text" | base64 includes a trailing newline in the input; echo -n "text" | base64 does not. The two produce different Base64 output. Always use echo -n or printf "%s" in scripts." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Usually a newline issue. echo \"text\" | base64 includes a trailing newline in the input; echo -n \"text\" | base64 does not. The two produce different Base64 output. Always use echo -n or printf \"%s\" in scripts." }
     },
     {
       "@type": "Question",
       "name": "How do I decode Base64 to a variable in Bash?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Use command substitution: decoded=$(echo "SGVsbG8=" | base64 -d) on Linux or decoded=$(echo "SGVsbG8=" | base64 -D) on macOS. Be aware that command substitution strips trailing newlines from the output." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Use command substitution: decoded=$(echo \"SGVsbG8=\" | base64 -d) on Linux or decoded=$(echo \"SGVsbG8=\" | base64 -D) on macOS. Be aware that command substitution strips trailing newlines from the output." }
     },
     {
       "@type": "Question",
       "name": "How do I base64 encode a multi-line string in Bash?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Use a heredoc piped to base64: base64 -w 0 <<EOF
-line one
-line two
-EOF. The -w 0 flag (Linux) disables line wrapping so the output is a single line suitable for env vars." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Use a heredoc piped to base64:\nbase64 -w 0 <<EOF\nline one\nline two\nEOF\nThe -w 0 flag (Linux) disables line wrapping so the output is a single line suitable for env vars." }
     }
   ]
 }
@@ -90,6 +89,7 @@ EOF. The -w 0 flag (Linux) disables line wrapping so the output is a single line
       <div class="article-meta">
         <span class="article-tag">Bash</span>
         <span class="article-read-time">5 min read</span>
+        <span class="article-read-time">Updated Jun 17, 2026</span>
       </div>
       <h1>Base64 in Bash & Shell Scripts</h1>
       <p class="lead">Bash scripting with Base64 has one major trap: <code>echo</code> adds a trailing newline by default, changing the encoded output. Miss this and your scripts silently produce wrong results. Here is the full guide.</p>

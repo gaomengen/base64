@@ -1,0 +1,29 @@
+name: SEO stats (Bing Webmaster)
+
+# Weekly pull of base64.dev Bing Webmaster rank/traffic/query/page stats.
+# Output lands in the run's Step Summary (Actions tab → run → Summary).
+#
+# Activate once by adding your Bing Webmaster API key as a repo secret:
+#   gh secret set BING_WEBMASTER_API_KEY     # paste the key when prompted
+# Until the secret exists the job runs green and just notes it's unconfigured.
+
+on:
+  schedule:
+    - cron: '0 13 * * 1'   # Mondays 13:00 UTC
+  workflow_dispatch: {}      # allow manual runs from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pull Bing Webmaster stats
+        env:
+          BING_WEBMASTER_API_KEY: ${{ secrets.BING_WEBMASTER_API_KEY }}
+        run: node scripts/bing-rank.mjs https://base64.dev

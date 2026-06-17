@@ -19,6 +19,8 @@
 {
   "@context": "https://schema.org",
   "@type": "TechArticle",
+  "datePublished": "2026-05-28",
+  "dateModified": "2026-06-17",
   "headline": "Binary Data in JSON: Base64 Encoding",
   "description": "How to embed binary data in JSON using Base64. Size tradeoffs, code examples in JavaScript and Python, and multipart alternatives.",
   "url": "https://base64.dev/articles/base64-json",
@@ -46,7 +48,7 @@
     {
       "@type": "Question",
       "name": "How do I send a binary file as JSON?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Base64-encode the file contents and include the string in your JSON payload: { "filename": "image.png", "data": "iVBORw0KGgo..." }. In JavaScript: const data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer))). In Python: import base64; data = base64.b64encode(file_bytes).decode()" }
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64-encode the file contents and include the string in your JSON payload: { \"filename\": \"image.png\", \"data\": \"iVBORw0KGgo...\" }. In JavaScript: const data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer))). In Python: import base64; data = base64.b64encode(file_bytes).decode()" }
     },
     {
       "@type": "Question",
@@ -87,6 +89,7 @@
       <div class="article-meta">
         <span class="article-tag">JSON</span>
         <span class="article-read-time">5 min read</span>
+        <span class="article-read-time">Updated Jun 17, 2026</span>
       </div>
       <h1>Storing Binary Data in JSON with Base64</h1>
       <p class="lead">JSON is a text format and cannot represent raw binary data. The standard solution is to Base64-encode the binary and store it as a string. Here is how it works, when to use it, and when to choose an alternative.</p>
