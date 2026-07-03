@@ -91,7 +91,8 @@
         <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Data URIs Explained</h1>
-      <p class="lead">The <code>data:</code> URI scheme embeds file contents directly in a document as Base64-encoded text. This eliminates the HTTP request for a file — at the cost of embedding the data, which is ~33% larger than the ori
+      <p class="lead">The <code>data:</code> URI scheme embeds file contents directly in a document as Base64-encoded text. This eliminates the HTTP request for a file — at the cost of embedding the data, which is ~33% larger than the original and can't be cached separately.</p>
+
       <div class="tool-widget">
         <div class="tool-panel">
           <div class="panel-header">
@@ -111,7 +112,6 @@
       </div>
       <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
 
-ginal and can't be cached separately.</p>
 
       <h2>Syntax</h2>
       <pre>data:[&lt;mediatype&gt;][;base64],&lt;data&gt;

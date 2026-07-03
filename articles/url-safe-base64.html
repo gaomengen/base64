@@ -90,7 +90,8 @@
         <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>URL-Safe Base64 (RFC 4648)</h1>
-      <p class="lead">Standard Base64 uses <code>+</code> and <code>/</code> — characters with special meaning in URLs. URL-safe Base64 swaps them for <code>-</code> and <code>_</code>, producing output that is safe for use in URLs, cookies, filenames, and JWT
+      <p class="lead">Standard Base64 uses <code>+</code> and <code>/</code> — characters with special meaning in URLs. URL-safe Base64 swaps them for <code>-</code> and <code>_</code>, producing output that is safe for use in URLs, cookies, filenames, and JWT tokens without any percent-encoding.</p>
+
       <div class="tool-widget">
         <div class="tool-panel">
           <div class="panel-header">
@@ -110,7 +111,6 @@
       </div>
       <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
 
- tokens without any percent-encoding.</p>
 
       <h2>The Problem with Standard Base64 in URLs</h2>
       <p>Standard Base64 uses three "problematic" characters:</p>

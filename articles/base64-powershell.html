@@ -93,7 +93,8 @@
         <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encode & Decode in PowerShell</h1>
-      <p class="lead">PowerShell encodes Base64 via <code>[Convert]::ToBase64String()</code>, but has a critical trap: it defaults to UTF-16 (Unicode) byte encoding. This produces output that fails to decode on Linux, macOS, or any non-Windows sy
+      <p class="lead">PowerShell encodes Base64 via <code>[Convert]::ToBase64String()</code>, but has a critical trap: it defaults to UTF-16 (Unicode) byte encoding. This produces output that fails to decode on Linux, macOS, or any non-Windows system. Here is how to do it correctly.</p>
+
       <div class="tool-widget">
         <div class="tool-panel">
           <div class="panel-header">
@@ -113,7 +114,6 @@
       </div>
       <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
 
-stem. Here is how to do it correctly.</p>
 
       <div class="toc">
         <div class="toc-title">Contents</div>
