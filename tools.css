@@ -11,6 +11,7 @@
 .panel-actions{display:flex;gap:4px}
 .small-btn{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);cursor:pointer;transition:all .15s}
 .small-btn:hover{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-focus)}
+.small-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .small-btn.copied{background:var(--green-dim);color:var(--green);border-color:var(--green)}
 .tool-widget textarea{width:100%;min-height:150px;padding:16px;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-mono);font-size:14px;line-height:1.6;resize:vertical;display:block}
 .tool-widget textarea::placeholder{color:var(--text-tertiary)}
