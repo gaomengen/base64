@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 in Bash & Shell Scripts",
   "description": "Encode and decode Base64 in Bash scripts. The echo -n gotcha, file encoding, env vars, and multi-line handling.",
   "url": "https://base64.dev/articles/base64-bash",
@@ -67,6 +67,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 
 <body>
@@ -89,10 +90,30 @@
       <div class="article-meta">
         <span class="article-tag">Bash</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 in Bash & Shell Scripts</h1>
-      <p class="lead">Bash scripting with Base64 has one major trap: <code>echo</code> adds a trailing newline by default, changing the encoded output. Miss this and your scripts silently produce wrong results. Here is the full guide.</p>
+      <p class="lead">Bash scripting with Base64 has one major trap: <code>echo</code> adds a trailing newline by default, changing the encoded output. Miss this and your scripts silently produce w
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+rong results. Here is the full guide.</p>
 
       <div class="toc">
         <div class="toc-title">Contents</div>
@@ -273,6 +294,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

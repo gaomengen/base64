@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 in JSON Web Tokens (JWT) Explained",
   "url": "https://base64.dev/articles/base64-jwt",
   "author": { "@type": "Organization", "name": "base64.dev" },
@@ -60,6 +60,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -81,10 +82,30 @@
       <div class="article-meta">
         <span class="article-tag">Use Case</span>
         <span class="article-read-time">6 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 in JSON Web Tokens (JWT)</h1>
-      <p class="lead">A JWT looks like random text but is actually three Base64URL-encoded segments separated by dots. The header and payload are publicly readable — only the signature provides integrity. Here's exactly how it works.</p>
+      <p class="lead">A JWT looks like random text but is actually three Base64URL-encoded segments separated by dots. The header and payload are publicly readable — only the signature provides in
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+tegrity. Here's exactly how it works.</p>
 
       <h2>JWT Structure</h2>
       <p>A JWT has three parts separated by <code>.</code>:</p>
@@ -203,6 +224,12 @@ async function createJWT(payload, secret) {
       <h2>Inspecting JWTs</h2>
       <p>To quickly inspect a JWT header and payload, paste the token into <a href="/">base64.dev</a> — paste just the header or payload segment (without the dots and other parts), and it will decode the Base64URL to JSON. Switch to "URL Safe" mode first.</p>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>Is a JWT just Base64 encoded?</h3>
+      <p>The header and payload of a JWT are Base64URL encoded and can be decoded by anyone. Only the signature requires the secret key to verify. This means JWT payloads are NOT secret — never store sensitive data in a JWT payload without additional encryption.</p>
+      <h3>How do I decode a JWT without a library?</h3>
+      <p>Split the token by '.' to get three parts (header, payload, signature). Add padding to make the length a multiple of 4, replace - with + and _ with /, then base64-decode each part. The header and payload are JSON strings.</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -239,6 +266,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

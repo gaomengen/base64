@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "OpenSSL Base64 Encode & Decode",
   "description": "Use openssl enc -base64 to encode and decode files and strings. Includes the critical -A flag and certificate use cases.",
   "url": "https://base64.dev/articles/base64-openssl",
@@ -67,6 +67,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 
 <body>
@@ -89,10 +90,30 @@
       <div class="article-meta">
         <span class="article-tag">OpenSSL</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>OpenSSL Base64 Encode & Decode</h1>
-      <p class="lead">OpenSSL can encode and decode Base64 via <code>openssl enc -base64</code>. It is especially useful when working with certificates and keys, but has a critical gotcha: by default it wraps output at 64 characters per line.</p>
+      <p class="lead">OpenSSL can encode and decode Base64 via <code>openssl enc -base64</code>. It is especially useful when working with certificates and keys, but has a critical gotcha: by default it wr
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+aps output at 64 characters per line.</p>
 
       <div class="toc">
         <div class="toc-title">Contents</div>
@@ -252,6 +273,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

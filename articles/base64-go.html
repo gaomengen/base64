@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Encoding & Decoding in Go",
   "url": "https://base64.dev/articles/base64-go",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">Go</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encoding & Decoding in Go</h1>
-      <p class="lead">Go's <code>encoding/base64</code> package provides multiple encoding types in a consistent API. The key decision is which encoding to use: <code>StdEncoding</code>, <code>URLEncoding</code>, or <code>RawURLEncoding</code>.</p>
+      <p class="lead">Go's <code>encoding/base64</code> package provides multiple encoding types in a consistent API. The key decision is which encoding to use: <code>StdEncoding</code>, <code>URLEncoding</c
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+ode>, or <code>RawURLEncoding</code>.</p>
 
       <h2>Basic Usage</h2>
       <pre>package main
@@ -240,6 +261,14 @@ func safeDecode(s string) (string, error) {
     return string(decoded), nil
 }</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>How do I encode Base64 in Go?</h3>
+      <p>Use the encoding/base64 package: import "encoding/base64"; encoded := base64.StdEncoding.EncodeToString([]byte("Hello")). To decode: decoded, err := base64.StdEncoding.DecodeString(encoded).</p>
+      <h3>What is the difference between StdEncoding and URLEncoding in Go?</h3>
+      <p>StdEncoding uses the standard Base64 alphabet with + and / characters and = padding. URLEncoding replaces + with - and / with _, making it safe for URLs and filenames. RawURLEncoding does the same but omits padding — use it for JWTs.</p>
+      <h3>How do I use URL-safe Base64 in Go?</h3>
+      <p>Use base64.RawURLEncoding for JWTs and URL parameters (no padding), or base64.URLEncoding if you need padding. Example: encoded := base64.RawURLEncoding.EncodeToString(data).</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -276,6 +305,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Data URIs Explained — Syntax, MIME Types & Performance",
   "url": "https://base64.dev/articles/base64-data-uri",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">Use Case</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Data URIs Explained</h1>
-      <p class="lead">The <code>data:</code> URI scheme embeds file contents directly in a document as Base64-encoded text. This eliminates the HTTP request for a file — at the cost of embedding the data, which is ~33% larger than the original and can't be cached separately.</p>
+      <p class="lead">The <code>data:</code> URI scheme embeds file contents directly in a document as Base64-encoded text. This eliminates the HTTP request for a file — at the cost of embedding the data, which is ~33% larger than the ori
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+ginal and can't be cached separately.</p>
 
       <h2>Syntax</h2>
       <pre>data:[&lt;mediatype&gt;][;base64],&lt;data&gt;
@@ -218,6 +239,14 @@ IE 11:    32KB (severely limited)
 Edge:     2MB</pre>
       <p>For practical use, keep data URIs under 1MB. For IE 11 support (legacy), keep them under 32KB.</p>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>What is a Base64 data URI?</h3>
+      <p>A data URI embeds file contents directly in a document using the format: data:[mimeType];base64,[base64data]. For example: data:image/png;base64,iVBORw0KGgo... This eliminates a separate HTTP request for the resource.</p>
+      <h3>How do I use a Base64 data URI in HTML?</h3>
+      <p>Set it as the src attribute of an img tag: &lt;img src="data:image/png;base64,..."&gt;. In CSS: background-image: url('data:image/png;base64,...'). In a link tag for favicons: &lt;link rel="icon" href="data:image/svg+xml;base64,..."&gt;.</p>
+      <h3>What are the browser size limits for data URIs?</h3>
+      <p>Chrome supports up to ~2GB. Firefox and Safari support up to ~2MB per data URI. IE 11 only supports 32KB. For practical cross-browser use, keep data URIs under 32KB, or under 1MB if you don't support IE.</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -254,6 +283,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

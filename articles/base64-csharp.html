@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Encoding & Decoding in C# (.NET)",
   "url": "https://base64.dev/articles/base64-csharp",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">C#</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encoding & Decoding in C# (.NET)</h1>
-      <p class="lead">C# provides <code>Convert.ToBase64String()</code> and <code>Convert.FromBase64String()</code> in the standard library. .NET 5+ also added <code>Base64Url</code> helpers and span-based APIs for zero-allocation encoding.</p>
+      <p class="lead">C# provides <code>Convert.ToBase64String()</code> and <code>Convert.FromBase64String()</code> in the standard library. .NET 5+ also added <code>Base64Url</code> helpers and span-bas
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+ed APIs for zero-allocation encoding.</p>
 
       <h2>Basic Usage</h2>
       <pre>using System;
@@ -212,6 +233,14 @@ if (success)
     }
 }</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>How do I encode Base64 in C#?</h3>
+      <p>Use Convert.ToBase64String(): string encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes("Hello")); To decode: string decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));</p>
+      <h3>How do I do URL-safe Base64 in C# .NET?</h3>
+      <p>In .NET 7+, use System.Buffers.Text.Base64Url or Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlEncode(). For older versions: Convert.ToBase64String(data).Replace('+','-').Replace('/','_').TrimEnd('=')</p>
+      <h3>What is Convert.ToBase64String in C#?</h3>
+      <p>Convert.ToBase64String() is the built-in .NET method for Base64 encoding a byte array. It is available in all .NET versions including .NET Framework and .NET Core/5+.</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -249,6 +278,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

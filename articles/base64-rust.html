@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Encoding & Decoding in Rust",
   "url": "https://base64.dev/articles/base64-rust",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">Rust</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encoding & Decoding in Rust</h1>
-      <p class="lead">Rust's standard library does not include Base64. The <code>base64</code> crate is the de facto standard — it provides a flexible Engine-based API that supports standard, URL-safe, and custom alphabets.</p>
+      <p class="lead">Rust's standard library does not include Base64. The <code>base64</code> crate is the de facto standard — it provides a flexible Engine-based API that supports stan
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+dard, URL-safe, and custom alphabets.</p>
 
       <h2>Adding the Dependency</h2>
       <pre># Cargo.toml
@@ -205,6 +226,14 @@ let custom_engine = GeneralPurpose::new(
 
 let encoded = custom_engine.encode(b"data");</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>How do I encode Base64 in Rust?</h3>
+      <p>Add the base64 crate to Cargo.toml, then use: use base64::{Engine as _, engine::general_purpose}; let encoded = general_purpose::STANDARD.encode(b"Hello");</p>
+      <h3>What Base64 crate should I use in Rust?</h3>
+      <p>The base64 crate (crates.io/crates/base64) is the standard choice. Use version 0.22+ which provides the Engine-based API with general_purpose::STANDARD, URL_SAFE, and URL_SAFE_NO_PAD engines.</p>
+      <h3>How do I use URL-safe Base64 in Rust?</h3>
+      <p>Use general_purpose::URL_SAFE_NO_PAD for JWTs and tokens (no padding, URL-safe characters): let encoded = general_purpose::URL_SAFE_NO_PAD.encode(data);</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -241,6 +270,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

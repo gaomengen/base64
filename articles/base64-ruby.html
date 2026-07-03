@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Encoding & Decoding in Ruby",
   "url": "https://base64.dev/articles/base64-ruby",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">Ruby</span>
         <span class="article-read-time">4 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encoding & Decoding in Ruby</h1>
-      <p class="lead">Ruby's standard library includes a <code>Base64</code> module with three encoding methods. The most important thing to know: <code>encode64</code> adds newlines, but <code>strict_encode64</code> does not — always use the strict variant for general use.</p>
+      <p class="lead">Ruby's standard library includes a <code>Base64</code> module with three encoding methods. The most important thing to know: <code>encode64</code> adds newlines, but <code>strict_encode64</code> does not — always us
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+e the strict variant for general use.</p>
 
       <h2>Basic Usage</h2>
       <pre>require 'base64'
@@ -189,6 +210,14 @@ encoded = ::Base64.strict_encode64("Hello")
 # Or for URL-safe tokens in Rails:
 token = SecureRandom.base64(32)  # URL-safe random token</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>How do I encode Base64 in Ruby?</h3>
+      <p>Use require 'base64' then Base64.strict_encode64('Hello'). Always use strict_encode64 rather than encode64 — the plain encode64 adds newline characters every 60 chars which causes bugs in HTTP headers and JSON.</p>
+      <h3>What is the difference between encode64 and strict_encode64 in Ruby?</h3>
+      <p>encode64 adds a newline (\n) every 60 characters and at the end. strict_encode64 is RFC 4648 compliant with no line breaks. Always use strict_encode64 unless you specifically need MIME-formatted output.</p>
+      <h3>How do I do URL-safe Base64 in Ruby?</h3>
+      <p>Use Base64.urlsafe_encode64(data, padding: false) for URL-safe Base64 without padding. Decode with Base64.urlsafe_decode64(encoded).</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -225,6 +254,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

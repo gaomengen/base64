@@ -68,6 +68,11 @@
       "@type": "Question",
       "name": "How do I validate Base64 input in PHP?",
       "acceptedAnswer": { "@type": "Answer", "text": "Use the strict parameter: base64_decode($input, true). With strict mode on, the function returns false when the input contains characters outside the Base64 alphabet, instead of silently ignoring them." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does base64_decode return a wrong result instead of an error?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Without the strict flag, base64_decode() ignores invalid characters and returns a best-effort guess rather than failing. Always pass true as the second argument and compare the result with === false when handling untrusted input." }
     }
   ]
 }
@@ -164,6 +169,17 @@ $encoded = base64_encode(file_get_contents('img.png'));
 // As a data URI for HTML/CSS:
 $dataUri = "data:image/png;base64,{$encoded}";</pre>
 
+    <h2>Validation and strict mode</h2>
+    <p>By default <code>base64_decode()</code> silently discards characters outside the Base64 alphabet, so corrupt input decodes to garbage instead of failing. Pass <code>true</code> to get <code>false</code> on invalid data, and check with <code>===</code> (a valid decode can be falsy like <code>"0"</code>):</p>
+<pre>&lt;?php
+
+$result = base64_decode($input, true);
+if ($result === false) {
+    throw new InvalidArgumentException('Not valid Base64');
+}
+// Safe to use $result here</pre>
+    <div class="tip"><p><strong>Gotcha:</strong> strings copied from JSON, emails, or PEM files often contain newlines. <code>base64_decode()</code> tolerates whitespace even in strict mode, but if you built a URL-safe string yourself, restore <code>+/</code> and padding before decoding. See <a href="/articles/base64-invalid-padding">Fix invalid Base64 errors</a>.</p></div>
+
     <h2>Frequently asked questions</h2>
     <h3>How do I Base64 encode a string in PHP?</h3>
     <p>Use the built-in <code>base64_encode()</code>: <code>base64_encode("Hello, world!")</code> returns <code>"SGVsbG8sIHdvcmxkIQ=="</code>. No import or library is needed.</p>
@@ -173,12 +189,17 @@ $dataUri = "data:image/png;base64,{$encoded}";</pre>
     <p>Swap the alphabet with <code>strtr($b64, '+/', '-_')</code> and drop padding via <code>rtrim($b64, '=')</code>; reverse with <code>strtr($s, '-_', '+/')</code> before decoding.</p>
     <h3>How do I validate Base64 input in PHP?</h3>
     <p>Use strict mode: <code>base64_decode($input, true)</code> returns <code>false</code> when the input has characters outside the Base64 alphabet.</p>
+    <h3>Why does base64_decode return a wrong result instead of an error?</h3>
+    <p>Without the strict flag, <code>base64_decode()</code> ignores invalid characters and returns a best-effort guess. Always pass <code>true</code> and compare with <code>=== false</code> when handling untrusted input.</p>
 
     <div class="related-articles">
-      <div class="section-heading">Related</div>
+      <div class="section-heading">PHP &amp; Related Tools</div>
       <ul>
         <li><a href="/articles/base64-php">Full PHP guide</a></li>
         <li><a href="/base64-encode-python">Base64 in Python</a></li>
+        <li><a href="/image-to-base64">Image to Base64 (data URI)</a></li>
+        <li><a href="/articles/base64-jwt">Decode a JWT</a></li>
+        <li><a href="/articles/base64-invalid-padding">Fix invalid Base64</a></li>
         <li><a href="/articles/url-safe-base64">URL-safe Base64</a></li>
         <li><a href="/base64-to-json">Base64 to JSON</a></li>
       </ul>

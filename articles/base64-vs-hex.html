@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 vs Hex Encoding — When to Use Which",
   "url": "https://base64.dev/articles/base64-vs-hex",
   "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
@@ -66,6 +66,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -87,10 +88,30 @@
       <div class="article-meta">
         <span class="article-tag">Comparison</span>
         <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 vs Hex Encoding</h1>
-      <p class="lead">Both Base64 and hexadecimal (hex) encode binary data as text — but they make different tradeoffs between size efficiency and human readability. Here's when to use each.</p>
+      <p class="lead">Both Base64 and hexadecimal (hex) encode binary data as text — but they make different tradeoffs between size efficiency and human 
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Encode or decode right here — runs locally in your browser, nothing is uploaded.</p>
+
+readability. Here's when to use each.</p>
 
       <h2>How They Work</h2>
       <p><strong>Hex (Base16)</strong> encodes each byte as two hexadecimal digits (0-9, a-f). Each hex digit represents 4 bits, so 1 byte = 2 characters.</p>
@@ -180,6 +201,14 @@ Password hash storage       Hex       Convention (bcrypt uses Base64)
 PostgreSQL bytea            Hex       Default display format
 JSON binary field           Base64    Compact, JSON-friendly</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>Should I use Base64 or hex encoding?</h3>
+      <p>Use Base64 when size efficiency matters (JWTs, data URIs, API payloads, email attachments) — it is ~33% larger than binary. Use hex when byte-level human readability matters (cryptographic hashes, MAC addresses, memory dumps, CSS colors).</p>
+      <h3>Is Base64 more compact than hex?</h3>
+      <p>Yes. Base64 adds ~33% overhead (3 bytes become 4 characters). Hex adds 100% overhead (1 byte becomes 2 characters). For the same binary data, Base64 output is roughly half the size of hex output.</p>
+      <h3>Why are SHA-256 hashes displayed as hex instead of Base64?</h3>
+      <p>Convention. Hex is easier to visually inspect byte-by-byte and compare, and has been the traditional format for cryptographic hashes since before Base64 was common. Many tools (git, openssl, sha256sum) output hex by default.</p>
+
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -216,6 +245,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
