@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Encoding & Decoding in Python",
   "description": "Complete guide to Base64 in Python using the built-in base64 module.",
   "url": "https://base64.dev/articles/base64-python",
@@ -52,7 +52,12 @@
     {
       "@type": "Question",
       "name": "How do I encode a file to Base64 in Python?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Read the file in binary mode and pass to b64encode: import base64; encoded = base64.b64encode(open('file.png','rb').read()).decode('ascii')." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Read the file in binary mode and pass to b64encode: import base64; encoded = base64.b64encode(open('file.png','rb').read()).decode('ascii'). For large files, base64.encodebytes() streams with MIME line breaks." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix 'Incorrect padding' in Python?",
+      "acceptedAnswer": { "@type": "Answer", "text": "binascii.Error: Incorrect padding means the Base64 length is not a multiple of 4, usually because padding was stripped. Restore it before decoding: s += '=' * (-len(s) % 4), then base64.b64decode(s). Strip whitespace first if the string came from a file or network response." }
     }
   ]
 }
@@ -72,6 +77,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -92,11 +98,30 @@
     <article class="article">
       <div class="article-meta">
         <span class="article-tag">Python</span>
-        <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">6 min read</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Encoding & Decoding in Python</h1>
       <p class="lead">Python's standard library includes a <code>base64</code> module with everything you need. The key thing to know: the module works with <code>bytes</code>, not strings — you need to encode/decode strings explicitly.</p>
+
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> INPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="clearBtn">Clear</button></div>
+          </div>
+          <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 — auto-detected..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+            <div class="panel-actions"><button class="small-btn" id="copyBtn">Copy</button></div>
+          </div>
+          <textarea id="output" aria-label="Result" placeholder="Result appears here..." readonly spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Type or paste to encode / decode</span></div>
+      </div>
+      <p class="widget-note">Runs locally in your browser — handy for checking your script's output. Prefer a dedicated page? Try the <a href="/base64-encode-python">Python encoder/decoder</a> tool.</p>
 
       <h2>Basic Usage</h2>
       <pre>import base64
@@ -145,8 +170,8 @@ def urlsafe_b64encode_nopad(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
 def urlsafe_b64decode_nopad(s: str) -> bytes:
-    # Restore padding
-    s += "=" * (4 - len(s) % 4)
+    # Restore padding (0 when length is already a multiple of 4)
+    s += "=" * (-len(s) % 4)
     return base64.urlsafe_b64decode(s)</pre>
 
       <h2>Encoding Files</h2>
@@ -197,8 +222,8 @@ base64.b64encode(b"Hello") # ✓ correct</pre>
 def safe_b64decode(s: str) -> bytes:
     # Remove whitespace
     s = re.sub(r"\s+", "", s)
-    # Restore padding if stripped
-    s += "=" * (4 - len(s) % 4)
+    # Restore padding if stripped (0 when already a multiple of 4)
+    s += "=" * (-len(s) % 4)
     return base64.b64decode(s)</pre>
 
       <h3>Validating Base64 input</h3>
@@ -210,6 +235,19 @@ def is_valid_base64(s: str) -> bool:
         return True
     except Exception:
         return False</pre>
+
+      <hr>
+      <h2>FAQ</h2>
+      <h3>How do I encode a string to Base64 in Python?</h3>
+      <p>Encode the string to bytes first, then Base64-encode: <code>base64.b64encode("Hello".encode("utf-8")).decode("ascii")</code> returns <code>"SGVsbG8="</code>. <code>b64encode</code> requires a bytes-like object, so always <code>.encode()</code> a <code>str</code> first.</p>
+      <h3>How do I decode Base64 in Python?</h3>
+      <p><code>base64.b64decode("SGVsbG8=")</code> returns <code>b"Hello"</code>; call <code>.decode("utf-8")</code> on the result for a string. It accepts both <code>str</code> and <code>bytes</code> input.</p>
+      <h3>How do I do URL-safe Base64 in Python?</h3>
+      <p>Use <code>base64.urlsafe_b64encode()</code> and <code>base64.urlsafe_b64decode()</code>, which use the <code>-</code> and <code>_</code> alphabet. Strip padding with <code>.rstrip(b"=")</code> for JWT-style tokens.</p>
+      <h3>How do I encode a file to Base64 in Python?</h3>
+      <p>Read it in binary mode and pass the bytes to <code>b64encode</code>: <code>base64.b64encode(open("file.png","rb").read()).decode("ascii")</code>. For large files, <code>base64.encodebytes()</code> streams with MIME line breaks.</p>
+      <h3>How do I fix "Incorrect padding"?</h3>
+      <p>The Base64 length must be a multiple of 4. Restore stripped padding before decoding: <code>s += "=" * (-len(s) % 4)</code>, then <code>base64.b64decode(s)</code>. Strip whitespace first if the string came from a file or network response.</p>
 
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
@@ -248,6 +286,12 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+  if (window.B64 && document.getElementById('input')) {
+    B64.wireTextTool({ input: 'input', output: 'output', status: 'status', copyBtn: 'copyBtn', clearBtn: 'clearBtn' });
+  }
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>

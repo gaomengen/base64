@@ -67,7 +67,17 @@
     {
       "@type": "Question",
       "name": "How do I do URL-safe Base64 in JavaScript?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Take the standard btoa() output and replace the URL-unsafe characters: .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '') to drop padding. To decode, restore + and / and re-pad to a multiple of 4 before atob()." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Take the standard btoa() output and replace the URL-unsafe characters: .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '') to drop padding. To decode, restore + and / and re-pad to a multiple of 4 before atob(). In modern runtimes you can instead call bytes.toBase64({ alphabet: 'base64url' })." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I Base64 encode in Node.js?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use Buffer: Buffer.from('Hello').toString('base64') to encode and Buffer.from(b64, 'base64').toString('utf8') to decode. Buffer handles Unicode automatically and supports 'base64url' for URL-safe output." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is btoa() deprecated?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. btoa() and atob() are not deprecated and still work everywhere. The newer Uint8Array.toBase64() and Uint8Array.fromBase64() methods are the recommended modern approach because they operate on bytes and handle Unicode and URL-safe alphabets without workarounds." }
     }
   ]
 }
@@ -152,6 +162,18 @@ function decodeBase64(base64) {
 encodeBase64("Hello 🌍"); // "SGVsbG8g8J+MjQ=="</pre>
     <div class="tip"><p><strong>Tip:</strong> <code>btoa()</code> only accepts Latin-1 (code points 0–255). Passing emoji or accented text raises <code>InvalidCharacterError</code> — always run Unicode strings through <code>TextEncoder</code> first.</p></div>
 
+    <h2>The modern way: Uint8Array.toBase64()</h2>
+    <p>As of 2025 (ES2026), browsers and Node.js 22+ ship native <code>Uint8Array.prototype.toBase64()</code> and <code>Uint8Array.fromBase64()</code>. They work directly on bytes, so Unicode "just works" with no <code>String.fromCharCode</code> dance:</p>
+<pre>// Encode: string -> bytes -> Base64
+const bytes = new TextEncoder().encode("Hello 🌍");
+bytes.toBase64();                          // "SGVsbG8g8J+MjQ=="
+bytes.toBase64({ alphabet: "base64url", omitPadding: true }); // URL-safe
+
+// Decode: Base64 -> bytes -> string
+const decoded = Uint8Array.fromBase64("SGVsbG8g8J+MjQ==");
+new TextDecoder().decode(decoded);         // "Hello 🌍"</pre>
+    <div class="tip"><p><strong>Support:</strong> shipped in Chrome, Firefox, Safari, Node 22+, Deno, and Bun. For older runtimes, fall back to the <code>TextEncoder</code> + <code>btoa()</code> pattern above.</p></div>
+
     <h2>URL-safe Base64</h2>
     <p>For JWTs, URLs, and filenames, swap <code>+</code> and <code>/</code> for <code>-</code> and <code>_</code> and drop the padding:</p>
 <pre>// Encode to URL-safe Base64
@@ -186,6 +208,21 @@ input.addEventListener("change", async (e) => {
   console.log(dataUri); // "data:image/png;base64,iVBOR..."
 });</pre>
 
+    <h2>Base64 in Node.js</h2>
+    <p>On the server there's no <code>btoa()</code> needed — the <code>Buffer</code> class is the idiomatic API and handles Unicode automatically:</p>
+<pre>// Encode / decode a string
+const encoded = Buffer.from("Hello, world! 🌍").toString("base64");
+const decoded = Buffer.from(encoded, "base64").toString("utf8");
+
+// URL-safe Base64 (Node 16+)
+Buffer.from("Hello").toString("base64url");
+
+// Encode a file
+const fs = require("fs");
+const b64 = fs.readFileSync("image.png").toString("base64");
+fs.writeFileSync("copy.png", Buffer.from(b64, "base64"));</pre>
+    <p>See the <a href="/base64-encode-nodejs">Node.js tool page</a> for a runnable version, or the <a href="/articles/base64-nodejs">Node.js guide</a> for streams and large files.</p>
+
     <h2>Frequently asked questions</h2>
     <h3>How do I Base64 encode a string in JavaScript?</h3>
     <p>Use <code>btoa("Hello")</code> for ASCII, which returns <code>"SGVsbG8="</code>. For Unicode, encode to UTF-8 with <code>new TextEncoder().encode(str)</code> first, then <code>btoa()</code> the binary string.</p>
@@ -194,13 +231,20 @@ input.addEventListener("change", async (e) => {
     <h3>Why does btoa() throw an InvalidCharacterError?</h3>
     <p><code>btoa()</code> only accepts Latin-1 characters (0–255). Emoji and non-Latin text throw — encode to UTF-8 bytes with <code>TextEncoder</code> first.</p>
     <h3>How do I do URL-safe Base64?</h3>
-    <p>Apply <code>.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")</code> to the standard output, then reverse it before <code>atob()</code>.</p>
+    <p>Apply <code>.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")</code> to the standard output, then reverse it before <code>atob()</code>. Or in modern runtimes, <code>bytes.toBase64({ alphabet: "base64url" })</code>.</p>
+    <h3>How do I Base64 encode in Node.js?</h3>
+    <p>Use <code>Buffer</code>: <code>Buffer.from("Hello").toString("base64")</code> to encode and <code>Buffer.from(b64, "base64").toString("utf8")</code> to decode. It handles Unicode automatically and supports <code>"base64url"</code> for URL-safe output.</p>
+    <h3>Is btoa() deprecated?</h3>
+    <p>No — <code>btoa()</code>/<code>atob()</code> are not deprecated and still work everywhere. But the newer <code>Uint8Array.toBase64()</code>/<code>fromBase64()</code> methods are the recommended modern approach: they operate on bytes, so they handle Unicode and URL-safe alphabets without workarounds.</p>
 
     <div class="related-articles">
-      <div class="section-heading">Related</div>
+      <div class="section-heading">JavaScript &amp; Related Tools</div>
       <ul>
         <li><a href="/articles/base64-javascript">Full JavaScript guide</a></li>
-        <li><a href="/base64-encode-python">Base64 in Python</a></li>
+        <li><a href="/base64-encode-typescript">Base64 in TypeScript</a></li>
+        <li><a href="/base64-encode-nodejs">Base64 in Node.js</a></li>
+        <li><a href="/articles/base64-react">Base64 in React</a></li>
+        <li><a href="/articles/base64-jwt">Decode a JWT</a></li>
         <li><a href="/articles/url-safe-base64">URL-safe Base64</a></li>
         <li><a href="/base64-to-json">Base64 to JSON</a></li>
       </ul>

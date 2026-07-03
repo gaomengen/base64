@@ -68,6 +68,11 @@
       "@type": "Question",
       "name": "Why does b64encode raise a TypeError?",
       "acceptedAnswer": { "@type": "Answer", "text": "base64.b64encode requires bytes, not str. Passing 'Hello' raises 'a bytes-like object is required'. Encode the string first: base64.b64encode('Hello'.encode('utf-8'))." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I fix 'Incorrect padding' in Python?",
+      "acceptedAnswer": { "@type": "Answer", "text": "binascii.Error: Incorrect padding means the Base64 length is not a multiple of 4, usually because padding was stripped. Restore it before decoding: s += '=' * (-len(s) % 4), then base64.b64decode(s). Strip whitespace first if the string came from a file or network response." }
     }
   ]
 }
@@ -159,6 +164,17 @@ with open("image.png", "rb") as f:
 
 # As a data URI for HTML/CSS:
 data_uri = "data:image/png;base64," + encoded</pre>
+    <p>For large files or email attachments, <code>base64.encodebytes()</code> inserts a newline every 76 characters (MIME style); pair it with <code>decodebytes()</code>, which tolerates the embedded newlines.</p>
+
+    <h2>Fixing "Incorrect padding" and invalid input</h2>
+    <p>The most common Python Base64 error is <code>binascii.Error: Incorrect padding</code> — the string's length isn't a multiple of 4, usually because padding <code>=</code> was stripped. Restore it before decoding, and pass <code>validate=True</code> to reject junk instead of silently ignoring it:</p>
+<pre>import base64, re
+
+def safe_b64decode(s: str) -> bytes:
+    s = re.sub(r"\s+", "", s)          # drop stray newlines/spaces
+    s += "=" * (-len(s) % 4)           # restore missing padding
+    return base64.b64decode(s, validate=True)  # raises on bad chars</pre>
+    <div class="tip"><p><strong>Note:</strong> by default <code>b64decode</code> silently discards characters outside the alphabet. Use <code>validate=True</code> when you want a corrupt string to raise rather than decode to garbage. See <a href="/articles/base64-invalid-padding">Fix invalid Base64 errors</a> for the full breakdown.</p></div>
 
     <h2>Frequently asked questions</h2>
     <h3>How do I Base64 encode a string in Python?</h3>
@@ -169,12 +185,17 @@ data_uri = "data:image/png;base64," + encoded</pre>
     <p>Use <code>base64.urlsafe_b64encode()</code> / <code>urlsafe_b64decode()</code>, and <code>.rstrip(b"=")</code> to drop padding.</p>
     <h3>Why does b64encode raise a TypeError?</h3>
     <p>It needs <code>bytes</code>, not <code>str</code>. Call <code>.encode("utf-8")</code> on the string first.</p>
+    <h3>How do I fix "Incorrect padding"?</h3>
+    <p>Restore the missing <code>=</code> before decoding: <code>s += "=" * (-len(s) % 4)</code>, then <code>base64.b64decode(s)</code>. Strip any whitespace first if the string came from a file or network response.</p>
 
     <div class="related-articles">
-      <div class="section-heading">Related</div>
+      <div class="section-heading">Python &amp; Related Tools</div>
       <ul>
         <li><a href="/articles/base64-python">Full Python guide</a></li>
         <li><a href="/base64-encode-javascript">Base64 in JavaScript</a></li>
+        <li><a href="/image-to-base64">Image to Base64 (data URI)</a></li>
+        <li><a href="/articles/base64-jwt">Decode a JWT</a></li>
+        <li><a href="/articles/base64-invalid-padding">Fix invalid Base64</a></li>
         <li><a href="/articles/url-safe-base64">URL-safe Base64</a></li>
         <li><a href="/base64-to-json">Base64 to JSON</a></li>
       </ul>

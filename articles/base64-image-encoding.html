@@ -20,7 +20,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "datePublished": "2026-05-28",
-  "dateModified": "2026-06-17",
+  "dateModified": "2026-07-03",
   "headline": "Base64 Image Encoding — Data URIs for HTML & CSS",
   "url": "https://base64.dev/articles/base64-image-encoding",
   "author": { "@type": "Organization", "name": "base64.dev" },
@@ -35,12 +35,32 @@
     {
       "@type": "Question",
       "name": "How do I convert an image to Base64?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Use base64.dev's Image mode — drag and drop your image and it instantly shows the Base64 data URI. In JavaScript, use FileReader.readAsDataURL(). In Python, use base64.b64encode(open('image.png','rb').read()).decode()." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Drop your image into the converter at the top of this page and copy the data URI it produces. In JavaScript, use FileReader.readAsDataURL(). In Python, use base64.b64encode(open('image.png','rb').read()).decode()." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode a Base64 string back to an image?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Put the full data URI (data:image/png;base64,...) directly in an <img> src and the browser renders it. To get a real file, decode the Base64 with atob() in JavaScript or base64.b64decode() in Python and write the bytes out, or use base64.dev's Base64 to Image tool." }
+    },
+    {
+      "@type": "Question",
+      "name": "How much bigger is a Base64 image?",
+      "acceptedAnswer": { "@type": "Answer", "text": "About 33% larger than the original binary file. Base64 encodes every 3 bytes as 4 ASCII characters, so a 12 KB PNG becomes roughly 16 KB of text. Padding adds at most a couple more characters." }
     },
     {
       "@type": "Question",
       "name": "Should I use Base64 images in CSS?",
       "acceptedAnswer": { "@type": "Answer", "text": "Use Base64 for small images (icons, logos under ~2KB) where eliminating an HTTP request is worth the ~33% size increase. For larger images, a regular URL is better — Base64 images can't be cached separately and inflate your HTML/CSS file size." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is my Base64 image not showing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The three usual causes are a wrong or missing MIME type (use data:image/png for a PNG, not image/jpeg), a truncated or line-wrapped Base64 string (it must be one unbroken sequence), and incorrect padding (the Base64 length must be a multiple of 4, padded with = signs). Also make sure you included the full data: prefix." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use Base64 images in email?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes for many clients, and it sidesteps the external-image blocking that hides normal <img src> images until the reader clicks 'show images'. The main exception is Outlook on Windows, which does not render Base64 <img> data URIs — so test there or fall back to hosted images." }
     }
   ]
 }
@@ -60,6 +80,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
 </head>
 <body>
 <div class="container">
@@ -80,11 +101,41 @@
     <article class="article">
       <div class="article-meta">
         <span class="article-tag">Use Case</span>
-        <span class="article-read-time">5 min read</span>
-        <span class="article-read-time">Updated Jun 17, 2026</span>
+        <span class="article-read-time">7 min read</span>
+        <span class="article-read-time">Updated Jul 3, 2026</span>
       </div>
       <h1>Base64 Image Encoding — Data URIs for HTML & CSS</h1>
       <p class="lead">A Base64 data URI embeds image data directly in HTML or CSS — no separate file, no extra HTTP request. The format is <code>data:image/png;base64,...</code>. It's ideal for small assets, but has important performance tradeoffs to understand.</p>
+
+      <div class="tool-widget">
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+          <div class="dropzone-text">Drop an image here or click to browse</div>
+          <div class="dropzone-hint">PNG · JPG · GIF · SVG · WebP · AVIF — runs locally, never uploaded</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+
+        <div class="media-preview" id="preview">
+          <img id="previewImg" alt="Preview of the converted image">
+          <div class="preview-info">
+            <span id="previewName">—</span>
+            <span id="previewSize">—</span>
+          </div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> DATA URI</span>
+            <div class="panel-actions">
+              <button class="small-btn" id="rawBtn" title="Toggle between full data URI and raw Base64">Raw Base64</button>
+              <button class="small-btn" id="copyBtn">Copy</button>
+            </div>
+          </div>
+          <label for="output" class="sr-only">Base64 output</label>
+          <textarea id="output" readonly placeholder="Drop an image above to get its Base64 data URI here..." spellcheck="false"></textarea>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an image</span></div>
+      </div>
+      <p class="widget-note">Need a dedicated converter? Use <a href="/image-to-base64">Image to Base64</a> (any format), <a href="/png-to-base64">PNG to Base64</a>, <a href="/jpg-to-base64">JPG to Base64</a>, or <a href="/svg-to-base64">SVG to Base64</a> — or go the other way with <a href="/base64-to-image">Base64 to Image</a>.</p>
 
       <h2>The Data URI Format</h2>
       <pre>data:[mediatype][;base64],[data]
@@ -122,6 +173,34 @@ data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgA...</pre>
 /* CSS content property */
 .icon::before {
   content: url('data:image/svg+xml;base64,...');
+}</pre>
+
+      <h2>Real-World Examples</h2>
+      <h3>Email signature logo</h3>
+      <p>Email clients frequently block external images until the reader clicks "show images," which hides a hosted logo. A Base64 data URI renders immediately in most clients (Outlook for Windows is the notable exception):</p>
+      <pre>&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;&lt;img src="data:image/png;base64,iVBORw0KGgo..." width="48" height="48" alt="Acme"&gt;&lt;/td&gt;
+    &lt;td style="padding-left:12px"&gt;
+      &lt;strong&gt;Jane Doe&lt;/strong&gt;&lt;br&gt;Acme Inc.
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</pre>
+
+      <h3>CSS loading spinner</h3>
+      <p>A tiny inline SVG or GIF spinner shows instantly with zero network round-trip — handy for skeleton states and above-the-fold loaders that must appear before any other asset arrives:</p>
+      <pre>.spinner {
+  width: 24px;
+  height: 24px;
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0i...') no-repeat center;
+  background-size: contain;
+}</pre>
+
+      <h3>Repeating background texture</h3>
+      <p>A small tile (a few hundred bytes) inlined as a data URI covers an entire element via <code>repeat</code> with no separate request:</p>
+      <pre>.noise {
+  background-image: url('data:image/png;base64,iVBORw0KGgo...');
+  background-repeat: repeat;
 }</pre>
 
       <h2>Generating Data URIs</h2>
@@ -175,6 +254,49 @@ function imageToDataURI(filePath) {
   return `data:${mime};base64,${base64}`;
 }</pre>
 
+      <h2>Decoding: Base64 Back to an Image</h2>
+      <p>Going the other way — turning a data URI or raw Base64 string back into a viewable, downloadable image — is just as common. The simplest case needs no code at all: paste the full data URI straight into an <code>&lt;img&gt;</code> and the browser decodes and renders it.</p>
+      <pre>&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." alt="decoded"&gt;</pre>
+      <h3>In the Browser (JavaScript)</h3>
+      <pre>// Data URI -> Blob -> object URL (works for downloads too)
+async function dataURIToBlobURL(dataURI) {
+  const res = await fetch(dataURI);   // fetch handles the decode
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);   // assign to img.src or an <a download>
+}
+
+// Raw Base64 (no data: prefix) -> bytes
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i &lt; bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes; // wrap in new Blob([bytes], { type: 'image/png' })
+}</pre>
+      <h3>In Python</h3>
+      <pre>import base64
+
+# Strip the data: prefix if present, then decode to real bytes
+raw = data_uri.split(',', 1)[-1]
+with open('out.png', 'wb') as f:
+    f.write(base64.b64decode(raw))</pre>
+      <p>Prefer a no-code path? Drop your string into <a href="/base64-to-image">Base64 to Image</a> (or <a href="/base64-to-png">Base64 to PNG</a>) to preview and download the file instantly.</p>
+
+      <h2 id="size-overhead">How Much Bigger? The 33% Overhead</h2>
+      <p>Base64 represents every <strong>3 bytes of binary data as 4 ASCII characters</strong>, so the encoded text is always about <strong>33% larger</strong> than the original file (plus up to 2 padding characters and, for data URIs, the short <code>data:image/…;base64,</code> prefix). That overhead is the core reason to reserve Base64 for small assets:</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Original image</th><th>As Base64 (~+33%)</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0.5 KB icon</td><td>~0.7 KB</td><td>✅ Inline it</td></tr>
+          <tr><td>2 KB logo</td><td>~2.7 KB</td><td>✅ Usually fine</td></tr>
+          <tr><td>12 KB PNG</td><td>~16 KB</td><td>⚠️ Borderline</td></tr>
+          <tr><td>100 KB photo</td><td>~133 KB</td><td>❌ Keep as a file</td></tr>
+          <tr><td>1 MB hero image</td><td>~1.33 MB</td><td>❌ Never inline</td></tr>
+        </tbody>
+      </table>
+      <p>The overhead compounds: inlined images bloat your HTML/CSS, which is <strong>render-blocking</strong> and <strong>can't be cached separately</strong> — every byte re-downloads whenever the containing file changes. For a single tiny icon that saves one request, it's a win; for anything reused across pages, a normal <code>&lt;img src="photo.jpg"&gt;</code> with cache headers is faster.</p>
+
       <h2>When to Use Base64 Images</h2>
       <p><strong>Good use cases:</strong></p>
       <ul>
@@ -202,6 +324,30 @@ function imageToDataURI(filePath) {
 &lt;!-- URL-encoded SVG in CSS (no Base64 overhead for simple SVGs) --&gt;
 background-image: url("data:image/svg+xml,%3Csvg...");</pre>
 
+      <h2>Frequently Asked Questions</h2>
+      <h3>How do I convert an image to Base64?</h3>
+      <p>Drop your image into the converter at the top of this page and copy the data URI it produces. In code, use <code>FileReader.readAsDataURL()</code> in the browser, <code>base64.b64encode(...)</code> in Python, or <code>Buffer.from(...).toString('base64')</code> in Node.js.</p>
+      <h3>How do I decode a Base64 string back to an image?</h3>
+      <p>Put the full data URI (<code>data:image/png;base64,...</code>) directly in an <code>&lt;img&gt;</code> <code>src</code> and the browser renders it. To recover a real file, decode with <code>atob()</code> in JavaScript or <code>base64.b64decode()</code> in Python, or use the <a href="/base64-to-image">Base64 to Image</a> tool.</p>
+      <h3>How much bigger is a Base64 image?</h3>
+      <p>About 33% larger than the original binary — Base64 encodes every 3 bytes as 4 characters, so a 12&nbsp;KB PNG becomes roughly 16&nbsp;KB of text. See the <a href="#size-overhead">size table above</a> for common cases.</p>
+      <h3>Why is my Base64 image not showing?</h3>
+      <p>The three usual causes: a wrong or missing MIME type (use <code>data:image/png</code> for a PNG), a truncated or line-wrapped string (it must be one unbroken sequence), or bad padding (length must be a multiple of 4, padded with <code>=</code>). Confirm the full <code>data:</code> prefix is present too.</p>
+      <h3>Can I use Base64 images in email?</h3>
+      <p>Yes for most clients, and it avoids the external-image blocking that hides normal <code>&lt;img src&gt;</code> images. The main exception is Outlook on Windows, which won't render Base64 data URIs — test there or fall back to a hosted image.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Image &amp; File Converters</div>
+        <ul>
+    <li><a href="/image-to-base64">Image to Base64</a></li>
+    <li><a href="/png-to-base64">PNG to Base64</a></li>
+    <li><a href="/jpg-to-base64">JPG to Base64</a></li>
+    <li><a href="/svg-to-base64">SVG to Base64</a></li>
+    <li><a href="/base64-to-image">Base64 to Image</a></li>
+    <li><a href="/base64-to-png">Base64 to PNG</a></li>
+    <li><a href="/file-to-base64">File to Base64</a></li>
+        </ul>
+      </div>
       <div class="related-articles">
         <div class="section-heading">Related Articles</div>
         <ul>
@@ -213,7 +359,7 @@ background-image: url("data:image/svg+xml,%3Csvg...");</pre>
       </div>
       <div class="cta-box">
         <h3>Convert your image to Base64 now</h3>
-        <p>Drag and drop your image into base64.dev's Image mode to get the full data URI instantly.</p>
+        <p>Use the drop-zone converter at the top of this page, or open the full base64.dev tool for text, files, and URL-safe mode.</p>
         <a href="/" class="cta-btn">Open base64.dev →</a>
       </div>
     </article>
@@ -238,6 +384,54 @@ document.getElementById('themeBtn').addEventListener('click', function() {
   document.documentElement.classList.toggle('light');
   try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
 });
+</script>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('fileInput'), output = $('output');
+  var preview = $('preview'), previewImg = $('previewImg'), previewName = $('previewName'), previewSize = $('previewSize');
+  var status = $('status'), copyBtn = $('copyBtn'), rawBtn = $('rawBtn');
+  var dataURI = '', rawMode = false;
+  if (!dropzone || !window.B64) return;
+
+  function render() {
+    if (!dataURI) { output.value = ''; return; }
+    output.value = rawMode ? (dataURI.split(',')[1] || '') : dataURI;
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { B64.setStatus(status, 'err', 'That file is not an image.'); return; }
+    var r = new FileReader();
+    r.onload = function (e) {
+      dataURI = e.target.result;
+      previewImg.src = dataURI;
+      previewName.textContent = file.name;
+      previewSize.textContent = B64.fmtSize(file.size) + ' → ' + B64.fmtSize((dataURI.split(',')[1] || '').length) + ' Base64';
+      preview.classList.add('visible');
+      render();
+      B64.setStatus(status, 'ok', 'Encoded ' + file.name);
+    };
+    r.onerror = function () { B64.setStatus(status, 'err', 'Could not read that file.'); };
+    r.readAsDataURL(file);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+
+  rawBtn.addEventListener('click', function () {
+    rawMode = !rawMode;
+    rawBtn.textContent = rawMode ? 'Data URI' : 'Raw Base64';
+    rawBtn.classList.toggle('copied', rawMode);
+    render();
+  });
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
