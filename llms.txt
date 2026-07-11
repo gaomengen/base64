@@ -23,11 +23,25 @@
 - [PDF to Base64](https://base64.dev/pdf-to-base64): Encode a PDF to a Base64 string or data URI.
 - [MP3 / Audio to Base64](https://base64.dev/mp3-to-base64): Encode MP3/WAV/OGG audio to a Base64 string or data URI.
 - [Base64 to PNG](https://base64.dev/base64-to-png): Decode a Base64 string or data URI into a downloadable PNG image.
+- [Base64 to SVG](https://base64.dev/base64-to-svg): Decode Base64 (or a data URI) to SVG source with a live preview and download.
+- [Base64 to CSV](https://base64.dev/base64-to-csv): Decode Base64 to CSV text with a live table preview and download.
+- [Base64 to Blob](https://base64.dev/base64-to-blob): Convert Base64 to a JavaScript Blob and download it — includes the canonical base64ToBlob() code.
+- [Data URI Generator](https://base64.dev/data-uri-generator): Turn text (with a MIME type) or any dropped file into a data: URI for inlining in HTML/CSS.
 
 ## Calculators & utilities
 
 - [Base64 Size Calculator](https://base64.dev/base64-size-calculator): Compute Base64 size and overhead. Bytes ↔ Base64 length, the exact ~33% increase, formula explained.
 - [Base64URL Encode & Decode](https://base64.dev/base64url): URL-safe Base64 (RFC 4648 §5) with the -_ alphabet and no padding — for JWTs, URLs, and filenames.
+
+## Decoders & developer tools
+
+- [JWT Decoder](https://base64.dev/jwt-decoder): Decode a JSON Web Token's Base64URL header and payload to JSON, with humanized exp/iat/nbf claims. Signature is not verified; runs locally.
+- [Basic Auth Header Generator](https://base64.dev/basic-auth-header-generator): Build an `Authorization: Basic base64(user:pass)` header from a username and password, and decode existing headers. Base64 is encoding, not encryption.
+- [Hex Decoder](https://base64.dev/hex-decode): Decode a hexadecimal string to UTF-8 text, or encode text to hex.
+- [UTF-8 Decoder](https://base64.dev/utf-8-decode): Decode UTF-8 bytes (hex or percent-encoded) to text, or inspect the UTF-8 bytes of any string.
+- [HTML Entity Decoder](https://base64.dev/html-entity-decode): Decode HTML entities (named and numeric) to text, or encode text into entities. Decoding is done in a detached element, nothing renders.
+- [URL Decode](https://base64.dev/url-decode): Percent-decode a URL-encoded string, with an optional "+ as space" mode.
+- [URL Encode](https://base64.dev/url-encode): Percent-encode text with encodeURIComponent (component) or encodeURI (full URI).
 
 ## Encode & decode by language (live tool + code)
 
@@ -59,6 +73,8 @@ Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Bas
 - [Base64 Image Encoding & Data URIs](https://base64.dev/articles/base64-image-encoding): How to embed images in HTML/CSS as Base64 data URIs, with code examples and performance tradeoffs.
 - [Base64 in JWT](https://base64.dev/articles/base64-jwt): How JSON Web Tokens use Base64URL encoding for headers, payloads, and signatures.
 - [Base64 vs Hex Encoding](https://base64.dev/articles/base64-vs-hex): Size comparison, use case breakdown, and when to choose each format.
+- [Base64 vs Base64URL](https://base64.dev/articles/base64-vs-base64url): The +/ vs -_ character swap, padding differences, and when to use the URL-safe variant (JWTs, URLs, filenames).
+- [Is Base64 Encryption?](https://base64.dev/articles/is-base64-encryption): No — Base64 is encoding, not encryption. Encoding vs encryption vs hashing, why Base64 hides nothing, and how to actually protect data.
 - [Base64 Data URIs Explained](https://base64.dev/articles/base64-data-uri): The data: URI scheme in depth — syntax, MIME types, browser limits, and performance.
 
 ## Language Guides

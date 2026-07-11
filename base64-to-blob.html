@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 to Blob — Convert & Download in JavaScript — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Convert a Base64 string to a Blob in JavaScript with atob() and Uint8Array, then download it. Includes a working tool and a copy-paste function. Runs locally — nothing uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-to-blob">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-to-blob">
+<meta property="og:title" content="Base64 to Blob — Convert & Download in JavaScript">
+<meta property="og:description" content="Convert a Base64 string to a Blob with atob() and Uint8Array, then download it. Working tool plus a copy-paste function. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 to Blob — Convert & Download in JavaScript">
+<meta name="twitter:description" content="Convert a Base64 string to a Blob with atob() and Uint8Array, then download it. Working tool plus a copy-paste function.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 to Blob Converter",
+  "url": "https://base64.dev/base64-to-blob",
+  "description": "Convert a Base64 string or data URI to a JavaScript Blob in the browser, with the MIME type auto-detected, then download it. Also shows the copy-paste function to do it in your own code.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to convert Base64 to a Blob in JavaScript",
+  "description": "Turn a Base64 string into a JavaScript Blob by decoding it to bytes and passing them to the Blob constructor.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Decode to bytes", "text": "Strip any data-URI prefix, then decode the Base64 to a binary string with atob() and copy each character code into a Uint8Array." },
+    { "@type": "HowToStep", "position": 2, "name": "Build the Blob", "text": "Pass the Uint8Array to new Blob([bytes], { type: mime }), giving the correct MIME type so the browser treats the data properly." },
+    { "@type": "HowToStep", "position": 3, "name": "Use or download it", "text": "Create an object URL with URL.createObjectURL(blob) to preview or download, then revoke it with URL.revokeObjectURL when done." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I convert a Base64 string to a Blob in JavaScript?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Decode the Base64 to a binary string with atob(), copy each character code into a Uint8Array, then pass that array to the Blob constructor: new Blob([bytes], { type: mime }). Strip any leading data:...;base64, prefix first. The result is an in-memory Blob you can download or turn into an object URL." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I download a Blob?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Create an object URL with const url = URL.createObjectURL(blob), set it as the href of an <a download> element, and click it programmatically. Afterward call URL.revokeObjectURL(url) to free the memory. The tool on this page does exactly this when you click Download." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why use Uint8Array instead of the Base64 string directly?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Passing the Base64 string straight to new Blob([str]) stores the literal Base64 text as bytes, not the decoded binary data — the file would be corrupt. You must decode to real bytes first with atob() and a Uint8Array so the Blob holds the actual PNG, PDF, or other content." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use fetch() to decode Base64 into a Blob?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. A data URI is a valid URL, so const blob = await (await fetch('data:image/png;base64,' + myBase64)).blob() lets the browser parse and decode it for you in one line. It is the simplest approach when you already have, or can build, a full data URI." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 to Blob", "item": "https://base64.dev/base64-to-blob" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 to Blob</span>
+    </div>
+
+    <h1>Base64 to Blob</h1>
+    <p class="lead">A <strong>Blob</strong> is JavaScript's in-memory binary object. To convert Base64 to a Blob, decode it to bytes with <code>atob()</code>, copy them into a <code>Uint8Array</code>, and pass that to <code>new Blob([bytes], { type })</code>. Paste Base64 below to build one and download it, or copy the function. Everything runs in your browser — nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> BASE64 INPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Base64 or data URI input</label>
+        <textarea id="input" aria-label="Base64 or data URI input" placeholder="Paste Base64 or a data:...;base64,... URI here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="preview-info"><span id="info">—</span></div>
+
+      <div class="tool-actions">
+        <button class="btn-primary" id="dlBtn">Download</button>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+
+    <h2>How to convert Base64 to a Blob</h2>
+    <p>Paste your data into the box above. You can give it a <strong>full data URI</strong> — a string of the form <code>data:image/png;base64,iVBORw0…</code> — or just the <strong>raw Base64 payload</strong>. The tool decodes the bytes locally, sniffs the <strong>MIME type</strong> from the leading bytes, and builds a real <code>Blob</code> in memory. The line above the button shows the detected size and type. Click <strong>Download</strong> to save the Blob with a matching extension.</p>
+
+    <h2>The JavaScript: convert Base64 to a Blob</h2>
+    <p>Here is the canonical, copy-pasteable function. It strips a data-URI prefix if present, decodes with <code>atob()</code>, copies the character codes into a <code>Uint8Array</code>, and hands that to the <code>Blob</code> constructor:</p>
+    <pre><code>function base64ToBlob(base64, mime = 'application/octet-stream') {
+  // Strip a data-URI prefix if present
+  const clean = base64.replace(/^data:[^;,]*;base64,/, '');
+  const binary = atob(clean);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i &lt; binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+// Usage: turn it into a downloadable object URL
+const blob = base64ToBlob(myBase64, 'image/png');
+const url = URL.createObjectURL(blob);</code></pre>
+    <p>There's also a shorter, asynchronous alternative that lets the browser do the decoding for you:</p>
+    <pre><code>// Simpler, async — lets the browser parse the data URI for you:
+const blob = await (await fetch('data:image/png;base64,' + myBase64)).blob();</code></pre>
+    <div class="tip">
+      <p><strong>Tip:</strong> pass the right <code>type</code>. A Blob with the correct MIME (e.g. <code>image/png</code>) previews and downloads properly; the default <code>application/octet-stream</code> forces a generic binary download.</p>
+    </div>
+
+    <h2>Creating a downloadable link</h2>
+    <p>Once you have a Blob, wrap it in an <strong>object URL</strong> and trigger a download from an anchor element:</p>
+    <pre><code>const blob = base64ToBlob(myBase64, 'application/pdf');
+const url = URL.createObjectURL(blob);
+
+const a = document.createElement('a');
+a.href = url;
+a.download = 'file.pdf';
+a.click();
+
+// Free the memory once the download has started
+URL.revokeObjectURL(url);</code></pre>
+    <p>Object URLs stay alive until the page unloads, so always call <code>URL.revokeObjectURL(url)</code> when you're done to avoid leaking memory — especially in single-page apps that create many Blobs.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The conversion runs fully in the browser with JavaScript — your Base64 is decoded and the Blob is built locally, and <strong>nothing is uploaded</strong> to any server. You can confirm in DevTools → Network: pasting and downloading fires no request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I convert a Base64 string to a Blob in JavaScript?</h3>
+    <p>Decode the Base64 to a binary string with <code>atob()</code>, copy each character code into a <code>Uint8Array</code>, then pass that array to <code>new Blob([bytes], { type: mime })</code>. Strip any leading <code>data:...;base64,</code> prefix first. The result is an in-memory Blob you can download or turn into an object URL.</p>
+    <h3>How do I download a Blob?</h3>
+    <p>Create an object URL with <code>const url = URL.createObjectURL(blob)</code>, set it as the <code>href</code> of an <code>&lt;a download&gt;</code> element, and click it programmatically. Afterward call <code>URL.revokeObjectURL(url)</code> to free the memory. The tool above does exactly this when you click <strong>Download</strong>.</p>
+    <h3>Why use Uint8Array instead of the string directly?</h3>
+    <p>Passing the Base64 string straight to <code>new Blob([str])</code> stores the literal Base64 text as bytes, not the decoded binary data — the file would be corrupt. You must decode to real bytes first with <code>atob()</code> and a <code>Uint8Array</code> so the Blob holds the actual PNG, PDF, or other content.</p>
+    <h3>Can I use fetch() to decode Base64?</h3>
+    <p>Yes. A data URI is a valid URL, so <code>const blob = await (await fetch('data:image/png;base64,' + myBase64)).blob()</code> lets the browser parse and decode it in one line. It's the simplest approach when you already have, or can build, a full data URI.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/base64-to-file">Base64 to File</a></li>
+        <li><a href="/base64-to-image">Base64 to Image</a></li>
+        <li><a href="/base64-to-json">Base64 to JSON</a></li>
+        <li><a href="/articles/base64-javascript">Base64 in JavaScript</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), info = $('info'), status = $('status');
+  var dlBtn = $('dlBtn'), clearBtn = $('clearBtn');
+
+  function run() {
+    var v = input.value.trim();
+    if (!v) {
+      info.textContent = '—';
+      B64.setStatus(status, '', 'Waiting for input');
+      window._blobBytes = null; window._blobMime = '';
+      return;
+    }
+    try {
+      var bytes = B64.base64ToBytes(v);
+      var mime = B64.sniffMime(bytes) || 'application/octet-stream';
+      var blob = new Blob([bytes], { type: mime });
+      info.textContent = B64.fmtSize(bytes.length) + ' · ' + mime + ' · Blob ready';
+      B64.setStatus(status, 'ok', 'Blob created — click Download');
+      window._blobBytes = bytes;
+      window._blobMime = mime;
+    } catch (e) {
+      info.textContent = '—';
+      B64.setStatus(status, 'err', 'Invalid Base64 input.');
+      window._blobBytes = null; window._blobMime = '';
+    }
+  }
+
+  input.addEventListener('input', run);
+
+  dlBtn.addEventListener('click', function () {
+    var mime = window._blobMime || 'application/octet-stream';
+    var ext = mime === 'image/png' ? '.png'
+      : mime === 'image/jpeg' ? '.jpg'
+      : mime === 'application/pdf' ? '.pdf'
+      : mime === 'image/svg+xml' ? '.svg'
+      : mime === 'image/gif' ? '.gif'
+      : '.bin';
+    B64.downloadBytes(window._blobBytes || new Uint8Array(), 'file' + ext, mime);
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    info.textContent = '—';
+    B64.setStatus(status, '', 'Waiting for input');
+    window._blobBytes = null; window._blobMime = '';
+    input.focus();
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

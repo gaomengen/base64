@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 vs Base64URL — What's the Difference? — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Base64URL is a URL-safe variant of Base64: + becomes -, / becomes _, and padding is usually dropped. Compare the two, see when to use Base64URL, and how to convert.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/base64-vs-base64url">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/base64-vs-base64url">
+<meta property="og:title" content="Base64 vs Base64URL — What's the Difference?">
+<meta property="og:description" content="Base64URL swaps + for - and / for _ and usually drops padding, so it is safe in URLs, filenames, and JWTs. The decoded bytes are identical to standard Base64.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "datePublished": "2026-07-11",
+  "dateModified": "2026-07-11",
+  "headline": "Base64 vs Base64URL — What's the Difference?",
+  "url": "https://base64.dev/articles/base64-vs-base64url",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Base64 vs Base64URL", "item": "https://base64.dev/articles/base64-vs-base64url" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What's the difference between Base64 and Base64URL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64URL is a URL-safe variant of standard Base64. It replaces the two problematic characters — '+' becomes '-' and '/' becomes '_' — and usually drops the '=' padding, so the output is safe to place in URLs, filenames, and JWTs. Standard Base64 (RFC 4648 §4) is defined for MIME, email, and data URIs; Base64URL is defined in RFC 4648 §5. Both encode the same underlying bytes." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Base64URL the same data as Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Base64URL and standard Base64 encode the exact same bytes — only two of the 64 output characters differ ('-'/'_' instead of '+'/'/'), plus optional padding. Convert the characters back and decode, and you get identical binary data. It is a display-level substitution, not a different encoding of the content." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do JWTs use Base64URL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "JWTs are designed to travel in URLs, HTTP headers, and cookies, where '+', '/', and '=' are unsafe or reserved. Base64URL avoids them entirely, so a token needs no percent-encoding. The JWT specification (RFC 7519) mandates Base64URL with no padding for all three segments: header, payload, and signature." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Base64URL have padding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Usually not. RFC 4648 §5 permits padding, but URL-safe contexts typically omit the trailing '=' characters, and JWT forbids them outright. Padding is redundant because it can be re-derived from the string length, so decoders re-add '=' until the length is a multiple of 4 before decoding." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I convert Base64URL back to standard Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Replace '-' with '+' and '_' with '/', then re-pad with '=' until the length is a multiple of 4. That's it — no re-encoding of the underlying bytes is needed. In JavaScript: s = url.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; then atob(s)." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 vs Base64URL</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Comparison</span>
+        <span class="article-read-time">6 min read</span>
+        <span class="article-read-time">Updated Jul 11, 2026</span>
+      </div>
+      <h1>Base64 vs Base64URL</h1>
+      <p class="lead">Base64URL is a URL-safe variant of standard Base64. It swaps the two problematic characters — <code>+</code> becomes <code>-</code> and <code>/</code> becomes <code>_</code> — and usually drops the <code>=</code> padding, so the output is safe to drop into URLs, filenames, and JWTs without further escaping. The decoded bytes are identical.</p>
+
+      <h2>What's the difference between Base64 and Base64URL?</h2>
+      <p>Both encodings turn binary data into ASCII text using an alphabet of 64 characters, and 62 of those characters are exactly the same: <code>A–Z</code>, <code>a–z</code>, and <code>0–9</code>. The entire difference lives in the last two alphabet slots — characters 62 and 63 — plus how padding is handled. Standard Base64 uses <code>+</code> and <code>/</code>; Base64URL uses <code>-</code> and <code>_</code>. That is the whole substitution.</p>
+      <p>Because only the surface characters change, the two variants are interchangeable representations of the <em>same bytes</em>. You can convert one to the other with a character swap and never touch the underlying data. The table below lays out every point of difference:</p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>Standard Base64</th>
+            <th>Base64URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Character 62</td>
+            <td><code>+</code> (plus)</td>
+            <td><code>-</code> (hyphen)</td>
+          </tr>
+          <tr>
+            <td>Character 63</td>
+            <td><code>/</code> (slash)</td>
+            <td><code>_</code> (underscore)</td>
+          </tr>
+          <tr>
+            <td>Padding</td>
+            <td><code>=</code> required / typical</td>
+            <td><code>=</code> usually omitted</td>
+          </tr>
+          <tr>
+            <td>Safe in URLs?</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Safe in filenames?</td>
+            <td>No</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Defined by</td>
+            <td>RFC 4648 §4</td>
+            <td>RFC 4648 §5</td>
+          </tr>
+          <tr>
+            <td>Typical uses</td>
+            <td>MIME, email, data URIs</td>
+            <td>JWT, URLs, filenames, tokens</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Why does Base64URL exist?</h2>
+      <p>Base64URL exists because standard Base64's alphabet collides with characters that have reserved meaning in URLs and file paths. Three characters cause trouble:</p>
+      <ul>
+        <li><code>/</code> — a path separator. Drop it into a URL and everything after it looks like a new path segment.</li>
+        <li><code>+</code> — in <code>application/x-www-form-urlencoded</code> query strings, <code>+</code> decodes to a space, silently corrupting the value.</li>
+        <li><code>=</code> — the key/value separator in query strings, so trailing padding can confuse parsers.</li>
+      </ul>
+      <p>The workaround with standard Base64 is percent-encoding: <code>+</code> becomes <code>%2B</code>, <code>/</code> becomes <code>%2F</code>, and <code>=</code> becomes <code>%3D</code>. That works, but it makes tokens longer, harder to read, and easy to double-encode by mistake. A single Base64 string embedded raw in a URL can be corrupted the moment it passes through a form decoder or a router that treats <code>/</code> as a boundary.</p>
+      <p>Base64URL sidesteps the whole problem. By choosing <code>-</code> and <code>_</code> — both of which are unreserved in URLs — and dropping padding, the encoded output can be pasted directly into a path segment, query parameter, cookie, or filename with zero escaping. There is nothing to percent-encode and nothing to break. For a broader tour of the URL-safe variant, see <a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a>.</p>
+
+      <h2>When should I use Base64URL?</h2>
+      <p>Reach for Base64URL whenever the encoded string will land somewhere that a URL, path, or token parser can see. The clearest examples:</p>
+      <ul>
+        <li><strong>JWTs:</strong> All three segments — header, payload, and signature — are Base64URL with no padding. This is mandated by the spec, not a convention. See <a href="/articles/base64-jwt">Base64 in JWT</a>.</li>
+        <li><strong>Tokens in URLs and query parameters:</strong> Password-reset links, OAuth <code>state</code> and PKCE values, unsubscribe tokens, share links.</li>
+        <li><strong>Filenames and object keys:</strong> Anywhere <code>/</code> would be read as a directory separator — S3 keys, content-addressed filenames.</li>
+        <li><strong>Cache keys and cookies:</strong> Values that must avoid reserved punctuation.</li>
+      </ul>
+      <p>Stick with <strong>standard Base64</strong> when the target is <em>not</em> a URL: MIME and email attachments (RFC 2045), <a href="/articles/base64-data-uri">data URIs</a> in CSS and HTML, PEM certificates, HTTP Basic Auth headers, and JSON binary fields where readability and tooling expect <code>+</code> and <code>/</code>. If you are unsure, ask one question: does this string ever travel through a URL or a filesystem path? If yes, use Base64URL; if no, standard Base64 is the safer default.</p>
+
+      <h2>Do I need the padding?</h2>
+      <p>Almost never in URL-safe contexts. Padding (<code>=</code>) exists so that the output length is always a multiple of 4, but that information is fully derivable from the string itself — the remainder of the length modulo 4 tells a decoder how many padding characters were dropped. Because it is redundant, RFC 4648 §5 explicitly allows omitting it in URL-safe settings, and the <strong>JWT specification mandates no padding at all</strong>.</p>
+      <pre>Bytes  Base64 (padded)   Base64URL (unpadded)
+─────────────────────────────────────────────
+1      "TQ=="            "TQ"
+2      "TWE="            "TWE"
+3      "TWFu"            "TWFu"   (no padding needed)</pre>
+      <p>The one thing to remember: many <em>standard</em> decoders insist on a length that is a multiple of 4 and will reject an unpadded string. So when decoding Base64URL, you re-add <code>=</code> until the length is a multiple of 4, then decode. The base64.dev decoder does this re-padding automatically, so you can paste an unpadded JWT segment and it just works. For the full story on why padding is optional and how it is computed, see <a href="/articles/base64-padding">Base64 padding</a>.</p>
+
+      <h2>How do I convert between Base64 and Base64URL?</h2>
+      <p>Converting is a <strong>character swap, not a re-encode</strong>. You never decode and re-encode the bytes — you only translate the two differing characters and adjust padding. In JavaScript:</p>
+      <pre><code>// standard -> url-safe
+const urlSafe = std.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+// url-safe -> standard (re-pad)
+let s = url.replace(/-/g, '+').replace(/_/g, '/');
+while (s.length % 4) s += '=';</code></pre>
+      <p>Most languages ship the variant natively, so you rarely need the manual swap:</p>
+      <ul>
+        <li><strong>Python:</strong> <code>base64.urlsafe_b64encode()</code> / <code>urlsafe_b64decode()</code></li>
+        <li><strong>Node.js:</strong> <code>Buffer.from(str, 'base64url')</code> and <code>buf.toString('base64url')</code></li>
+        <li><strong>Go:</strong> <code>base64.RawURLEncoding</code> (unpadded) or <code>base64.URLEncoding</code> (padded)</li>
+        <li><strong>Java:</strong> <code>Base64.getUrlEncoder()</code> / <code>getUrlDecoder()</code></li>
+      </ul>
+      <p>Or skip the code entirely: the live tool at <a href="/base64url">base64.dev/base64url</a> encodes and decodes Base64URL in your browser, and re-pads unpadded input for you.</p>
+
+      <h2>Frequently Asked Questions</h2>
+      <h3>What's the difference between Base64 and Base64URL?</h3>
+      <p>Base64URL is a URL-safe variant of standard Base64. It replaces <code>+</code> with <code>-</code> and <code>/</code> with <code>_</code>, and usually drops the <code>=</code> padding, so the output is safe in URLs, filenames, and JWTs. Standard Base64 (RFC 4648 §4) targets MIME, email, and data URIs; Base64URL is RFC 4648 §5. Both encode the same underlying bytes.</p>
+      <h3>Is Base64URL the same data as Base64?</h3>
+      <p>Yes. They encode the exact same bytes — only two alphabet characters differ, plus optional padding. Convert the characters back and decode, and you get identical binary data. It is a display-level substitution, not a different encoding of the content.</p>
+      <h3>Why do JWTs use Base64URL?</h3>
+      <p>JWTs travel in URLs, HTTP headers, and cookies, where <code>+</code>, <code>/</code>, and <code>=</code> are unsafe or reserved. Base64URL avoids them, so a token needs no percent-encoding. The JWT spec (RFC 7519) requires Base64URL with no padding for the header, payload, and signature.</p>
+      <h3>Does Base64URL have padding?</h3>
+      <p>Usually not. RFC 4648 §5 permits it, but URL-safe contexts typically omit the trailing <code>=</code>, and JWT forbids it. Padding is redundant because it is derivable from the string length, so decoders re-add <code>=</code> until the length is a multiple of 4 before decoding.</p>
+      <h3>How do I convert Base64URL back to standard Base64?</h3>
+      <p>Replace <code>-</code> with <code>+</code> and <code>_</code> with <code>/</code>, then re-pad with <code>=</code> until the length is a multiple of 4. No re-encoding of the bytes is needed. In JavaScript: <code>s = url.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';</code> then <code>atob(s)</code>.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64 (RFC 4648)</a></li>
+    <li><a href="/base64url">Base64URL Encoder / Decoder</a></li>
+    <li><a href="/articles/base64-jwt">Base64 in JWT</a></li>
+    <li><a href="/articles/base64-padding">Base64 Padding Explained</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Encode or decode Base64URL instantly</h3>
+        <p>Paste any text or token into base64.dev/base64url to encode or decode URL-safe Base64 — no sign-up, runs in your browser.</p>
+        <a href="/base64url" class="cta-btn">Open Base64URL tool →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
