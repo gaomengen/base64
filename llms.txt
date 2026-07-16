@@ -27,6 +27,8 @@
 - [Base64 to CSV](https://base64.dev/base64-to-csv): Decode Base64 to CSV text with a live table preview and download.
 - [Base64 to Blob](https://base64.dev/base64-to-blob): Convert Base64 to a JavaScript Blob and download it — includes the canonical base64ToBlob() code.
 - [Data URI Generator](https://base64.dev/data-uri-generator): Turn text (with a MIME type) or any dropped file into a data: URI for inlining in HTML/CSS.
+- [Base64 to QR Code](https://base64.dev/base64-to-qr): Generate a scannable QR code from any text or Base64 string; download as SVG or PNG. Runs locally.
+- [Base64 to Excel](https://base64.dev/base64-to-excel): Decode a Base64 string into a downloadable .xlsx file, or encode a spreadsheet to Base64. Includes the Excel VBA snippet.
 
 ## Calculators & utilities
 
@@ -42,6 +44,9 @@
 - [HTML Entity Decoder](https://base64.dev/html-entity-decode): Decode HTML entities (named and numeric) to text, or encode text into entities. Decoding is done in a detached element, nothing renders.
 - [URL Decode](https://base64.dev/url-decode): Percent-decode a URL-encoded string, with an optional "+ as space" mode.
 - [URL Encode](https://base64.dev/url-encode): Percent-encode text with encodeURIComponent (component) or encodeURI (full URI).
+- [Kubernetes Secret Decoder](https://base64.dev/kubernetes-secret-decoder): Paste a Kubernetes Secret YAML and decode every base64 value under data: to plaintext, or encode a value for a manifest. Base64 in a Secret is encoding, not encryption. Runs locally.
+- [Base64 Gzip Decode](https://base64.dev/base64-gzip-decode): Decode Base64 and gunzip/inflate it in one step (auto-detects gzip/deflate), or compress+encode. For SAML, compressed API payloads, and log blobs.
+- [Base64 Certificate Decoder](https://base64.dev/base64-certificate-decoder): Decode and convert PEM / DER / raw-Base64 X.509 certificates, fix line wrapping, download DER. Full field decoding via the shown openssl command.
 
 ## Encode & decode by language (live tool + code)
 
