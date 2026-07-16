@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini API: Send a Base64 Image (inline_data) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Send an image to the Google Gemini API as raw Base64 inside an inline_data part with a mime_type and data. Drop an image to get the exact part, plus copy-paste Python and JavaScript. Encoded locally — never uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/gemini-api-base64-image">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/gemini-api-base64-image">
+<meta property="og:title" content="Gemini API: Send a Base64 Image (inline_data)">
+<meta property="og:description" content="Send an image to Gemini as raw Base64 in an inline_data part. Drop an image for the exact part, plus Python and JavaScript. Encoded locally — never uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gemini API: Send a Base64 Image (inline_data)">
+<meta name="twitter:description" content="Send an image to Gemini as raw Base64 in an inline_data part. Drop an image for the exact part, plus Python and JavaScript.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gemini API Base64 Image Encoder",
+  "url": "https://base64.dev/gemini-api-base64-image",
+  "description": "Encode an image to raw Base64 and build a ready-to-paste Gemini inline_data part with the correct mime_type and data, entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to send a Base64 image to the Gemini API",
+  "description": "Encode an image to raw Base64 and place it in an inline_data part for Gemini's generateContent API.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Encode the image", "text": "Drop an image onto the tool. It reads the file locally and outputs the raw Base64 (no data: prefix) along with the correct mime_type." },
+    { "@type": "HowToStep", "position": 2, "name": "Build the inline_data part", "text": "Place the Base64 in an inline_data part with its mime_type and data fields, inside the parts array of your generateContent request." },
+    { "@type": "HowToStep", "position": 3, "name": "Send with a prompt", "text": "Add a text part with your question and call generateContent on a vision-capable model such as gemini-2.5-flash." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I send a Base64 image to Gemini?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Encode the image to raw Base64 (no data: prefix) and put it in an inline_data part alongside a mime_type, inside the parts array of a generateContent request: { \"inline_data\": { \"mime_type\": \"image/png\", \"data\": \"<BASE64>\" } }. Add a text part with your prompt, then call generateContent on a vision-capable model like gemini-2.5-flash." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I include the data: prefix for Gemini?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The data field takes the raw Base64 payload only. Do not include a data:image/png;base64, prefix — that prefix belongs in HTML/CSS data URIs, not in Gemini's inline_data.data. Including it will corrupt the image." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the difference between inline_data and inlineData?",
+      "acceptedAnswer": { "@type": "Answer", "text": "They are the same field in different casings. The REST API and its JSON body use snake_case: inline_data and mime_type. The official JavaScript SDK (@google/genai) uses camelCase: inlineData and mimeType. The Python SDK typically wraps this with types.Part.from_bytes, so you rarely write either name directly." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the max inline image size?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The total generateContent request sent inline must stay under 20MB, including the Base64-encoded image (which is about 33% larger than the original file) and any other parts. For anything larger, upload the image with the Files API and reference it instead of inlining it." }
+    },
+    {
+      "@type": "Question",
+      "name": "What image formats does Gemini support?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Gemini's vision models accept common formats including PNG (image/png), JPEG (image/jpeg), WebP (image/webp), HEIC (image/heic), and HEIF (image/heif). Set mime_type to match the actual file — this tool detects it from the image you drop in." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Gemini API Base64 Image", "item": "https://base64.dev/gemini-api-base64-image" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Gemini API Base64 Image</span>
+    </div>
+
+    <h1>Gemini API — Base64 Image Input</h1>
+    <p class="lead">Gemini's <code>generateContent</code> API takes images as <strong>raw Base64</strong> (no <code>data:</code> prefix) inside an <code>inline_data</code> part with a <code>mime_type</code> and <code>data</code>. Drop an image below to get the exact part, plus copy-paste Python and JavaScript. Encoded locally — your image is never uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+        <div class="dropzone-text">Drop an image here or click to browse</div>
+        <div class="dropzone-hint">PNG · JPG · WebP · HEIC · HEIF</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the image being encoded">
+        <div class="preview-info">
+          <span id="previewName">—</span>
+          <span id="previewSize">—</span>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> RAW BASE64</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyB64Btn">Copy</button>
+          </div>
+        </div>
+        <label for="b64out" class="sr-only">Raw Base64 output</label>
+        <textarea id="b64out" readonly placeholder="The raw Base64 (no data: prefix) appears here after you add an image..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> GEMINI inline_data PART</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyPartBtn">Copy</button>
+          </div>
+        </div>
+        <label for="partout" class="sr-only">Gemini inline_data part</label>
+        <textarea id="partout" readonly placeholder="A ready-to-paste inline_data part appears here..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an image</span></div>
+    </div>
+
+    <h2>How to send a Base64 image to Gemini</h2>
+    <p>Drop an image above (or click to browse). The tool reads it locally, Base64-encodes the bytes, and detects the <code>mime_type</code>. Copy the <strong>raw Base64</strong> on its own, or the ready-made <strong><code>inline_data</code> part</strong> to drop straight into a request. In the <code>generateContent</code> REST body, the image goes in an <code>inline_data</code> part next to a <code>text</code> part with your prompt:</p>
+<pre><code>{
+  "contents": [{ "parts": [
+    { "inline_data": { "mime_type": "image/png", "data": "&lt;BASE64&gt;" } },
+    { "text": "What's in this image?" }
+  ]}]
+}</code></pre>
+    <p>In Python, the <code>google-genai</code> SDK wraps this for you with <code>types.Part.from_bytes</code> — pass the raw bytes and a <code>mime_type</code> and it builds the inline part:</p>
+<pre><code>from google import genai
+from google.genai import types
+
+client = genai.Client()
+image_bytes = open("image.png", "rb").read()
+resp = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=[
+        types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+        "What's in this image?",
+    ],
+)
+print(resp.text)</code></pre>
+    <p>In JavaScript, the <code>@google/genai</code> SDK takes the Base64 string directly in an <code>inlineData</code> object:</p>
+<pre><code>import { GoogleGenAI } from "@google/genai";
+import { readFileSync } from "fs";
+
+const ai = new GoogleGenAI({});
+const data = readFileSync("image.png").toString("base64");
+const resp = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: [
+    { inlineData: { mimeType: "image/png", data } },
+    { text: "What's in this image?" },
+  ],
+});
+console.log(resp.text);</code></pre>
+    <div class="tip"><p><strong>Model id:</strong> the examples use <code>gemini-2.5-flash</code>. Swap in whichever current Gemini vision model you're targeting — the request shape is the same.</p></div>
+
+    <h2>inline_data vs inlineData</h2>
+    <p>This trips people up constantly: the field has two casings depending on where you write it. The <strong>REST API and raw JSON body use snake_case</strong> — <code>inline_data</code> and <code>mime_type</code>. The <strong>JavaScript SDK (<code>@google/genai</code>) uses camelCase</strong> — <code>inlineData</code> and <code>mimeType</code>. They mean exactly the same thing; only the casing differs. The Python SDK sidesteps the question entirely by building the part for you with <code>types.Part.from_bytes(data=..., mime_type=...)</code>, so you rarely type either name directly. If Gemini rejects your image, check that your casing matches the surface you're calling.</p>
+
+    <h2>Size limits: 20MB and the Files API</h2>
+    <p>Inlining works only for smaller images. The <strong>total inline <code>generateContent</code> request must be under 20MB</strong> — and that budget counts the Base64 text, which is roughly <strong>33% larger</strong> than the original file, plus any other parts. A ~15MB photo will blow past the limit once encoded. For anything approaching that size, upload the image with the <strong>Files API</strong> first and reference the returned file in your request instead of embedding the Base64. Inline is simplest for screenshots, icons, and typical web images; the Files API is the path for large or reused assets.</p>
+
+    <h2>Common errors</h2>
+    <ul>
+      <li><strong>Wrong <code>mime_type</code>:</strong> the declared type must match the actual bytes. Sending a JPEG as <code>image/png</code> can cause a decode error or a bad result. This tool sets it from the file you drop in.</li>
+      <li><strong>Including a <code>data:</code> prefix in <code>data</code>:</strong> the <code>data</code> field is <strong>raw Base64 only</strong>. Leaving a <code>data:image/png;base64,</code> prefix on the string corrupts the image — strip it (the Raw Base64 box above already has none).</li>
+      <li><strong>Exceeding 20MB inline:</strong> a large image plus its ~33% Base64 overhead can push the request over the inline ceiling. Use the Files API instead.</li>
+      <li><strong>Casing mismatch:</strong> using <code>inline_data</code>/<code>mime_type</code> with the JS SDK (which wants <code>inlineData</code>/<code>mimeType</code>), or vice versa. Match the surface you're on.</li>
+    </ul>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The encoding runs entirely client-side in JavaScript — your image is read into memory in the browser and Base64-encoded locally. It is <strong>never sent to a server</strong> from this page (you send it to Gemini yourself, from your own code). You can confirm in DevTools → Network: adding an image here fires no upload request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I send a Base64 image to Gemini?</h3>
+    <p>Encode the image to raw Base64 (no <code>data:</code> prefix) and put it in an <code>inline_data</code> part with a <code>mime_type</code>, inside the <code>parts</code> array of a <code>generateContent</code> request. Add a <code>text</code> part with your prompt, then call <code>generateContent</code> on a vision model like <code>gemini-2.5-flash</code>. The tool above gives you both the raw Base64 and a ready-to-paste part.</p>
+    <h3>Do I include the data: prefix for Gemini?</h3>
+    <p>No. The <code>data</code> field takes the <strong>raw Base64 payload only</strong>. Do not include a <code>data:image/png;base64,</code> prefix — that belongs in HTML/CSS data URIs, not in Gemini's <code>inline_data.data</code>. Including it corrupts the image.</p>
+    <h3>What's the difference between inline_data and inlineData?</h3>
+    <p>Same field, different casing. REST and the raw JSON body use snake_case (<code>inline_data</code>, <code>mime_type</code>); the JavaScript SDK uses camelCase (<code>inlineData</code>, <code>mimeType</code>). The Python SDK usually builds the part for you via <code>types.Part.from_bytes</code>, so you write neither directly.</p>
+    <h3>What's the max inline image size?</h3>
+    <p>The total inline request must stay under <strong>20MB</strong>, including the Base64 image (about 33% larger than the file). Above that, upload the image with the <strong>Files API</strong> and reference it instead of inlining.</p>
+    <h3>What image formats does Gemini support?</h3>
+    <p>Common vision formats including PNG (<code>image/png</code>), JPEG (<code>image/jpeg</code>), WebP (<code>image/webp</code>), HEIC (<code>image/heic</code>), and HEIF (<code>image/heif</code>). Set <code>mime_type</code> to match the actual file — this tool detects it for you.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64-for-ai-vision">Base64 Images for AI Vision</a></li>
+        <li><a href="/claude-api-base64-image">Claude API Base64 Image</a></li>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+        <li><a href="/articles/base64-image-encoding">Image Encoding Guide</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('fileInput');
+  var b64out = $('b64out'), partout = $('partout');
+  var preview = $('preview'), previewImg = $('previewImg'), previewName = $('previewName'), previewSize = $('previewSize');
+  var status = $('status'), copyB64Btn = $('copyB64Btn'), copyPartBtn = $('copyPartBtn');
+
+  function buildPart(mime, b64) {
+    return '{ "inline_data": { "mime_type": "' + mime + '", "data": "' + b64 + '" } }';
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { B64.setStatus(status, 'err', 'That file is not an image.'); return; }
+    var r = new FileReader();
+    r.onload = function (e) {
+      var bytes = new Uint8Array(e.target.result);
+      var b64 = B64.bytesToBase64(bytes);
+      var mime = file.type || 'image/png';
+      b64out.value = b64;
+      partout.value = buildPart(mime, b64);
+      previewImg.src = 'data:' + mime + ';base64,' + b64;
+      previewName.textContent = file.name;
+      previewSize.textContent = B64.fmtSize(file.size) + ' → ' + B64.fmtSize(b64.length) + ' Base64 · ' + mime;
+      preview.classList.add('visible');
+      B64.setStatus(status, 'ok', 'Encoded ' + file.name + ' · ' + mime);
+    };
+    r.onerror = function () { B64.setStatus(status, 'err', 'Could not read that file.'); };
+    r.readAsArrayBuffer(file);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+  document.body.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.body.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  B64.wireCopy(copyB64Btn, function () { return b64out.value; });
+  B64.wireCopy(copyPartBtn, function () { return partout.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

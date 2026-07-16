@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image to Base64 for AI Vision — GPT-4o, Claude &amp; Gemini — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Convert an image to Base64 and get ready-to-paste request payloads for OpenAI GPT-4o, Anthropic Claude, and Google Gemini vision APIs. Runs locally — your image never leaves the browser.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/image-to-base64-for-ai-vision">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/image-to-base64-for-ai-vision">
+<meta property="og:title" content="Image to Base64 for AI Vision APIs">
+<meta property="og:description" content="Drop an image to get its Base64 data URL plus ready-to-paste payloads for GPT-4o, Claude, and Gemini. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Image to Base64 for AI Vision APIs">
+<meta name="twitter:description" content="Drop an image to get its Base64 data URL plus ready-to-paste payloads for GPT-4o, Claude, and Gemini. Runs locally.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Image to Base64 for AI Vision APIs",
+  "url": "https://base64.dev/image-to-base64-for-ai-vision",
+  "description": "Convert an image to Base64 and generate ready-to-paste request payloads for OpenAI GPT-4o, Anthropic Claude, and Google Gemini vision APIs. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to convert an image to Base64 for an AI vision API",
+  "description": "Turn an image into Base64 and drop it into the request payload for GPT-4o, Claude, or Gemini.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Drop your image", "text": "Drag an image onto the drop zone, or click to browse. The tool encodes it to Base64 locally in your browser." },
+    { "@type": "HowToStep", "position": 2, "name": "Copy the Base64 or data URL", "text": "Copy the raw Base64 for Claude and Gemini, or the full data URL for OpenAI's image_url field." },
+    { "@type": "HowToStep", "position": 3, "name": "Paste into the payload", "text": "Drop the value into the provider's request format — image_url.url for OpenAI, source.data for Claude, inline_data.data for Gemini." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I send an image to GPT-4o, Claude, or Gemini as Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Encode the image to Base64, then place it in the provider's request format. OpenAI GPT-4o takes a full data URL in content[].image_url.url. Anthropic Claude takes raw Base64 in content[].source.data with source.type set to base64 and a matching media_type. Google Gemini takes raw Base64 in parts[].inline_data.data with a matching mime_type. This tool gives you both the raw Base64 and the full data URL so you can paste whichever the provider expects." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I include the data: prefix?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For OpenAI, yes — the full data:image/...;base64,... URL goes into image_url.url. For Anthropic Claude and Google Gemini, no — use the raw Base64 only in the data field, and declare the format separately via media_type (Claude) or mime_type (Gemini). Sending a data: URL where raw Base64 is expected causes an invalid image error." }
+    },
+    {
+      "@type": "Question",
+      "name": "What image size is allowed for vision APIs?",
+      "acceptedAnswer": { "@type": "Answer", "text": "OpenAI and Anthropic accept roughly up to 5MB per image through the API and downscale large images internally. Google Gemini allows about 20MB of inline data per request, and above that you upload via the Files API and reference the file instead. Because Base64 is about 33% larger than the raw bytes, resize big images before encoding to stay under the limit." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do I get an 'invalid image' error?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Almost always a mismatched or wrong media type, or a stray data: prefix. The declared media_type / mime_type must match the actual image bytes — labeling a JPEG as image/png fails. For Claude and Gemini, make sure you pass raw Base64 in the data field, not a full data: URL. For OpenAI, make sure the data URL is complete and well-formed." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Base64 increase my token cost?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Image token cost is computed from the image's dimensions, not the length of the Base64 string, so encoding does not directly raise the token count. However, Base64 makes the raw HTTP request body about 33% larger, which can affect request size limits and upload time. Resizing an image lowers both its token cost and its payload size." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Image to Base64 for AI Vision", "item": "https://base64.dev/image-to-base64-for-ai-vision" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Image to Base64 for AI Vision</span>
+    </div>
+
+    <h1>Image to Base64 for AI Vision APIs</h1>
+    <p class="lead">Drop an image to get its Base64 <strong>data URL</strong>, plus ready-to-paste request payloads for <strong>OpenAI GPT-4o</strong>, <strong>Anthropic Claude</strong>, and <strong>Google Gemini</strong>. Every vision model takes images as Base64 — this gives you the exact format each one expects. Runs locally; your image never leaves the browser.</p>
+
+    <div class="tool-widget">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+        <div class="dropzone-text">Drop an image here or click to browse</div>
+        <div class="dropzone-hint">PNG · JPG · GIF · WebP · SVG</div>
+      </div>
+      <input type="file" id="file" accept="image/*" hidden>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the selected image">
+        <div class="preview-info">
+          <span id="info">—</span>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> RAW BASE64</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyB64">Copy</button>
+          </div>
+        </div>
+        <label for="b64out" class="sr-only">Raw Base64 output</label>
+        <textarea id="b64out" readonly aria-label="Raw Base64 output" placeholder="Raw Base64 appears here — use it for Claude and Gemini..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> DATA URL</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyUri">Copy</button>
+          </div>
+        </div>
+        <label for="uriout" class="sr-only">Data URL output</label>
+        <textarea id="uriout" readonly aria-label="Data URL output" placeholder="The full data:...;base64,... URL appears here — use it for OpenAI..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an image</span></div>
+    </div>
+
+    <h2>How to convert an image to Base64 for an AI vision API</h2>
+    <p>Drag any image onto the drop zone above (or click to browse). The tool reads it locally with the browser's <code>FileReader</code> API, encodes the bytes to <strong>Base64</strong>, and gives you two outputs: the <strong>raw Base64</strong> payload and the full <strong>data URL</strong> (<code>data:&lt;mime&gt;;base64,&lt;base64&gt;</code>). Which one you paste depends on the provider — OpenAI wants the full data URL, while Claude and Gemini want the raw Base64 with the media type declared separately. Copy the value you need and drop it into one of the payloads below.</p>
+
+    <h2>The payload format for each provider</h2>
+    <p>All three vision APIs accept Base64, but each wraps it differently. Copy a payload below — the <strong>Copy payload</strong> buttons substitute the actual Base64 from the output box above and set the media type to your image's detected MIME. The displayed snippets use a <code>{BASE64}</code> placeholder for readability.</p>
+
+    <div class="tool-panel">
+      <div class="panel-header">
+        <span class="panel-label"><span class="dot"></span> OPENAI · GPT-4o · Chat Completions</span>
+        <div class="panel-actions">
+          <button class="small-btn" id="copyOpenai">Copy payload</button>
+        </div>
+      </div>
+<pre><code>{
+  "model": "gpt-4o",
+  "messages": [{ "role": "user", "content": [
+    { "type": "text", "text": "What's in this image?" },
+    { "type": "image_url", "image_url": { "url": "data:image/png;base64,{BASE64}" } }
+  ]}]
+}</code></pre>
+    </div>
+
+    <div class="tool-panel">
+      <div class="panel-header">
+        <span class="panel-label"><span class="dot"></span> ANTHROPIC · claude-opus-4-8 · Messages API</span>
+        <div class="panel-actions">
+          <button class="small-btn" id="copyClaude">Copy payload</button>
+        </div>
+      </div>
+<pre><code>{
+  "model": "claude-opus-4-8",
+  "max_tokens": 1024,
+  "messages": [{ "role": "user", "content": [
+    { "type": "image", "source": { "type": "base64", "media_type": "image/png", "data": "{BASE64}" } },
+    { "type": "text", "text": "What's in this image?" }
+  ]}]
+}</code></pre>
+    </div>
+
+    <div class="tool-panel">
+      <div class="panel-header">
+        <span class="panel-label"><span class="dot"></span> GOOGLE · gemini-2.5-flash · generateContent</span>
+        <div class="panel-actions">
+          <button class="small-btn" id="copyGemini">Copy payload</button>
+        </div>
+      </div>
+<pre><code>{
+  "contents": [{ "parts": [
+    { "inline_data": { "mime_type": "image/png", "data": "{BASE64}" } },
+    { "text": "What's in this image?" }
+  ]}]
+}</code></pre>
+    </div>
+
+    <p>The one thing that differs is <strong>where the Base64 goes and how you declare its type</strong>: Claude uses <code>source.type: "base64"</code> plus a <code>media_type</code>; OpenAI wraps the full <code>data:</code> URL in <code>image_url.url</code>; Gemini uses <code>inline_data.mime_type</code> with raw Base64 in <code>data</code>. In every case the <code>media_type</code> / <code>mime_type</code> must match the actual image bytes.</p>
+
+    <h2>Image size and token limits</h2>
+    <p>Each provider caps how much image data a single request can carry:</p>
+    <ul>
+      <li><strong>OpenAI &amp; Anthropic Claude:</strong> roughly <strong>5&nbsp;MB per image</strong> through the API. Both downscale large images internally, so oversized uploads waste bandwidth without improving results.</li>
+      <li><strong>Google Gemini:</strong> about <strong>20&nbsp;MB of inline data</strong> per request. Above that, upload with the <strong>Files API</strong> and reference the returned file instead of inlining Base64.</li>
+      <li><strong>Cost:</strong> a larger Base64 string means a bigger request body — and since Base64 is ~33% larger than the raw bytes, resize big images before encoding. Image token cost is driven by dimensions, so downscaling lowers both payload size and token usage.</li>
+    </ul>
+
+    <h2>Common errors</h2>
+    <p><strong>"Invalid image."</strong> Usually the declared type is wrong or mislabeled (a JPEG sent as <code>image/png</code>), or you passed a full <code>data:</code> URL where <strong>raw Base64</strong> is expected. Claude and Gemini want raw Base64 in the <code>data</code> field with the type declared separately; only OpenAI takes the full data URL.</p>
+    <p><strong>"Payload too large."</strong> The encoded image exceeds the provider's per-request limit. Resize or recompress the image, or switch to a file/URL upload (Gemini's Files API, or OpenAI's remote-URL form of <code>image_url</code>) instead of inlining Base64.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The image is encoded entirely client-side in JavaScript — it is read into memory in the browser and converted to Base64 locally, and <strong>never uploaded</strong> to base64.dev or anywhere else. That matters when the image is confidential: you can generate the exact payload you'll send to a model provider without exposing the file to a third party first. Confirm it in DevTools → Network: adding an image fires no request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I send an image to GPT-4o / Claude / Gemini as Base64?</h3>
+    <p>Encode the image to Base64, then place it in the provider's request format. GPT-4o takes a full data URL in <code>content[].image_url.url</code>; Claude takes raw Base64 in <code>content[].source.data</code> with <code>source.type: "base64"</code> and a matching <code>media_type</code>; Gemini takes raw Base64 in <code>parts[].inline_data.data</code> with a matching <code>mime_type</code>. This tool gives you both the raw Base64 and the full data URL, so you can paste whichever the provider expects.</p>
+    <h3>Do I include the <code>data:</code> prefix?</h3>
+    <p>For OpenAI, yes — the full <code>data:image/...;base64,...</code> URL goes into <code>image_url.url</code>. For Claude and Gemini, no — use the <strong>raw Base64</strong> only in the <code>data</code> field and declare the format via <code>media_type</code> (Claude) or <code>mime_type</code> (Gemini). A stray <code>data:</code> prefix where raw Base64 is expected triggers an invalid image error.</p>
+    <h3>What image size is allowed?</h3>
+    <p>OpenAI and Anthropic accept roughly up to 5&nbsp;MB per image and downscale large ones internally. Gemini allows about 20&nbsp;MB of inline data per request, and above that you use the Files API. Because Base64 adds ~33% overhead, resize big images before encoding.</p>
+    <h3>Why do I get an "invalid image" error?</h3>
+    <p>Almost always a mismatched or wrong MIME type, or a stray <code>data:</code> prefix. The declared <code>media_type</code> / <code>mime_type</code> must match the actual image bytes, and Claude/Gemini need raw Base64 in <code>data</code> — not a full data URL.</p>
+    <h3>Does Base64 increase my token cost?</h3>
+    <p>Image tokens are computed from the image's dimensions, not the length of the Base64 string, so encoding doesn't directly raise the token count. It does make the raw request body ~33% larger, which affects size limits and upload time. Resizing lowers both token cost and payload size.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+        <li><a href="/claude-api-base64-image">Claude API Base64 Image</a></li>
+        <li><a href="/gemini-api-base64-image">Gemini API Base64 Image</a></li>
+        <li><a href="/articles/base64-image-encoding">Image Encoding Guide</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need text, files, or URL-safe Base64?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('file');
+  var b64out = $('b64out'), uriout = $('uriout');
+  var preview = $('preview'), previewImg = $('previewImg'), info = $('info'), status = $('status');
+  var b64 = '', mime = '', dataURI = '';
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { B64.setStatus(status, 'err', 'That file is not an image.'); return; }
+    var r = new FileReader();
+    r.onload = function (e) {
+      var bytes = new Uint8Array(e.target.result);
+      b64 = B64.bytesToBase64(bytes);
+      mime = file.type || 'image/png';
+      dataURI = 'data:' + mime + ';base64,' + b64;
+      b64out.value = b64;
+      uriout.value = dataURI;
+      previewImg.src = dataURI;
+      preview.classList.add('visible');
+      info.textContent = B64.fmtSize(file.size) + ' · ' + B64.fmtSize(b64.length) + ' Base64 · ' + mime;
+      B64.setStatus(status, 'ok', 'Encoded ' + file.name);
+    };
+    r.onerror = function () { B64.setStatus(status, 'err', 'Could not read that file.'); };
+    r.readAsArrayBuffer(file);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+  document.body.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.body.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  B64.wireCopy($('copyB64'), function () { return b64out.value; });
+  B64.wireCopy($('copyUri'), function () { return uriout.value; });
+
+  function m() { return mime || 'image/png'; }
+  function payloadOpenai() {
+    return '{\n' +
+      '  "model": "gpt-4o",\n' +
+      '  "messages": [{ "role": "user", "content": [\n' +
+      '    { "type": "text", "text": "What\'s in this image?" },\n' +
+      '    { "type": "image_url", "image_url": { "url": "' + (dataURI || 'data:' + m() + ';base64,{BASE64}') + '" } }\n' +
+      '  ]}]\n' +
+      '}';
+  }
+  function payloadClaude() {
+    return '{\n' +
+      '  "model": "claude-opus-4-8",\n' +
+      '  "max_tokens": 1024,\n' +
+      '  "messages": [{ "role": "user", "content": [\n' +
+      '    { "type": "image", "source": { "type": "base64", "media_type": "' + m() + '", "data": "' + (b64 || '{BASE64}') + '" } },\n' +
+      '    { "type": "text", "text": "What\'s in this image?" }\n' +
+      '  ]}]\n' +
+      '}';
+  }
+  function payloadGemini() {
+    return '{\n' +
+      '  "contents": [{ "parts": [\n' +
+      '    { "inline_data": { "mime_type": "' + m() + '", "data": "' + (b64 || '{BASE64}') + '" } },\n' +
+      '    { "text": "What\'s in this image?" }\n' +
+      '  ]}]\n' +
+      '}';
+  }
+  B64.wireCopy($('copyOpenai'), payloadOpenai);
+  B64.wireCopy($('copyClaude'), payloadClaude);
+  B64.wireCopy($('copyGemini'), payloadGemini);
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
