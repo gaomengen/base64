@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 to QR Code — Generate a Scannable QR Online — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Turn any text or Base64 string into a scannable QR code in your browser. Pick an error-correction level and download as SVG or PNG. Runs locally — nothing uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-to-qr">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-to-qr">
+<meta property="og:title" content="Base64 to QR Code">
+<meta property="og:description" content="Generate a scannable QR code from text or Base64. Download as SVG or PNG. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 to QR Code">
+<meta name="twitter:description" content="Generate a scannable QR code from text or Base64. Download as SVG or PNG. Runs locally — nothing uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 to QR Code",
+  "url": "https://base64.dev/base64-to-qr",
+  "description": "Generate a scannable QR code from any text or Base64 string, choose an error-correction level, and download the result as SVG or PNG. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to make a QR code from Base64 or text",
+  "description": "Turn any text or Base64 string into a scannable QR code and download it.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Paste your data", "text": "Paste any text or a Base64 string into the input box. The QR code encodes it exactly as typed." },
+    { "@type": "HowToStep", "position": 2, "name": "Choose error correction", "text": "Pick an error-correction level (L, M, Q, or H). Higher levels survive more damage but hold less data. Optionally toggle Decode Base64 first to encode the decoded text instead." },
+    { "@type": "HowToStep", "position": 3, "name": "Download the QR", "text": "The scannable QR code renders instantly. Click Download SVG for print-ready vector output, or Download PNG for a raster image." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I generate a QR code from a Base64 string?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste your Base64 (or any text) into the generator on this page. By default the QR code carries the string exactly as typed. Choose an error-correction level, and the scannable QR renders instantly — download it as SVG or PNG. To encode the decoded contents instead of the Base64 text, toggle Decode Base64 first." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why won't my Base64 fit in a QR code?",
+      "acceptedAnswer": { "@type": "Answer", "text": "QR codes have a hard capacity limit. The largest version (40) holds roughly 2,953 bytes at error-correction level L, and far less at higher levels — about 1,273 bytes at level H. Base64 is about 33% larger than the raw data it represents, so a long Base64 string easily exceeds the limit. Shorten the input, or lower the error-correction level to L to squeeze in more." }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I use SVG or PNG?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use SVG when you need the QR to scale cleanly — it is vector, so it stays crisp at any size, which is ideal for print, large signage, or embedding in other vector artwork. Use PNG when you need a plain raster image for a website, chat, or app that does not accept SVG." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data sent to a server?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The QR code is generated entirely in your browser with JavaScript using a vendored, offline library. Your text or Base64 never leaves the page — you can confirm in DevTools → Network that generating a code fires no request." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 to QR Code", "item": "https://base64.dev/base64-to-qr" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 to QR Code</span>
+    </div>
+
+    <h1>Base64 to QR Code</h1>
+    <p class="lead">Turn any text or <strong>Base64</strong> string into a scannable <strong>QR code</strong>, right in your browser. Paste your data, pick an error-correction level, and download the QR as SVG or PNG. Nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> TEXT / BASE64</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Text or Base64 input</label>
+        <textarea id="input" aria-label="Text or Base64 input" placeholder="Paste text or Base64 to turn into a QR code..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-actions">
+        <label for="ecl" class="sr-only">Error-correction level</label>
+        <select id="ecl" class="small-btn" aria-label="Error-correction level">
+          <option value="L">Error correction: L (7%)</option>
+          <option value="M" selected>Error correction: M (15%)</option>
+          <option value="Q">Error correction: Q (25%)</option>
+          <option value="H">Error correction: H (30%)</option>
+        </select>
+        <button class="small-btn" id="decodeBtn">Decode Base64 first</button>
+      </div>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Generated QR code">
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> QR CODE</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="dlSvg">Download SVG</button>
+            <button class="small-btn" id="dlPng">Download PNG</button>
+          </div>
+        </div>
+        <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+      </div>
+    </div>
+
+    <h2>How to make a QR code from Base64 or text</h2>
+    <p>Paste any <strong>text</strong> or <strong>Base64</strong> string into the input above. The tool encodes it into a scannable <strong>QR code</strong> locally and renders it instantly. By default the QR carries your input <em>exactly as typed</em> — so a Base64 string is stored as that literal Base64 text. Flip on <strong>Decode Base64 first</strong> to Base64-decode the input and encode the resulting plain text into the QR instead. Pick an <strong>error-correction level</strong>, then click <strong>Download SVG</strong> or <strong>Download PNG</strong> to save it.</p>
+
+    <h2>What can a QR code hold?</h2>
+    <p>A QR code's capacity depends on two things: its <strong>version</strong> (size, from 1 up to 40, where 40 is a 177×177 grid) and its <strong>error-correction level</strong>. This tool auto-selects the smallest version that fits your data. Rough maximum <strong>byte</strong> capacity at version 40:</p>
+    <ul>
+      <li><strong>Level L</strong> (recovers ~7% damage) — up to ~2,953 bytes</li>
+      <li><strong>Level M</strong> (~15%) — up to ~2,331 bytes</li>
+      <li><strong>Level Q</strong> (~25%) — up to ~1,663 bytes</li>
+      <li><strong>Level H</strong> (~30%) — up to ~1,273 bytes</li>
+    </ul>
+    <p>Because <strong>Base64 inflates data by about 33%</strong>, a long Base64 string reaches these limits quickly — encoding a whole image as Base64 will almost always overflow a QR code. If you see a capacity error, shorten the input or drop to level <strong>L</strong> to fit more. For a scannable code that survives smudges and reprints, level M or Q is a good default.</p>
+
+    <h2>SVG vs PNG</h2>
+    <p>Both downloads encode the same QR code; they differ in format. <strong>SVG</strong> is vector, so it scales cleanly to any size without pixelation — the right choice for print, posters, signage, or embedding in other vector artwork. <strong>PNG</strong> is a raster image at a fixed resolution, which is handy when you need a plain image for a website, a chat message, or an app that does not accept SVG. When in doubt, grab the SVG: it stays crisp everywhere.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The QR code is built entirely in your browser using a small, MIT-licensed library vendored on this site — no network calls, no uploads. Your text or Base64 is encoded and drawn locally, and <strong>nothing is sent to any server</strong>. You can confirm in DevTools → Network: generating a QR fires no request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I generate a QR code from a Base64 string?</h3>
+    <p>Paste your Base64 (or any text) into the input above. By default the QR code carries the string exactly as typed. Choose an error-correction level and the scannable QR renders instantly — then click <strong>Download SVG</strong> or <strong>Download PNG</strong>. To encode the <em>decoded</em> contents instead of the Base64 text, toggle <strong>Decode Base64 first</strong>.</p>
+    <h3>Why won't my Base64 fit in a QR code?</h3>
+    <p>QR codes have a hard capacity limit — the largest version holds roughly 2,953 bytes at level L, and only about 1,273 bytes at level H. Base64 is ~33% larger than the data it represents, so a long Base64 string easily exceeds the limit. Shorten the input, or lower the error-correction level to <strong>L</strong> to squeeze in more.</p>
+    <h3>Should I use SVG or PNG?</h3>
+    <p>Use <strong>SVG</strong> when the QR needs to scale cleanly — it is vector and stays crisp at any size, ideal for print and large signage. Use <strong>PNG</strong> when you need a plain raster image for a website, chat, or an app that does not accept SVG.</p>
+    <h3>Is my data sent to a server?</h3>
+    <p>No. The code is generated entirely in your browser with a vendored, offline library — your data never leaves the page. You can verify in DevTools → Network that generating a QR fires no request.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/base64-to-image">Base64 to Image</a></li>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+        <li><a href="/data-uri-generator">Data URI Generator</a></li>
+        <li><a href="/articles/base64-image-encoding">Base64 Image Encoding</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), status = $('status');
+  var ecl = $('ecl'), decodeBtn = $('decodeBtn');
+  var preview = $('preview'), previewImg = $('previewImg');
+  var dlSvg = $('dlSvg'), dlPng = $('dlPng'), clearBtn = $('clearBtn');
+  var decodeFirst = false;
+  var currentSvg = '', currentQr = null;
+
+  function hidePreview() {
+    preview.classList.remove('visible');
+    previewImg.removeAttribute('src');
+    currentSvg = '';
+    currentQr = null;
+  }
+
+  function run() {
+    var raw = input.value;
+    if (!raw.trim()) {
+      hidePreview();
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+    var text = raw;
+    if (decodeFirst) {
+      try {
+        text = B64.decodeText(raw);
+      } catch (e) {
+        hidePreview();
+        B64.setStatus(status, 'err', 'Input is not valid Base64 to decode. Turn off "Decode Base64 first" to encode it as-is.');
+        return;
+      }
+    }
+    try {
+      var qr = qrcode(0, ecl.value);
+      qr.addData(text);          // default 'Byte' mode, UTF-8 safe
+      qr.make();                 // typeNumber 0 → auto-pick smallest fitting version
+      currentQr = qr;
+      currentSvg = qr.createSvgTag({ cellSize: 8, margin: 4 });
+      previewImg.src = 'data:image/svg+xml;base64,' + B64.bytesToBase64(new TextEncoder().encode(currentSvg));
+      preview.classList.add('visible');
+      var count = qr.getModuleCount();
+      var version = (count - 17) / 4;
+      B64.setStatus(status, 'ok', 'QR generated · version ' + version + ' (' + count + '×' + count + ') · ECL ' + ecl.value);
+    } catch (e) {
+      hidePreview();
+      B64.setStatus(status, 'err', 'Too much data for one QR code — shorten the input, or lower the error-correction level to fit more.');
+    }
+  }
+
+  input.addEventListener('input', run);
+  ecl.addEventListener('change', run);
+
+  decodeBtn.addEventListener('click', function () {
+    decodeFirst = !decodeFirst;
+    decodeBtn.classList.toggle('copied', decodeFirst);
+    run();
+  });
+
+  dlSvg.addEventListener('click', function () {
+    if (!currentSvg) return;
+    B64.downloadBytes(new TextEncoder().encode(currentSvg), 'qr.svg', 'image/svg+xml');
+  });
+
+  dlPng.addEventListener('click', function () {
+    if (!currentQr) return;
+    var count = currentQr.getModuleCount();
+    var margin = 4, scale = 10;
+    var size = (count + margin * 2) * scale;
+    var canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#000000';
+    for (var r = 0; r < count; r++) {
+      for (var c = 0; c < count; c++) {
+        if (currentQr.isDark(r, c)) {
+          ctx.fillRect((c + margin) * scale, (r + margin) * scale, scale, scale);
+        }
+      }
+    }
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'qr.png';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }, 'image/png');
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    hidePreview();
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
