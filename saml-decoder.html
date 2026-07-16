@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAML Decoder — Decode SAMLResponse & SAMLRequest Online — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Paste a SAMLResponse or SAMLRequest and see the decoded, formatted XML instantly. URL-decodes, Base64-decodes, and inflates DEFLATE-compressed redirect payloads — entirely in your browser. Nothing is uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/saml-decoder">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/saml-decoder">
+<meta property="og:title" content="SAML Decoder — Decode SAMLResponse & SAMLRequest Online">
+<meta property="og:description" content="Paste a SAMLResponse or SAMLRequest and see the decoded, formatted XML instantly. Runs 100% in your browser — nothing is uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SAML Decoder — Decode SAMLResponse & SAMLRequest Online">
+<meta name="twitter:description" content="Paste a SAMLResponse or SAMLRequest and see the decoded, formatted XML instantly. Runs 100% in your browser — nothing is uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "SAML Decoder",
+  "url": "https://base64.dev/saml-decoder",
+  "description": "Decode a SAMLResponse or SAMLRequest to formatted XML. URL-decodes, Base64-decodes, and inflates DEFLATE-compressed redirect-binding payloads automatically, and extracts the Issuer, NameID, Conditions, Audience, and Attributes. Runs entirely in the browser — nothing is uploaded.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to decode a SAML response",
+  "description": "Turn a Base64 (optionally URL-encoded and DEFLATE-compressed) SAMLResponse or SAMLRequest into readable, formatted XML.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Copy the SAML value", "text": "Copy the raw SAMLResponse or SAMLRequest value — from a browser network trace, a form field, or a redirect URL query string." },
+    { "@type": "HowToStep", "position": 2, "name": "Paste it into the decoder", "text": "Paste it into the box. The tool URL-decodes, Base64-decodes, and — for the redirect binding — inflates the DEFLATE payload automatically, all in your browser." },
+    { "@type": "HowToStep", "position": 3, "name": "Read the XML and summary", "text": "The formatted XML appears with a summary of Issuer, NameID, Conditions validity, Audience, and Attributes. Nothing is uploaded." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I decode a SAML response?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste the raw SAMLResponse value into the decoder on this page. It URL-decodes, Base64-decodes, and (for the redirect binding) inflates the DEFLATE-compressed payload automatically, then shows the formatted XML and a summary of the Issuer, NameID, Conditions, Audience, and Attributes. Everything runs in your browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is my SAMLRequest not valid XML after Base64 decoding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because it's the HTTP-Redirect binding, where the message is DEFLATE-compressed before Base64 encoding (and URL-encoded in the query string). Base64-decoding alone leaves you with raw DEFLATE bytes, not XML — you also have to inflate them. This tool detects that case and inflates the raw DEFLATE stream automatically." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to decode a SAML assertion online?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Only if the tool is client-side. A SAML assertion is a credential — anyone who has it can often impersonate the user. This decoder runs 100% in your browser and uploads nothing, so it is safe. Never paste a production assertion into a server-side online decoder that sends the value to its backend." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this verify the SAML signature?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. This tool only decodes and formats the message so you can read it — it does not validate the XML digital signature, check the certificate, or confirm the conditions. Decoding is not the same as trusting: never treat a decoded assertion as authenticated. Signature verification must happen in your SAML library or service provider." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does AADSTS750056 mean?",
+      "acceptedAnswer": { "@type": "Answer", "text": "AADSTS750056 is the Microsoft Entra ID (Azure AD) error 'SAML message was not properly Base64 encoded.' It usually means the value was mangled in transit — most often a '+' character stripped or turned into a space by URL handling, or bad 76-character line wrapping. URL-decode the value (turning '+' back from spaces) and remove line breaks before Base64-decoding." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "SAML Decoder", "item": "https://base64.dev/saml-decoder" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+.security-callout{background:var(--red-dim,rgba(220,60,60,.08));border:1px solid var(--red);border-radius:var(--radius-lg);padding:14px 16px;margin:0 0 20px;font-size:14px;line-height:1.6}
+.security-callout strong{color:var(--red)}
+.saml-summary{padding:0}
+.saml-empty{font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary);padding:16px}
+.saml-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px}
+.saml-table th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);padding:10px 16px;border-bottom:1px solid var(--border)}
+.saml-table td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-all;white-space:pre-wrap}
+.saml-table tr:last-child td{border-bottom:none}
+.saml-table .k-cell{color:var(--accent);font-weight:600;white-space:nowrap}
+.saml-table .v-cell{color:var(--text-primary)}
+.saml-table .v-cell .tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:2px;vertical-align:middle}
+.saml-table .tag.ok{background:rgba(60,180,110,.14);color:var(--green,#3cb46e)}
+.saml-table .tag.warn{background:var(--red-dim,rgba(220,60,60,.12));color:var(--red)}
+.saml-table .tag.muted{background:rgba(140,140,140,.16);color:var(--text-tertiary)}
+.info-table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 4px}
+.info-table th,.info-table td{text-align:left;padding:8px 12px;border:1px solid var(--border);vertical-align:top}
+.info-table th{font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary)}
+.info-table code{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>SAML Decoder</span>
+    </div>
+
+    <h1>SAML Decoder</h1>
+    <p class="lead">Paste a <strong>SAMLResponse</strong> or <strong>SAMLRequest</strong> and see the decoded, formatted XML instantly. This tool URL-decodes, Base64-decodes, and (for the redirect binding) inflates the DEFLATE-compressed payload automatically — entirely in your browser. <strong>Nothing is uploaded.</strong></p>
+
+    <div class="security-callout">
+      <strong>Security note:</strong> SAML assertions are <strong>sensitive credentials</strong>. This decoder runs <strong>100% in your browser</strong> — nothing is sent to any server. <strong>Never paste production assertions into a server-side online decoder.</strong>
+    </div>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> SAMLRESPONSE / SAMLREQUEST</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">SAMLResponse or SAMLRequest value</label>
+        <textarea id="input" aria-label="SAMLResponse or SAMLRequest value" placeholder="Paste the raw SAMLResponse or SAMLRequest value here — it may be URL-encoded, Base64, and/or DEFLATE-compressed..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> SUMMARY</span>
+        </div>
+        <div id="summary" class="saml-summary" aria-live="polite"></div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> DECODED XML</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Decoded XML</label>
+        <textarea id="output" readonly aria-label="Decoded XML" placeholder="Formatted SAML XML appears here..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+
+    <h2>How to decode a SAML response</h2>
+    <p>A <strong>SAMLResponse</strong> is a Base64-encoded XML document — and, in the redirect binding, it's DEFLATE-compressed and URL-encoded on top of that. To read it you reverse those layers in order: <strong>URL-decode</strong>, <strong>Base64-decode</strong>, and (if needed) <strong>inflate</strong> the DEFLATE stream. This tool detects which layers are present and applies them automatically. Paste the raw value above and the formatted XML appears instantly, alongside a summary of the key fields. Everything runs locally — you can confirm in DevTools → Network that decoding fires no request.</p>
+
+    <h2>POST binding vs Redirect binding</h2>
+    <p>SAML sends messages two ways, and they wrap the XML differently. The <strong>HTTP-POST binding</strong> (used for most SAMLResponse assertions) is simply <strong>Base64(XML)</strong> — decode the Base64 and you have XML. The <strong>HTTP-Redirect binding</strong> (common for SAMLRequest, where the message rides in a URL query string) is <strong>Base64(DEFLATE(XML))</strong>, additionally URL-encoded. If you Base64-decode a redirect value and get binary garbage instead of <code>&lt;samlp:...&gt;</code>, that's the DEFLATE layer — you have to inflate it. This tool auto-detects both.</p>
+    <div style="overflow-x:auto">
+    <table class="info-table">
+      <thead><tr><th>Binding</th><th>Typical use</th><th>Encoding layers</th></tr></thead>
+      <tbody>
+        <tr><td><code>HTTP-POST</code></td><td>SAMLResponse (assertion) in a form <code>POST</code></td><td>Base64(XML)</td></tr>
+        <tr><td><code>HTTP-Redirect</code></td><td>SAMLRequest in a URL query string</td><td>URL-encode(Base64(<strong>DEFLATE</strong>(XML)))</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Note the redirect binding uses <strong>raw DEFLATE</strong> (RFC 1951, no zlib header), which is why a generic "inflate" that expects a zlib wrapper often fails on SAML. This tool tries <code>deflate-raw</code> first.</p>
+
+    <h2>Reading the assertion</h2>
+    <p>Once the XML is readable, a handful of fields tell you almost everything you need to debug an SSO handshake:</p>
+    <ul>
+      <li><strong>Issuer</strong> — the entity ID of the identity provider that produced the message. It must match what your service provider is configured to trust.</li>
+      <li><strong>NameID</strong> — the subject: who the assertion is about, plus its <code>Format</code> (email address, persistent, transient, etc.). This is the identity your app keys off.</li>
+      <li><strong>Conditions</strong> — the <code>NotBefore</code> / <code>NotOnOrAfter</code> validity window. A tiny window plus clock skew between IdP and SP is a classic "assertion expired" cause. This tool compares the window to your current time and flags <em>valid now</em>, <em>expired</em>, or <em>not yet valid</em>.</li>
+      <li><strong>Audience</strong> — the intended recipient (your SP's entity ID) inside <code>AudienceRestriction</code>. A mismatch here means the IdP built the assertion for a different application.</li>
+      <li><strong>Attributes</strong> — the claims (roles, groups, email, department…) the IdP asserts about the user. Missing or misnamed attributes are the usual reason authorization fails <em>after</em> a successful login.</li>
+    </ul>
+
+    <h2>Is this private? Is the signature verified?</h2>
+    <p><strong>Private: yes.</strong> The decode runs entirely in your browser with JavaScript — the value is URL-decoded, Base64-decoded, inflated, and parsed <strong>locally</strong>, and <strong>nothing is uploaded</strong>. That matters here because SAML assertions are credentials: anyone holding a valid, signed assertion can often impersonate the user, so pasting one into a server-side tool leaks it.</p>
+    <p><strong>Signature: no.</strong> This tool does <strong>not</strong> verify the XML digital signature. It shows whether a <code>&lt;Signature&gt;</code> / <code>&lt;X509Certificate&gt;</code> is <em>present</em>, but presence is not validity. <strong>Decoding is not trusting</strong> — never treat a decoded assertion as authenticated. Real signature and condition validation must happen in your SAML library or identity service.</p>
+
+    <h2>"SAML message not properly Base64 encoded" (AADSTS750056)</h2>
+    <p>This Microsoft Entra ID (Azure AD) error — and its equivalents on other IdPs — almost always means the value was <strong>mangled in transit</strong>, not that your SAML is wrong. The usual culprits: a <strong><code>+</code> stripped or turned into a space</strong> by a proxy or URL handler (Base64's <code>+</code> is a space in <code>application/x-www-form-urlencoded</code>), or <strong>76-character line wrapping</strong> that inserted newlines into the string. Fix it by URL-decoding the value (turning spaces back into <code>+</code>) and stripping line breaks before Base64-decoding. This tool does both automatically — it replaces spaces with <code>+</code> before URL-decoding and ignores whitespace when decoding.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I decode a SAML response?</h3>
+    <p>Paste the raw SAMLResponse value into the decoder above. It URL-decodes, Base64-decodes, and (for the redirect binding) inflates the DEFLATE payload automatically, then shows the formatted XML plus a summary of Issuer, NameID, Conditions, Audience, and Attributes — all locally in your browser.</p>
+    <h3>Why is my SAMLRequest not valid XML after Base64 decoding?</h3>
+    <p>Because it's the <strong>redirect binding</strong>, where the message is <strong>DEFLATE-compressed</strong> before Base64 encoding. Base64-decoding alone leaves you with raw DEFLATE bytes, not XML — you also have to inflate them. This tool detects that and inflates the raw DEFLATE stream for you.</p>
+    <h3>Is it safe to decode a SAML assertion online?</h3>
+    <p>Only if the tool is <strong>client-side</strong>, like this one — it runs 100% in your browser and uploads nothing. A SAML assertion is a credential, so <strong>never</strong> paste a production assertion into a server-side tool that sends the value to its backend.</p>
+    <h3>Does this verify the SAML signature?</h3>
+    <p>No — this tool only <strong>decodes and formats</strong> the message so you can read it. It flags whether a signature is present but does not validate it, the certificate, or the conditions. Decoding is not trusting; verify signatures in your SAML library.</p>
+    <h3>What does AADSTS750056 mean?</h3>
+    <p>It's the Entra ID error "SAML message was not properly Base64 encoded" — usually a <strong>stripped <code>+</code></strong> (turned into a space) or bad <strong>line wrapping</strong> that corrupted the value in transit. URL-decode the value and remove line breaks before decoding; this tool handles both automatically.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/jwt-decoder">JWT Decoder</a></li>
+        <li><a href="/base64-gzip-decode">Base64 Gzip Decode</a></li>
+        <li><a href="/base64-certificate-decoder">Base64 Certificate Decoder</a></li>
+        <li><a href="/base64url">Base64URL Encode / Decode</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), output = $('output'), summary = $('summary'), status = $('status');
+  var clearBtn = $('clearBtn'), copyBtn = $('copyBtn');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  // --- Inflate (SAML redirect binding = raw DEFLATE) ---
+  async function inflate(bytes) {
+    var fmts = ['deflate-raw', 'deflate', 'gzip'];
+    for (var i = 0; i < fmts.length; i++) {
+      try {
+        var ds = new DecompressionStream(fmts[i]);
+        var stream = new Blob([bytes]).stream().pipeThrough(ds);
+        var buf = await new Response(stream).arrayBuffer();
+        return new TextDecoder('utf-8', { fatal: false }).decode(buf);
+      } catch (e) {}
+    }
+    throw new Error('not deflate/gzip');
+  }
+
+  function looksXml(s) { return s && s.trimStart().charAt(0) === '<'; }
+
+  // --- Pretty-print XML ---
+  function formatXml(xml) {
+    // Try a real DOM parse first; fall back to a regex indenter if it fails.
+    try {
+      var doc = new DOMParser().parseFromString(xml, 'application/xml');
+      if (!doc.getElementsByTagName('parsererror').length && doc.documentElement) {
+        var out = serialize(doc.documentElement, 0);
+        return out.replace(/\n+$/, '');
+      }
+    } catch (e) {}
+    return indentRegex(xml);
+  }
+
+  function serialize(node, depth) {
+    var pad = '  '.repeat(depth);
+    var open = '<' + node.nodeName;
+    for (var i = 0; i < node.attributes.length; i++) {
+      var a = node.attributes[i];
+      open += ' ' + a.name + '="' + a.value.replace(/"/g, '&quot;') + '"';
+    }
+    // Gather element and non-empty text children.
+    var elemChildren = [], textParts = [];
+    for (var j = 0; j < node.childNodes.length; j++) {
+      var c = node.childNodes[j];
+      if (c.nodeType === 1) elemChildren.push(c);
+      else if (c.nodeType === 3 && c.nodeValue.trim()) textParts.push(c.nodeValue.trim());
+    }
+    if (!elemChildren.length && !textParts.length) return pad + open + '/>\n';
+    if (!elemChildren.length) {
+      // Text-only node on one line.
+      return pad + open + '>' + esc(textParts.join(' ')) + '</' + node.nodeName + '>\n';
+    }
+    var s = pad + open + '>\n';
+    for (var k = 0; k < elemChildren.length; k++) s += serialize(elemChildren[k], depth + 1);
+    s += pad + '</' + node.nodeName + '>\n';
+    return s;
+  }
+
+  // Fallback indenter for malformed-but-readable XML.
+  function indentRegex(xml) {
+    var withBreaks = xml.replace(/>\s*</g, '>\n<');
+    var lines = withBreaks.split('\n');
+    var depth = 0, out = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      if (/^<\//.test(line)) depth = Math.max(0, depth - 1);
+      out.push('  '.repeat(depth) + line);
+      if (/^<[^!?/]/.test(line) && !/\/>$/.test(line) && !/<\/[^>]+>$/.test(line)) depth++;
+    }
+    return out.join('\n');
+  }
+
+  // --- Summary extraction (prefix-agnostic via localName) ---
+  function els(root, local) {
+    return [].slice.call(root.getElementsByTagName('*')).filter(function (e) { return e.localName === local; });
+  }
+  function firstText(root, local) {
+    var m = els(root, local);
+    return m.length ? (m[0].textContent || '').trim() : '';
+  }
+
+  function buildSummary(xml) {
+    var doc;
+    try { doc = new DOMParser().parseFromString(xml, 'application/xml'); } catch (e) { return ''; }
+    if (doc.getElementsByTagName('parsererror').length || !doc.documentElement) return '';
+    var root = doc.documentElement;
+    var rows = [];
+
+    // Type
+    var localRoot = root.localName;
+    var typeLabel = localRoot === 'Response' ? 'Response'
+      : localRoot === 'AuthnRequest' ? 'AuthnRequest'
+      : localRoot === 'LogoutRequest' ? 'LogoutRequest'
+      : localRoot;
+    rows.push(['Type', esc(typeLabel)]);
+
+    // Issuer
+    var issuer = firstText(root, 'Issuer');
+    if (issuer) rows.push(['Issuer', esc(issuer)]);
+
+    // Destination
+    var dest = root.getAttribute('Destination');
+    if (dest) rows.push(['Destination', esc(dest)]);
+
+    // Status code (last path segment of StatusCode @Value)
+    var statusCodes = els(root, 'StatusCode');
+    if (statusCodes.length) {
+      var val = statusCodes[statusCodes.length - 1].getAttribute('Value') || '';
+      var seg = val.split(':').pop();
+      if (seg) {
+        var stag = seg === 'Success' ? ' <span class="tag ok">Success</span>' : ' <span class="tag warn">' + esc(seg) + '</span>';
+        rows.push(['Status', (seg === 'Success' ? '' : esc(val)) + stag]);
+      }
+    }
+
+    // NameID + Format
+    var nameIds = els(root, 'NameID');
+    if (nameIds.length) {
+      var nid = (nameIds[0].textContent || '').trim();
+      var fmt = nameIds[0].getAttribute('Format');
+      var nv = esc(nid);
+      if (fmt) nv += '\n<span class="tag muted">' + esc(fmt.split(':').pop()) + '</span>';
+      rows.push(['NameID', nv]);
+    }
+
+    // Conditions NotBefore / NotOnOrAfter + validity
+    var conds = els(root, 'Conditions');
+    if (conds.length) {
+      var nb = conds[0].getAttribute('NotBefore');
+      var noa = conds[0].getAttribute('NotOnOrAfter');
+      if (nb || noa) {
+        var now = new Date();
+        var verdict = '', tag = '';
+        var tNb = nb ? new Date(nb) : null, tNoa = noa ? new Date(noa) : null;
+        if (tNb && now < tNb) { verdict = 'not yet valid'; tag = 'warn'; }
+        else if (tNoa && now >= tNoa) { verdict = 'expired'; tag = 'warn'; }
+        else { verdict = 'valid now'; tag = 'ok'; }
+        var cv = '';
+        if (nb) cv += 'NotBefore: ' + esc(nb) + '\n';
+        if (noa) cv += 'NotOnOrAfter: ' + esc(noa) + '\n';
+        cv += '<span class="tag ' + tag + '">' + verdict + '</span>';
+        rows.push(['Conditions', cv]);
+      }
+    }
+
+    // Audience
+    var aud = firstText(root, 'Audience');
+    if (aud) rows.push(['Audience', esc(aud)]);
+
+    // Attributes
+    var attrs = els(root, 'Attribute');
+    if (attrs.length) {
+      var lines = [];
+      for (var i = 0; i < attrs.length; i++) {
+        var name = attrs[i].getAttribute('Name') || attrs[i].getAttribute('FriendlyName') || '(unnamed)';
+        var vals = els(attrs[i], 'AttributeValue').map(function (v) { return (v.textContent || '').trim(); }).filter(Boolean);
+        lines.push(esc(name) + ' = ' + esc(vals.join(', ')));
+      }
+      rows.push(['Attributes', lines.join('\n')]);
+    }
+
+    // Signature present?
+    var hasSig = els(root, 'Signature').length > 0 || els(root, 'X509Certificate').length > 0;
+    rows.push(['Signature', hasSig
+      ? 'signature present <span class="tag warn">NOT verified here</span>'
+      : 'no signature <span class="tag muted">unsigned</span>']);
+
+    var html = '<table class="saml-table"><tbody>';
+    for (var r = 0; r < rows.length; r++) {
+      html += '<tr><td class="k-cell">' + rows[r][0] + '</td><td class="v-cell">' + rows[r][1] + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+  }
+
+  // --- Main decode flow (async) ---
+  async function decode() {
+    var v = input.value.trim();
+    if (!v) {
+      output.value = '';
+      summary.innerHTML = '';
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+
+    // 1. URL-decode if it looks URL-encoded (SAML values are often form/query encoded).
+    var candidate = v;
+    if (/%|\+/.test(v)) {
+      try { candidate = decodeURIComponent(v.replace(/ /g, '+')); }
+      catch (e) { candidate = v; }
+    }
+
+    // 2. Base64-decode.
+    var bytes;
+    try { bytes = B64.base64ToBytes(candidate); }
+    catch (e) {
+      output.value = '';
+      summary.innerHTML = '';
+      B64.setStatus(status, 'err', 'Could not decode — expected Base64 (optionally URL-encoded and/or DEFLATE-compressed) SAML XML.');
+      return;
+    }
+
+    // 3. Decode bytes to text; if not XML, treat as redirect binding (DEFLATE) and inflate.
+    var xml = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    var binding = 'POST';
+    if (!looksXml(xml)) {
+      try {
+        xml = await inflate(bytes);
+        binding = 'Redirect';
+      } catch (e) { xml = ''; }
+    }
+
+    if (!looksXml(xml)) {
+      output.value = '';
+      summary.innerHTML = '';
+      B64.setStatus(status, 'err', 'Could not decode — expected Base64 (optionally URL-encoded and/or DEFLATE-compressed) SAML XML.');
+      return;
+    }
+
+    // 4. Format + summarize.
+    output.value = formatXml(xml);
+    var summaryHtml = buildSummary(xml);
+    summary.innerHTML = summaryHtml || '<div class="saml-empty">Decoded, but couldn\'t parse fields — see the XML below.</div>';
+    B64.setStatus(status, 'ok', 'Decoded (' + binding + ' binding)');
+  }
+
+  input.addEventListener('input', function () {
+    decode().catch(function (e) {
+      output.value = '';
+      summary.innerHTML = '';
+      B64.setStatus(status, 'err', 'Could not decode — expected Base64 (optionally URL-encoded and/or DEFLATE-compressed) SAML XML.');
+    });
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    output.value = '';
+    summary.innerHTML = '';
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
