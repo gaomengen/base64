@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude API: Send a Base64 Image (Messages API) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Send an image to Claude's Messages API as raw Base64 (no data: prefix) inside an image content block. Drop an image to get the exact block plus copy-paste Python and TypeScript. Encoded locally — never uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/claude-api-base64-image">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/claude-api-base64-image">
+<meta property="og:title" content="Claude API: Send a Base64 Image (Messages API)">
+<meta property="og:description" content="Send an image to Claude as raw Base64 in an image content block. Drop an image to get the exact block plus Python and TypeScript. Encoded locally — never uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claude API: Send a Base64 Image (Messages API)">
+<meta name="twitter:description" content="Send an image to Claude as raw Base64 in an image content block. Drop an image to get the exact block plus Python and TypeScript.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Claude API Base64 Image Builder",
+  "url": "https://base64.dev/claude-api-base64-image",
+  "description": "Convert an image to raw Base64 and build the exact image content block for Anthropic's Claude Messages API, with copy-paste Python and TypeScript. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to send a Base64 image to the Claude API",
+  "description": "Encode an image as raw Base64 and pass it to Claude's Messages API inside an image content block.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Encode the image", "text": "Read the image bytes and Base64-encode them. Do NOT include a data: prefix — Claude wants raw Base64 only." },
+    { "@type": "HowToStep", "position": 2, "name": "Build the image block", "text": "Add an image content block with source.type set to base64, the correct media_type (image/jpeg, image/png, image/gif, or image/webp), and the encoded data." },
+    { "@type": "HowToStep", "position": 3, "name": "Send the message", "text": "Include the image block in a user message's content array, alongside a text block with your question, and call messages.create." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I send a Base64 image to Claude?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64-encode the image bytes, then put them in a user message's content array as an image content block: { \"type\": \"image\", \"source\": { \"type\": \"base64\", \"media_type\": \"image/jpeg\", \"data\": \"<BASE64>\" } }. Add a text block with your question in the same content array and call the Messages API. Use raw Base64 with no data: prefix." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I include the data: prefix for Claude?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Unlike OpenAI's data-URL format, Claude's Messages API expects raw Base64 in source.data — just the encoded payload, with no data:image/jpeg;base64, prefix. Including the prefix causes a 'could not process image' error." }
+    },
+    {
+      "@type": "Question",
+      "name": "What image formats does Claude support?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Claude accepts image/jpeg, image/png, image/gif, and image/webp. The media_type you declare in the image block must match the actual bytes you send." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do I get a media_type mismatch error?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A media_type mismatch means the media_type you declared (e.g. image/png) does not match the real format of the bytes (e.g. an actual JPEG). Set media_type from the true file type. This tool reads it from the file automatically." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the max image size for the Claude API?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Each image is capped at roughly 5 MB per image via the API. Claude also resizes very large images, so downscaling before you send saves tokens and latency without losing quality Claude can use." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Claude API Base64 Image", "item": "https://base64.dev/claude-api-base64-image" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Claude API Base64 Image</span>
+    </div>
+
+    <h1>Claude API — Base64 Image Input</h1>
+    <p class="lead">Claude's Messages API takes images as <strong>raw Base64</strong> (no <code>data:</code> prefix) inside an <code>image</code> content block: <code>source.type: "base64"</code>, a <code>media_type</code>, and the encoded <code>data</code>. Drop an image below to get the exact block, plus copy-paste Python and TypeScript. Encoded locally — your image is never uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+        <div class="dropzone-text">Drop an image here or click to browse</div>
+        <div class="dropzone-hint">JPEG · PNG · GIF · WebP</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the encoded image">
+        <div class="preview-info">
+          <span id="previewName">—</span>
+          <span id="previewSize">—</span>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> RAW BASE64</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="b64out" class="sr-only">Raw Base64 output</label>
+        <textarea id="b64out" readonly placeholder="The raw Base64 (no data: prefix) appears here after you add an image..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> CLAUDE IMAGE BLOCK</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBlockBtn">Copy</button>
+          </div>
+        </div>
+        <label for="blockout" class="sr-only">Claude image content block</label>
+        <textarea id="blockout" readonly placeholder="A ready-to-paste Claude image content block appears here..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an image</span></div>
+    </div>
+
+    <h2>How to send a Base64 image to Claude</h2>
+    <p>Drop an image above (or click to browse). The tool reads it locally, <strong>Base64-encodes</strong> the bytes, and fills in two things: the <strong>raw Base64</strong> payload, and a ready-to-paste <strong>image content block</strong> with the correct <code>media_type</code> already set from the file. Copy the block into a user message's <code>content</code> array — alongside a <code>text</code> block with your question — and call the Messages API. In code, you encode the file yourself and drop the string into <code>source.data</code>, exactly as the Python and TypeScript examples below show.</p>
+
+    <h2>The image content block</h2>
+    <p>Claude images live inside a content block of <code>type: "image"</code>. The <code>source</code> uses <code>type: "base64"</code>, a <code>media_type</code>, and the encoded <code>data</code>:</p>
+<pre><code>{
+  "type": "image",
+  "source": { "type": "base64", "media_type": "image/jpeg", "data": "&lt;BASE64&gt;" }
+}</code></pre>
+    <p>Two details trip people up. First, the <code>data</code> is <strong>raw Base64</strong> — <strong>not</strong> a <code>data:image/jpeg;base64,…</code> URL. This is a very common mistake, especially coming from OpenAI, which uses the <code>data:</code> URL form. Second, the <code>media_type</code> must <strong>match the actual bytes</strong>: declare <code>image/png</code> only if the file really is a PNG. The tool above fills both correctly for you.</p>
+
+    <h2>Python and TypeScript</h2>
+    <p>With the official <strong>anthropic</strong> Python SDK, encode the file with <code>base64.standard_b64encode</code> and drop the string into the image block:</p>
+<pre><code>import anthropic, base64
+data = base64.standard_b64encode(open("image.jpg", "rb").read()).decode("utf-8")
+client = anthropic.Anthropic()
+msg = client.messages.create(
+    model="claude-opus-4-8",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": data}},
+        {"type": "text", "text": "What's in this image?"},
+    ]}],
+)
+print(msg.content[0].text)</code></pre>
+    <p>With the <strong>@anthropic-ai/sdk</strong> TypeScript SDK, read the file and call <code>.toString("base64")</code>:</p>
+<pre><code>import Anthropic from "@anthropic-ai/sdk";
+import { readFileSync } from "fs";
+const data = readFileSync("image.jpg").toString("base64");
+const client = new Anthropic();
+const msg = await client.messages.create({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: [
+    { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
+    { type: "text", text: "What's in this image?" },
+  ]}],
+});</code></pre>
+    <div class="tip"><p><strong>Tip:</strong> <code>claude-opus-4-8</code> is used here as the current model id — swap it for whichever Claude model you're targeting. Match <code>media_type</code> to your real file type, and paste the encoded string from the box above into <code>data</code> when it's long.</p></div>
+
+    <h2>Supported formats and size</h2>
+    <p>Claude accepts four image formats: <code>image/jpeg</code>, <code>image/png</code>, <code>image/gif</code>, and <code>image/webp</code>. Each image is capped at roughly <strong>5&nbsp;MB per image</strong> through the API. Claude also <strong>resizes large images</strong> internally, so sending a huge original wastes tokens without adding detail — <strong>downscale first</strong> to save tokens and latency. Whatever format you send, the <code>media_type</code> in the block must name that exact format.</p>
+
+    <h2>Common errors</h2>
+    <ul>
+      <li><strong>media_type mismatch</strong> — the declared <code>media_type</code> doesn't match the actual bytes (e.g. you wrote <code>image/png</code> but the file is really a JPEG). Set <code>media_type</code> from the true file type; the tool above does this automatically.</li>
+      <li><strong>could not process image</strong> — usually you included a <code>data:</code> prefix (Claude wants raw Base64 only) or the Base64 itself is wrong or truncated. Copy the <strong>raw Base64</strong> box above, not a data URI.</li>
+    </ul>
+
+    <h2>Is this private?</h2>
+    <p>Yes. Encoding happens entirely client-side in JavaScript — your image is read into memory in the browser and Base64-encoded locally. It is <strong>never sent to a server</strong> (not even to Anthropic — that only happens when you run your own code). You can confirm in DevTools → Network: adding an image fires no upload request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I send a Base64 image to Claude?</h3>
+    <p>Base64-encode the image bytes, then put them in a user message's <code>content</code> array as an <code>image</code> block: <code>{ "type": "image", "source": { "type": "base64", "media_type": "image/jpeg", "data": "&lt;BASE64&gt;" } }</code>. Add a <code>text</code> block with your question in the same array and call the Messages API. Use raw Base64 with no <code>data:</code> prefix.</p>
+    <h3>Do I include the data: prefix for Claude?</h3>
+    <p>No. Unlike OpenAI's data-URL format, Claude's Messages API expects <strong>raw Base64</strong> in <code>source.data</code> — just the encoded payload, with no <code>data:image/jpeg;base64,</code> prefix. Including the prefix causes a "could not process image" error.</p>
+    <h3>What image formats does Claude support?</h3>
+    <p>Claude accepts <code>image/jpeg</code>, <code>image/png</code>, <code>image/gif</code>, and <code>image/webp</code>. The <code>media_type</code> you declare in the image block must match the actual bytes you send.</p>
+    <h3>Why do I get a media_type mismatch error?</h3>
+    <p>A media_type mismatch means the <code>media_type</code> you declared (e.g. <code>image/png</code>) doesn't match the real format of the bytes (e.g. an actual JPEG). Set <code>media_type</code> from the true file type — this tool reads it from the file automatically.</p>
+    <h3>What's the max image size for the Claude API?</h3>
+    <p>Each image is capped at roughly <strong>5&nbsp;MB per image</strong> via the API. Claude also resizes very large images, so downscaling before you send saves tokens and latency without losing detail Claude can use.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64-for-ai-vision">Base64 for AI Vision</a></li>
+        <li><a href="/gemini-api-base64-image">Gemini API Base64 Image</a></li>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+        <li><a href="/articles/base64-image-encoding">Image Encoding Guide</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need text, files, or URL-safe Base64?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('fileInput');
+  var b64out = $('b64out'), blockout = $('blockout');
+  var preview = $('preview'), previewImg = $('previewImg'), previewName = $('previewName'), previewSize = $('previewSize');
+  var status = $('status'), copyBtn = $('copyBtn'), copyBlockBtn = $('copyBlockBtn');
+  var SUPPORTED = { 'image/jpeg': 1, 'image/png': 1, 'image/gif': 1, 'image/webp': 1 };
+
+  function buildBlock(mime, b64) {
+    var shown = b64.length > 120 ? '<full base64 in the box above>' : b64;
+    return '{\n' +
+      '  "type": "image",\n' +
+      '  "source": { "type": "base64", "media_type": "' + mime + '", "data": "' + shown + '" }\n' +
+      '}';
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { B64.setStatus(status, 'err', 'That file is not an image.'); return; }
+    var mime = file.type;
+    var r = new FileReader();
+    r.onload = function (e) {
+      var bytes = new Uint8Array(e.target.result);
+      var b64 = B64.bytesToBase64(bytes);
+      b64out.value = b64;
+      blockout.value = buildBlock(mime, b64);
+      previewImg.src = 'data:' + mime + ';base64,' + b64;
+      previewName.textContent = file.name;
+      previewSize.textContent = B64.fmtSize(file.size) + ' · ' + b64.length + ' Base64 chars · ' + mime;
+      preview.classList.add('visible');
+      if (SUPPORTED[mime]) {
+        B64.setStatus(status, 'ok', 'Encoded ' + file.name + ' (' + mime + ')');
+      } else {
+        B64.setStatus(status, 'err', mime + ' is not supported by Claude — use JPEG, PNG, GIF, or WebP.');
+      }
+    };
+    r.onerror = function () { B64.setStatus(status, 'err', 'Could not read that file.'); };
+    r.readAsArrayBuffer(file);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+  document.body.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.body.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  B64.wireCopy(copyBtn, function () { return b64out.value; });
+  B64.wireCopy(copyBlockBtn, function () { return blockout.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

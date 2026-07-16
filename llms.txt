@@ -49,6 +49,12 @@
 - [Base64 Certificate Decoder](https://base64.dev/base64-certificate-decoder): Decode and convert PEM / DER / raw-Base64 X.509 certificates, fix line wrapping, download DER. Full field decoding via the shown openssl command.
 - [SAML Decoder](https://base64.dev/saml-decoder): Decode a SAMLResponse or SAMLRequest — URL-decode, Base64-decode, auto-inflate the DEFLATE redirect binding, pretty-print the XML, and extract Issuer/NameID/Conditions/Audience/Attributes. 100% client-side; signature is not verified.
 
+## AI vision (image → Base64 for LLM APIs)
+
+- [Image to Base64 for AI Vision](https://base64.dev/image-to-base64-for-ai-vision): Drop an image to get its Base64 data URL plus ready-to-paste request payloads for OpenAI GPT-4o (image_url data URL), Anthropic Claude (source.type base64), and Google Gemini (inline_data). Runs locally.
+- [Claude API Base64 Image](https://base64.dev/claude-api-base64-image): The exact Claude Messages API image block — raw Base64 (no data: prefix), media_type, data — with Python and TypeScript examples.
+- [Gemini API Base64 Image](https://base64.dev/gemini-api-base64-image): The exact Gemini generateContent inline_data part (mime_type + raw Base64), plus the inline_data vs inlineData (REST vs JS SDK) gotcha and the 20MB Files API limit.
+
 ## Encode & decode by language (live tool + code)
 
 Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Base64 code for that language.
