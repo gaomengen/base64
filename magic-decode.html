@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magic Decoder — Auto-Detect &amp; Decode Base64, Hex, URL, Gzip — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Paste any encoded string and this tool auto-detects the encoding and peels it layer by layer — Base64, Base64URL, URL/percent, hex, and gzip/zlib — until it reaches readable text. Runs locally; nothing is uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/magic-decode">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/magic-decode">
+<meta property="og:title" content="Magic Decoder — Auto-Detect &amp; Decode Base64, Hex, URL, Gzip">
+<meta property="og:description" content="Paste any encoded string and this tool auto-detects the encoding and peels it layer by layer until it reaches readable text. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Magic Decoder — Auto-Detect &amp; Decode Base64, Hex, URL, Gzip">
+<meta name="twitter:description" content="Paste any encoded string and this tool auto-detects the encoding and peels it layer by layer until it reaches readable text. Runs locally — nothing uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Magic Decoder",
+  "url": "https://base64.dev/magic-decode",
+  "description": "Auto-detect and recursively decode an unknown encoded string — Base64, Base64URL, URL/percent-encoding, hex, and gzip/zlib/deflate — peeling each layer until it reaches readable text. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to decode a string when you don't know the encoding",
+  "description": "Auto-detect the encoding of an unknown string and peel every layer until it becomes readable text.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Paste the string", "text": "Paste the encoded string you found into the input box. It can be Base64, Base64URL, URL/percent-encoded, hex, or gzipped — or several of those nested." },
+    { "@type": "HowToStep", "position": 2, "name": "Let it auto-detect", "text": "The magic decoder tries URL, hex, then Base64 (including gzip/zlib inside), applies whichever fits, and repeats on the result until nothing else decodes." },
+    { "@type": "HowToStep", "position": 3, "name": "Read the result and the steps", "text": "The final readable text appears in the output, and the Steps list shows every transform that was applied in order. Click Copy to grab the result." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I decode a string when I don't know the encoding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste it into the magic decoder on this page. It auto-detects the encoding by trying URL/percent-decoding, hex, and Base64 (including gzip or zlib payloads inside), applies whichever fits, then repeats on the result. The Steps list shows exactly which transforms were applied, so you can see how the string was built." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can it decode multiple layers?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The decoder runs recursively — after each successful decode it feeds the result back in and tries again, peeling nested layers such as Base64 of Base64, or URL-encoded Base64 of gzip. It stops when nothing else decodes or after a safety cap, and lists every layer it removed." }
+    },
+    {
+      "@type": "Question",
+      "name": "What if it can't decode my string?",
+      "acceptedAnswer": { "@type": "Answer", "text": "If no known encoding is detected, the tool leaves the input unchanged and tells you so — the string may already be plaintext, or it may use a scheme this tool doesn't cover (for example a custom cipher, ROT13, or a non-standard alphabet). Try a dedicated tool for that specific format." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data uploaded?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. All detection and decoding — including gzip decompression via the browser's native DecompressionStream — runs locally in your browser. Nothing is sent to any server, which you can verify in DevTools that no network request fires." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Magic Decoder", "item": "https://base64.dev/magic-decode" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+  .steps-list{list-style:none;margin:0;padding:0;counter-reset:step}
+  .steps-list li{position:relative;font-family:var(--font-mono);font-size:13px;line-height:1.5;color:var(--text-secondary);padding:8px 12px 8px 40px;border-top:1px solid var(--border)}
+  .steps-list li:first-child{border-top:none}
+  .steps-list li::before{counter-increment:step;content:counter(step);position:absolute;left:12px;top:8px;width:18px;height:18px;border-radius:50%;background:var(--green-dim);color:var(--green);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .steps-list .step-label{color:var(--green);font-weight:600}
+  .steps-list .step-arrow{color:var(--text-tertiary)}
+  .steps-empty{padding:10px 12px;font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Magic Decoder</span>
+    </div>
+
+    <h1>Magic Decoder</h1>
+    <p class="lead">Paste any encoded string and this tool <strong>auto-detects the encoding</strong> and peels it layer by layer — <strong>Base64</strong>, <strong>Base64URL</strong>, <strong>URL/percent-encoding</strong>, <strong>hex</strong>, and <strong>gzip/zlib</strong> — until it reaches readable text. Useful for CTFs, malware analysis, and "what is this string I found". Runs locally; nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> ENCODED INPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Encoded input</label>
+        <textarea id="input" aria-label="Encoded input" placeholder="Paste the mysterious string you found here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> DECODED OUTPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Decoded output</label>
+        <textarea id="output" readonly aria-label="Decoded output" placeholder="Readable text appears here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> STEPS</span>
+        </div>
+        <ol class="steps-list" id="steps"></ol>
+      </div>
+
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+
+    <h2>How the magic decoder works</h2>
+    <p>The decoder runs a small loop. On each pass it looks at the current string and tries, in order: <strong>URL / percent-decoding</strong> (if it sees <code>%XX</code> escapes), then <strong>hex</strong> (if the string is all hex digits and even-length), then <strong>Base64 / Base64URL</strong> — and if the Base64 decodes to bytes that start with a gzip or zlib magic number, it <strong>gunzips</strong> them too. It applies the first transform that produces valid, mostly-printable text, feeds that result back into the loop, and repeats until nothing else decodes. Paste your string above and read the final text in the output, with every layer listed under <strong>Steps</strong>.</p>
+
+    <h2>What encodings does it detect?</h2>
+    <p>The magic decoder recognises and unwraps:</p>
+    <ul>
+      <li><strong>Base64 and Base64URL</strong> — standard (<code>+/</code>) and URL-safe (<code>-_</code>) alphabets, with or without padding.</li>
+      <li><strong>URL / percent-encoding</strong> — <code>%20</code>, <code>%3D</code>, and other percent escapes, including double-encoded ones.</li>
+      <li><strong>Hex</strong> — even-length strings of hex digits, decoded to their underlying bytes.</li>
+      <li><strong>gzip / zlib / deflate</strong> — compressed payloads hidden inside Base64, decompressed with the browser's native <code>DecompressionStream</code>.</li>
+    </ul>
+    <p>Each layer it removes is shown in the Steps list, so you can see exactly how the original string was constructed.</p>
+
+    <h2>Decoding nested / multi-layer strings</h2>
+    <p>Encoded strings are often wrapped more than once — that's the whole point of the recursion. In CTF challenges you'll routinely hit Base64 of Base64, or hex of a URL-encoded blob; obfuscated malware and phishing payloads love to stack <strong>Base64 → gzip → Base64</strong> to slip past filters. Because the decoder feeds each result back into itself, it peels those layers automatically and stops when it reaches stable, readable text (or after a safety cap of 12 passes, with a loop guard so it never spins forever). The Steps list is effectively a decoded recipe of how the string was built.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. Every step — detection, Base64/hex/URL decoding, and gzip decompression via the native <code>DecompressionStream</code> API — runs fully in your browser. Your string is processed locally and <strong>nothing is uploaded</strong> to any server. You can confirm in DevTools → Network: decoding fires no request. That matters for CTF flags, malware samples, and anything else you'd rather not paste into a remote service.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I decode a string when I don't know the encoding?</h3>
+    <p>Paste it into the tool above. It auto-detects by trying URL/percent-decoding, hex, and Base64 (including gzip or zlib inside), applies whichever fits, then repeats on the result. The <strong>Steps</strong> list shows which transforms were applied, so you can see how the string was built.</p>
+    <h3>Can it decode multiple layers?</h3>
+    <p>Yes. It runs recursively — after each successful decode it feeds the result back in and tries again, peeling nested layers like Base64 of Base64 or URL-encoded Base64 of gzip. It stops when nothing else decodes or after a safety cap, and lists every layer it removed.</p>
+    <h3>What if it can't decode my string?</h3>
+    <p>If no known encoding is detected it leaves the input unchanged and says so. The string may already be plaintext, or use a scheme this tool doesn't cover — a custom cipher, ROT13, or a non-standard alphabet. Reach for a dedicated tool for that specific format.</p>
+    <h3>Is my data uploaded?</h3>
+    <p>No. All detection and decoding, including gzip decompression, runs locally in your browser. Nothing is sent to any server, which you can verify in DevTools.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/base64-gzip-decode">Base64 Gzip Decode</a></li>
+        <li><a href="/hex-decode">Hex Decode</a></li>
+        <li><a href="/url-decode">URL Decode</a></li>
+        <li><a href="/powershell-encoded-command-decoder">PowerShell Encoded Command Decoder</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), output = $('output'), steps = $('steps'), status = $('status');
+  var copyBtn = $('copyBtn'), clearBtn = $('clearBtn');
+
+  var canInflate = (typeof DecompressionStream !== 'undefined');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function isMostlyPrintable(s) {
+    if (!s) return false;
+    var printable = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i);
+      // tab, LF, CR, or printable range (incl. non-ASCII / Unicode above 0x9F)
+      if (c === 9 || c === 10 || c === 13 || (c >= 32 && c <= 126) || c > 159) printable++;
+    }
+    return (printable / s.length) > 0.85;
+  }
+
+  function preview(s) {
+    var t = String(s).replace(/\s+/g, ' ').trim();
+    if (t.length > 48) t = t.slice(0, 48) + '…';
+    return t;
+  }
+
+  async function tryInflate(bytes) {
+    if (!canInflate) return null;
+    var fmts = ['gzip', 'deflate', 'deflate-raw'];
+    for (var i = 0; i < fmts.length; i++) {
+      try {
+        var ds = new DecompressionStream(fmts[i]);
+        var stream = new Blob([bytes]).stream().pipeThrough(ds);
+        var buf = await new Response(stream).arrayBuffer();
+        var text = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+        if (text) return text;
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  async function magic(str) {
+    var out = [];
+    var cur = String(str).trim();
+    var seen = new Set();
+    for (var i = 0; i < 12; i++) {
+      if (!cur || seen.has(cur)) break;
+      seen.add(cur);
+      var next = null, label = null;
+
+      // 1) URL / percent-encoding
+      if (/%[0-9A-Fa-f]{2}/.test(cur)) {
+        try { var u = decodeURIComponent(cur); if (u !== cur) { next = u; label = 'URL-decoded'; } } catch (e) {}
+      }
+
+      // 2) hex (even length, all hex, reasonably long)
+      if (next === null && /^[0-9A-Fa-f\s]+$/.test(cur) && cur.replace(/\s/g, '').length % 2 === 0 && cur.replace(/\s/g, '').length >= 4) {
+        try {
+          var hb = B64.hexToBytes(cur);
+          var ht = new TextDecoder('utf-8', { fatal: true }).decode(hb);
+          if (isMostlyPrintable(ht)) { next = ht; label = 'hex-decoded'; }
+        } catch (e) {}
+      }
+
+      // 3) base64 / base64url -> maybe gzip, maybe text
+      if (next === null && B64.looksBase64(cur)) {
+        try {
+          var bytes = B64.base64ToBytes(cur);
+          if (bytes.length > 2 && ((bytes[0] === 0x1f && bytes[1] === 0x8b) || bytes[0] === 0x78)) {
+            var inflated = await tryInflate(bytes);
+            if (inflated !== null) { next = inflated; label = 'base64 + gunzip'; }
+          }
+          if (next === null) {
+            var t = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            if (t !== cur && isMostlyPrintable(t)) { next = t; label = 'base64-decoded'; }
+          }
+        } catch (e) {}
+      }
+
+      if (next === null) break;
+      out.push({ label: label, preview: preview(next) });
+      cur = next;
+    }
+    return { result: cur, steps: out };
+  }
+
+  function renderSteps(list) {
+    steps.innerHTML = '';
+    if (!list.length) {
+      var li = document.createElement('li');
+      li.className = 'steps-empty';
+      li.textContent = 'No transforms applied yet.';
+      steps.appendChild(li);
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      html += '<li><span class="step-label">' + escapeHtml(list[i].label) + '</span> ' +
+              '<span class="step-arrow">→</span> ' + escapeHtml(list[i].preview) + '</li>';
+    }
+    steps.innerHTML = html;
+  }
+
+  var runToken = 0;
+  async function run() {
+    var value = input.value.trim();
+    if (!value) {
+      output.value = '';
+      renderSteps([]);
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+    var token = ++runToken;
+    B64.setStatus(status, '', 'Decoding…');
+    var res;
+    try { res = await magic(value); } catch (e) { res = { result: value, steps: [] }; }
+    if (token !== runToken) return; // a newer run superseded this one
+
+    output.value = res.result;
+    renderSteps(res.steps);
+    if (!res.steps.length) {
+      B64.setStatus(status, 'err', 'No known encoding detected — the input may already be plaintext or use an unsupported scheme.');
+    } else {
+      var n = res.steps.length;
+      B64.setStatus(status, 'ok', 'Decoded ' + n + ' layer' + (n === 1 ? '' : 's') + ' → readable text');
+    }
+  }
+
+  input.addEventListener('input', run);
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    output.value = '';
+    renderSteps([]);
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
