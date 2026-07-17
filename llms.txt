@@ -51,6 +51,14 @@
 - [PowerShell Encoded Command Decoder](https://base64.dev/powershell-encoded-command-decoder): Decode a PowerShell -enc / -EncodedCommand string (Base64 of UTF-16LE bytes — the reason naive UTF-8 decoders show garbled output), or encode a command. Auto-attempts gzip/deflate inflation for nested payloads. Defensive/IR tool; 100% local; decoding never runs the command.
 - [dockerconfigjson Generator & Decoder](https://base64.dev/dockerconfigjson): Generate a Kubernetes image-pull secret (type kubernetes.io/dockerconfigjson) from a registry + username + password — outputs config.json, the Base64 .dockerconfigjson, a Secret YAML, and the kubectl one-liner — or decode an existing one. Handles the double Base64 (the inner auth field is base64 of user:password).
 - [GraphQL Cursor Decoder](https://base64.dev/graphql-cursor-decoder): Decode a GraphQL/Relay pagination cursor (base64). Recognizes the graphql-relay-js `arrayconnection:<index>` format and shows the item offset, pretty-prints JSON cursor payloads, and handles opaque cursors. Cursors are opaque, not secure — never trust one as authorization.
+- [Magic Decoder](https://base64.dev/magic-decode): Paste any encoded string and it auto-detects and peels layers — Base64/Base64URL, URL/percent, hex, and gzip/zlib/deflate — until readable, showing each transform. For CTFs, malware analysis, and "what is this string I found". Local.
+
+## Platform & mobile
+
+- [Base64 in Google Sheets](https://base64.dev/google-sheets-base64): There's no native BASE64 function in Sheets — add BASE64ENCODE/BASE64DECODE custom functions via Apps Script (Utilities.base64Encode/Decode), incl. URL-safe and image-to-base64. Working encoder/decoder to verify cell output.
+- [Flutter Base64 Decode Error](https://base64.dev/flutter-base64-decode-error): Fix Dart `FormatException: Invalid character` from base64Decode — usually an unstripped `data:` prefix, missing padding, or a URL-safe string. Paste-to-diagnose tool + Image.memory guidance.
+- [React Native atob/btoa Polyfill](https://base64.dev/react-native-atob-btoa-polyfill): Fix `atob is not defined` in React Native (Hermes/JSC lack it) — polyfill with the base-64 package or Buffer at startup. Working encoder/decoder to verify expected output.
+- [Android Base64 NO_WRAP](https://base64.dev/android-base64-no-wrap): Fix newlines that Base64.encodeToString inserts by default (breaks JSON/headers/URLs) — use Base64.NO_WRAP, and match flags when decoding. Encode tool shows the DEFAULT-vs-NO_WRAP difference.
 
 ## AI vision (image → Base64 for LLM APIs)
 
