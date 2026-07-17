@@ -50,6 +50,7 @@
 - [SAML Decoder](https://base64.dev/saml-decoder): Decode a SAMLResponse or SAMLRequest — URL-decode, Base64-decode, auto-inflate the DEFLATE redirect binding, pretty-print the XML, and extract Issuer/NameID/Conditions/Audience/Attributes. 100% client-side; signature is not verified.
 - [PowerShell Encoded Command Decoder](https://base64.dev/powershell-encoded-command-decoder): Decode a PowerShell -enc / -EncodedCommand string (Base64 of UTF-16LE bytes — the reason naive UTF-8 decoders show garbled output), or encode a command. Auto-attempts gzip/deflate inflation for nested payloads. Defensive/IR tool; 100% local; decoding never runs the command.
 - [dockerconfigjson Generator & Decoder](https://base64.dev/dockerconfigjson): Generate a Kubernetes image-pull secret (type kubernetes.io/dockerconfigjson) from a registry + username + password — outputs config.json, the Base64 .dockerconfigjson, a Secret YAML, and the kubectl one-liner — or decode an existing one. Handles the double Base64 (the inner auth field is base64 of user:password).
+- [GraphQL Cursor Decoder](https://base64.dev/graphql-cursor-decoder): Decode a GraphQL/Relay pagination cursor (base64). Recognizes the graphql-relay-js `arrayconnection:<index>` format and shows the item offset, pretty-prints JSON cursor payloads, and handles opaque cursors. Cursors are opaque, not secure — never trust one as authorization.
 
 ## AI vision (image → Base64 for LLM APIs)
 

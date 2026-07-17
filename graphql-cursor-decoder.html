@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GraphQL / Relay Cursor Decoder — Decode base64 Pagination Cursors — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Decode GraphQL / Relay pagination cursors. Most are Base64 of arrayconnection:<index> — YXJyYXljb25uZWN0aW9uOjU= decodes to arrayconnection:5. Paste a cursor to decode, or build one. Runs locally — nothing uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/graphql-cursor-decoder">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/graphql-cursor-decoder">
+<meta property="og:title" content="GraphQL / Relay Cursor Decoder">
+<meta property="og:description" content="Decode GraphQL / Relay pagination cursors. Most decode to arrayconnection:<index>. Paste a cursor to decode, or build one. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GraphQL / Relay Cursor Decoder">
+<meta name="twitter:description" content="Decode GraphQL / Relay pagination cursors. Most decode to arrayconnection:<index>. Paste a cursor to decode, or build one. Runs locally — nothing uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "GraphQL / Relay Cursor Decoder",
+  "url": "https://base64.dev/graphql-cursor-decoder",
+  "description": "Decode GraphQL / Relay pagination cursors. Most are Base64 of arrayconnection:<index> — the array offset in a connection. Paste a cursor to decode it, or build one. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to decode a GraphQL cursor",
+  "description": "Turn a Base64 GraphQL / Relay pagination cursor into its human-readable value.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Paste your cursor", "text": "Copy a cursor from edges[].cursor, pageInfo.endCursor, or an after: argument and paste it into the input box." },
+    { "@type": "HowToStep", "position": 2, "name": "Read the decoded value", "text": "The decoder Base64-decodes the cursor. Most Relay cursors reveal arrayconnection:<index> — the item's position in the connection." },
+    { "@type": "HowToStep", "position": 3, "name": "Build a cursor (optional)", "text": "Toggle to Encode to Base64-encode a value into a cursor of your own." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I decode a GraphQL/Relay cursor?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste the cursor from edges[].cursor, pageInfo.endCursor, or an after: argument into the decoder on this page. It Base64-decodes the cursor locally and shows the underlying value — most commonly arrayconnection:<index>." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my cursor decode to 'arrayconnection:5'?",
+      "acceptedAnswer": { "@type": "Answer", "text": "That is the default format produced by graphql-relay-js. Its cursorForObjectInConnection helper Base64-encodes the string arrayconnection:<index>, where the number is the item's zero-based offset in the connection. So arrayconnection:5 is the sixth item." }
+    },
+    {
+      "@type": "Question",
+      "name": "Are GraphQL cursors encrypted or secure?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Cursors are opaque, not encrypted or signed. They are just Base64 — anyone can decode or forge them. Never treat a cursor as authorization or trust its contents as verified." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I create a cursor?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Switch this tool to Encode mode and type the value you want to wrap, for example arrayconnection:5. It is Base64-encoded into a cursor you can drop into an after: or before: argument." }
+    },
+    {
+      "@type": "Question",
+      "name": "My cursor decodes to gibberish or JSON — why?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not every server uses the Relay array-connection format. Some encode a record id, a JSON payload, or a timestamp. This tool pretty-prints JSON when it finds it and otherwise shows the raw decoded value." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "GraphQL Cursor Decoder", "item": "https://base64.dev/graphql-cursor-decoder" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>GraphQL Cursor Decoder</span>
+    </div>
+
+    <h1>GraphQL Cursor Decoder</h1>
+    <p class="lead">GraphQL Relay connections encode pagination cursors as <strong>Base64</strong>. The most common format is <code>arrayconnection:&lt;index&gt;</code> — so <code>YXJyYXljb25uZWN0aW9uOjU=</code> decodes to <code>arrayconnection:5</code>. Paste a cursor (from <code>edges[].cursor</code>, <code>pageInfo.endCursor</code>, or an <code>after:</code> argument) to decode it, or build one. Runs locally; nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> CURSOR</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Cursor input</label>
+        <textarea id="input" aria-label="Cursor input" placeholder="Paste a GraphQL / Relay cursor here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-actions">
+        <button class="small-btn" id="modeBtn">Decode</button>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> DECODED</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Decoded output</label>
+        <textarea id="output" readonly aria-label="Decoded output" placeholder="Decoded value appears here..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+    <p class="widget-note" id="note"></p>
+
+    <h2>How to decode a GraphQL cursor</h2>
+    <p>A Relay cursor is just a <strong>Base64</strong> string. Copy one from <code>edges[].cursor</code>, <code>pageInfo.startCursor</code>/<code>pageInfo.endCursor</code>, or an <code>after:</code>/<code>before:</code> argument, and paste it into the box above. The tool Base64-decodes it locally and shows the underlying value. In the vast majority of Relay APIs that value is <code>arrayconnection:&lt;index&gt;</code>. To go the other way and mint a cursor, toggle the button to <strong>Encode</strong>.</p>
+
+    <h2>What is a Relay cursor?</h2>
+    <p>A cursor is an <strong>opaque Base64 string that identifies a position in a connection</strong>. It comes from the <a href="https://relay.dev/graphql/connections.htm">Relay Cursor Connections spec</a>, where every edge carries a <code>cursor</code> and the connection exposes <code>pageInfo.startCursor</code> and <code>pageInfo.endCursor</code>. You page through results by passing a cursor back to the server with the <code>first</code>/<code>after</code> arguments (forward) or <code>last</code>/<code>before</code> (backward). "Opaque" means you are not supposed to parse it — but because it is only Base64, you can.</p>
+
+    <h2>The arrayconnection:N format</h2>
+    <p>Nearly every Relay cursor you will ever see decodes to <code>arrayconnection:&lt;index&gt;</code>. That is because the reference library <strong>graphql-relay-js</strong> ships a <code>cursorForObjectInConnection</code> helper that Base64-encodes the literal string <code>arrayconnection:&lt;index&gt;</code>, where the number is the item's zero-based offset in the connection array. So <code>arrayconnection:5</code> points at the sixth item. It is a convenience default, not a rule of the spec — but so many servers use graphql-relay-js unchanged that this format is effectively ubiquitous.</p>
+
+    <h2>Custom cursor formats</h2>
+    <p>Servers are free to put anything inside a cursor. Some encode a record <strong>id</strong>, some a small <strong>JSON</strong> payload (for keyset/seek pagination), and some a <strong>timestamp</strong>. When this tool finds JSON inside a cursor it pretty-prints it; otherwise it shows the raw decoded value so you can see whatever the server chose to stash there.</p>
+
+    <h2>Are cursors secret?</h2>
+    <p>No. Cursors are <strong>opaque, not encrypted or signed</strong> — they are plain Base64, so anyone can decode or forge one. Never trust a cursor as authorization and never assume a client cannot see or tamper with its contents. If a position needs to be tamper-proof, the server must sign or validate it; the cursor value alone proves nothing.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. Decoding and encoding run fully in the browser with JavaScript — your cursor is processed locally and <strong>nothing is uploaded</strong> to any server. You can confirm in DevTools → Network: decoding a cursor fires no request.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I decode a GraphQL/Relay cursor?</h3>
+    <p>Paste the cursor from <code>edges[].cursor</code>, <code>pageInfo.endCursor</code>, or an <code>after:</code> argument into the input above. The tool Base64-decodes it locally and shows the underlying value — most commonly <code>arrayconnection:&lt;index&gt;</code>.</p>
+    <h3>Why does my cursor decode to 'arrayconnection:5'?</h3>
+    <p>That is the default format from <strong>graphql-relay-js</strong>. Its <code>cursorForObjectInConnection</code> helper Base64-encodes <code>arrayconnection:&lt;index&gt;</code>, where the number is the item's zero-based offset in the connection. So <code>arrayconnection:5</code> is the sixth item.</p>
+    <h3>Are GraphQL cursors encrypted or secure?</h3>
+    <p>No — they are opaque Base64, which is trivially decoded and forged. Do not use a cursor as authorization or trust its contents as verified.</p>
+    <h3>How do I create a cursor?</h3>
+    <p>Switch the tool to <strong>Encode</strong> mode and type the value you want to wrap, for example <code>arrayconnection:5</code>. It is Base64-encoded into a cursor you can drop into an <code>after:</code> or <code>before:</code> argument.</p>
+    <h3>My cursor decodes to gibberish/JSON — why?</h3>
+    <p>Not every server uses the Relay array-connection format. Some use a <strong>custom, server-defined format</strong> — a record id, a JSON payload, or a timestamp. This tool pretty-prints JSON when it finds it and otherwise shows the raw decoded value.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/base64-to-json">Base64 to JSON</a></li>
+        <li><a href="/jwt-decoder">JWT Decoder</a></li>
+        <li><a href="/base64url">Base64URL Decode</a></li>
+        <li><a href="/articles/what-is-base64">What is Base64?</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), output = $('output'), status = $('status'), note = $('note');
+  var copyBtn = $('copyBtn'), clearBtn = $('clearBtn'), modeBtn = $('modeBtn');
+  var decodeMode = true;
+
+  function setNote(text) { note.textContent = text || ''; }
+
+  function run() {
+    var value = input.value.trim();
+    if (!value) {
+      output.value = '';
+      setNote('');
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+    if (decodeMode) {
+      var text;
+      try {
+        text = B64.decodeText(value);
+      } catch (e) {
+        output.value = '';
+        setNote('');
+        B64.setStatus(status, 'err', 'Not a valid Base64 cursor.');
+        return;
+      }
+      output.value = text;
+      var mAc = text.match(/^arrayconnection:(\d+)$/);
+      if (mAc) {
+        setNote('Relay array-connection cursor → item offset ' + mAc[1] + ' (this is the index in the connection).');
+      } else {
+        try {
+          var j = JSON.parse(text);
+          output.value = JSON.stringify(j, null, 2);
+          setNote('Decoded to JSON (a custom cursor payload).');
+        } catch (e) {
+          setNote('Opaque cursor — decoded to a raw value (often an id, offset, or timestamp).');
+        }
+      }
+      B64.setStatus(status, 'ok', 'Decoded');
+    } else {
+      output.value = B64.encodeText(input.value, false);
+      setNote(/^\d+$/.test(value) ? 'Tip: Relay’s array-connection cursors encode the string "arrayconnection:<index>", not the bare number.' : '');
+      B64.setStatus(status, 'ok', 'Encoded');
+    }
+  }
+
+  input.addEventListener('input', run);
+
+  modeBtn.addEventListener('click', function () {
+    decodeMode = !decodeMode;
+    modeBtn.textContent = decodeMode ? 'Decode' : 'Encode';
+    input.placeholder = decodeMode ? 'Paste a GraphQL / Relay cursor here...' : 'Type a value to encode into a cursor...';
+    run();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    output.value = '';
+    setNote('');
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
