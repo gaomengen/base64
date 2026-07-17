@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Image Too Large for a Vision API? Resize & Fix — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Vision API rejecting your image as too large (413 payload too large)? Resize and re-encode it as JPEG right here in your browser. Check the size against OpenAI, Claude, and Gemini limits and download a smaller version. Nothing uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/base64-image-too-large-vision-api">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/base64-image-too-large-vision-api">
+<meta property="og:title" content="Base64 Image Too Large for a Vision API? Resize & Fix">
+<meta property="og:description" content="Shrink an image below a vision API's limit: resize and re-encode as JPEG in your browser, then download it. Nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Base64 Image Too Large for a Vision API? Resize & Fix">
+<meta name="twitter:description" content="Shrink an image below a vision API's limit: resize and re-encode as JPEG in your browser, then download it. Nothing uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Base64 Image Resizer for Vision APIs",
+  "url": "https://base64.dev/base64-image-too-large-vision-api",
+  "description": "Resize and re-encode an image as JPEG to fit under a vision API's size limit, then get the smaller Base64. Checks the size against OpenAI, Claude, and Gemini limits. Runs entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to fix a 'base64 image too large' error for a vision API",
+  "description": "Shrink an image below a vision API's size limit by resizing its dimensions and re-encoding it as JPEG before you Base64-encode it.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Drop your image", "text": "Drag the image onto the drop zone. The tool shows its dimensions, byte size, and Base64 size, and flags which provider limits it exceeds." },
+    { "@type": "HowToStep", "position": 2, "name": "Pick a max dimension and quality", "text": "Choose a maximum longest-side dimension (1024 px is usually plenty for vision models) and a JPEG quality between 0.5 and 0.95." },
+    { "@type": "HowToStep", "position": 3, "name": "Resize and re-encode", "text": "The tool scales the image on a canvas and re-encodes it as JPEG, then shows the new size and percent reduction against each provider's limit." },
+    { "@type": "HowToStep", "position": 4, "name": "Copy or download", "text": "Copy the smaller Base64 string or download the resized JPEG and send that to the API instead." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why is my base64 image too large for the API?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The image's file size exceeds the provider's per-image limit, or the whole request exceeds its payload limit and you get a 413 'payload too large'. Base64 makes it worse because encoding adds about 33% to the byte size, so a 4 MB photo becomes roughly 5.3 MB of text in the request. The fix is to resize the image's dimensions and re-encode it as JPEG before encoding to Base64." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the max image size for GPT-4o, Claude, and Gemini?",
+      "acceptedAnswer": { "@type": "Answer", "text": "OpenAI (GPT-4o / GPT-4.1) and Anthropic Claude both accept images up to about 5 MB per image, and they automatically downscale large images before the model sees them. Google Gemini allows up to about 20 MB for the total inline request; above that you must use the Files API. Encoding to Base64 counts against these limits because the encoded string is what travels in the request." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does base64 increase the image size?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Base64 represents 3 bytes with 4 ASCII characters, so the encoded string is about 33% larger than the original binary file. A 3 MB image becomes roughly 4 MB of Base64 text. That overhead is why an image that looks under the limit can still push the request over it." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I reduce a base64 image's size?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Don't shrink the Base64 string directly — reduce the underlying image, then re-encode. Resize its dimensions so the longest side is 1024–1536 px and re-encode as JPEG at quality 0.8–0.9. That usually cuts the size by 70–95%. The resizer on this page does exactly that in your browser and gives you the new Base64." }
+    },
+    {
+      "@type": "Question",
+      "name": "Will resizing hurt the model's vision accuracy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Rarely. Vision models tile and downscale images internally anyway — GPT-4o and Claude cap the effective resolution they process, so sending a 6000 px photo wastes tokens without adding detail the model can use. A longest side of 1024–1536 px is enough for almost all documents, screenshots, and photos. Only go higher for dense text or fine detail." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Base64 Image Too Large for a Vision API", "item": "https://base64.dev/base64-image-too-large-vision-api" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+.rsz-controls{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.rsz-field{display:flex;flex-direction:column;gap:6px}
+.rsz-field label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-tertiary)}
+.rsz-select{font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);outline:none;cursor:pointer}
+.rsz-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.rsz-range{width:180px;accent-color:var(--accent);cursor:pointer}
+.rsz-range-val{font-family:var(--font-mono);font-size:12px;color:var(--accent)}
+.rsz-btn{font-family:var(--font-mono);font-size:13px;font-weight:600;padding:9px 18px;border-radius:var(--radius);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;transition:opacity .15s}
+.rsz-btn:hover{opacity:.9}
+.rsz-btn:disabled{opacity:.4;cursor:not-allowed}
+.rsz-stats{display:flex;flex-wrap:wrap;gap:14px}
+.rsz-col{flex:1;min-width:200px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.rsz-col h3{margin:0 0 12px;font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);padding:0}
+.rsz-col.new{border-color:var(--accent)}
+.rsz-stat{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-family:var(--font-mono);font-size:13px}
+.rsz-stat .k{color:var(--text-tertiary)}
+.rsz-stat .v{color:var(--text-primary);font-weight:600}
+.rsz-col.new .rsz-stat .v{color:var(--accent)}
+.rsz-reduction{margin-top:10px;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--green)}
+.limit-check{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px}
+.limit-check .lc-title{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-tertiary);margin-bottom:8px}
+.lc-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--font-mono);font-size:13px;flex-wrap:wrap}
+.lc-name{min-width:170px;color:var(--text-secondary)}
+.lc-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+.lc-badge.pass{background:var(--green-dim);color:var(--green)}
+.lc-badge.fail{background:var(--red-dim,rgba(255,80,80,.14));color:var(--red)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Base64 Image Too Large for a Vision API</span>
+    </div>
+
+    <h1>Base64 Image Too Large for a Vision API</h1>
+    <p class="lead">If a vision API rejects your image as too large (or a <strong>413</strong>), the fix is to shrink it before encoding: <strong>resize the dimensions and re-encode as JPEG</strong>. Base64 also adds ~33% overhead. Drop an image below to see its size against each provider's limit and download a smaller version — all in your browser.</p>
+
+    <div class="tool-widget">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Drop an image here or click to browse">
+        <div class="dropzone-text">Drop an image here or click to browse</div>
+        <div class="dropzone-hint">PNG · JPG · GIF · WebP · AVIF — resized to JPEG</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+
+      <div class="rsz-controls">
+        <div class="rsz-field">
+          <label for="maxDim">Max dimension (longest side)</label>
+          <select class="rsz-select" id="maxDim" aria-label="Maximum dimension">
+            <option value="512">512 px</option>
+            <option value="768">768 px</option>
+            <option value="1024" selected>1024 px</option>
+            <option value="1536">1536 px</option>
+            <option value="2048">2048 px</option>
+          </select>
+        </div>
+        <div class="rsz-field">
+          <label for="quality">JPEG quality <span class="rsz-range-val" id="qualityVal">0.85</span></label>
+          <input type="range" class="rsz-range" id="quality" min="0.5" max="0.95" step="0.05" value="0.85" aria-label="JPEG quality">
+        </div>
+        <button class="rsz-btn" id="resizeBtn" disabled>Resize &amp; re-encode</button>
+      </div>
+
+      <div class="rsz-stats">
+        <div class="rsz-col orig">
+          <h3>Original</h3>
+          <div class="rsz-stat"><span class="k">Dimensions</span><span class="v" id="oDim">—</span></div>
+          <div class="rsz-stat"><span class="k">File size</span><span class="v" id="oBytes">—</span></div>
+          <div class="rsz-stat"><span class="k">Base64 size</span><span class="v" id="oB64">—</span></div>
+        </div>
+        <div class="rsz-col new">
+          <h3>Resized (JPEG)</h3>
+          <div class="rsz-stat"><span class="k">Dimensions</span><span class="v" id="nDim">—</span></div>
+          <div class="rsz-stat"><span class="k">File size</span><span class="v" id="nBytes">—</span></div>
+          <div class="rsz-stat"><span class="k">Base64 size</span><span class="v" id="nB64">—</span></div>
+          <div class="rsz-reduction" id="reduction"></div>
+        </div>
+      </div>
+
+      <div class="limit-check">
+        <div class="lc-title">Per-provider limit check (current image)</div>
+        <div class="lc-row"><span class="lc-name">OpenAI GPT-4o (~5 MB/img)</span><span class="lc-badge" id="lcOpenAI">—</span></div>
+        <div class="lc-row"><span class="lc-name">Anthropic Claude (~5 MB/img)</span><span class="lc-badge" id="lcClaude">—</span></div>
+        <div class="lc-row"><span class="lc-name">Google Gemini (~20 MB inline)</span><span class="lc-badge" id="lcGemini">—</span></div>
+      </div>
+
+      <div class="media-preview" id="preview">
+        <img id="previewImg" alt="Preview of the resized image">
+        <div class="preview-info">
+          <span id="previewName">—</span>
+          <span id="previewDims">—</span>
+        </div>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> RESIZED BASE64</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="downloadBtn">Download JPEG</button>
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Resized Base64 output</label>
+        <textarea id="output" readonly placeholder="Drop an image, then click Resize to get a smaller Base64 string..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for an image</span></div>
+    </div>
+
+    <h2>How to fix a "base64 image too large" error</h2>
+    <p>The error means the image exceeds the provider's per-image limit, or the full request exceeds its payload limit (that's the <strong>413 "payload too large"</strong>). You <em>cannot</em> fix it by editing the Base64 string — you have to make the underlying image smaller and re-encode it. Two levers do almost all the work:</p>
+    <ul>
+      <li><strong>Resize the dimensions.</strong> Scale the longest side down to 1024–1536&nbsp;px. Pixels are the dominant cost, so this is the biggest win.</li>
+      <li><strong>Re-encode as JPEG.</strong> A screenshot saved as PNG can be many times larger than the same image as JPEG at quality 0.85. Unless you need transparency, JPEG wins.</li>
+    </ul>
+    <p>Do both, then Base64-encode the result. The resizer above runs the whole pipeline — resize on a canvas, re-encode with <code>canvas.toBlob('image/jpeg', quality)</code>, and hand you the new Base64 and a downloadable file.</p>
+
+    <h2>Per-provider image size limits</h2>
+    <p>Encoding to Base64 counts against these limits, because the encoded string is what actually travels in the request body. Approximate current limits:</p>
+    <table>
+      <thead><tr><th>Provider</th><th>Limit</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>OpenAI (GPT-4o / GPT-4.1)</td><td>~5 MB per image</td><td>Auto-downscales large images; caps effective resolution (short side ≤ 768&nbsp;px in detail tiles).</td></tr>
+        <tr><td>Anthropic Claude</td><td>~5 MB per image</td><td>Auto-resizes images whose long edge exceeds ~1568&nbsp;px, so bigger uploads gain nothing.</td></tr>
+        <tr><td>Google Gemini</td><td>~20 MB total inline request</td><td>Above this, upload via the Files API and pass a file reference instead of inline Base64.</td></tr>
+      </tbody>
+    </table>
+    <p>Because OpenAI and Claude downscale anyway, sending a huge image just wastes upload bandwidth and risks the limit for no accuracy gain.</p>
+
+    <h2>Why base64 makes it worse (~33%)</h2>
+    <p>Base64 encodes every 3 bytes of binary as 4 ASCII characters, so the encoded text is about <strong>33% larger</strong> than the original file. A 4&nbsp;MB image becomes roughly 5.3&nbsp;MB of Base64. That's exactly enough to push an "almost fits" image over a 5&nbsp;MB per-image limit. The original panel above shows both numbers so you can see the gap. For the underlying math, see the <a href="/base64-size-calculator">Base64 size calculator</a>.</p>
+
+    <h2>Resize before you encode</h2>
+    <p>Dimensions matter more than the Base64 overhead for both size <em>and</em> token cost. Vision models split an image into tiles and bill tokens per tile, so a 4000&nbsp;px photo costs far more tokens than the same scene at 1024&nbsp;px — often with no extra useful detail, since the model downscales it regardless. Resize first, then encode. For a longest side of 1024–1536&nbsp;px at JPEG quality 0.8–0.9, most images drop by 70–95% and comfortably clear every provider limit.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. The resize and re-encode happen locally on a <code>&lt;canvas&gt;</code> in your browser, and the Base64 is produced in memory — <strong>nothing is uploaded</strong>. You can confirm in DevTools → Network: resizing fires no request. The only network call on this page is anonymous page-view analytics.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>Why is my base64 image too large for the API?</h3>
+    <p>The image's file size exceeds the provider's per-image limit, or the whole request exceeds its payload limit and you get a 413. Base64 adds ~33% overhead, so a photo that looks under the limit as a file can still push the encoded request over it. Resize the dimensions and re-encode as JPEG to fix it.</p>
+    <h3>What's the max image size for GPT-4o / Claude / Gemini?</h3>
+    <p>OpenAI (GPT-4o / GPT-4.1) and Anthropic Claude both accept roughly <strong>5&nbsp;MB per image</strong> and auto-downscale large ones. Google Gemini allows about <strong>20&nbsp;MB for the total inline request</strong>; beyond that, use its Files API instead of inline Base64.</p>
+    <h3>Does base64 increase the image size?</h3>
+    <p>Yes — by about <strong>33%</strong>. Base64 turns 3 bytes into 4 ASCII characters, so a 3&nbsp;MB image becomes roughly 4&nbsp;MB of text. That encoded size is what counts against the API's limit.</p>
+    <h3>How do I reduce a base64 image's size?</h3>
+    <p>Don't touch the Base64 string directly — shrink the image. Resize the longest side to 1024–1536&nbsp;px and re-encode as JPEG at quality 0.8–0.9, then encode. Use the resizer above; it typically cuts size by 70–95% and gives you the smaller Base64.</p>
+    <h3>Will resizing hurt the model's accuracy?</h3>
+    <p>Usually not. Vision models tile and downscale images internally, so a longest side of 1024–1536&nbsp;px is plenty for most documents, screenshots, and photos. Only push higher for dense text or fine detail.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64-for-ai-vision">Image to Base64 for AI Vision</a></li>
+        <li><a href="/gpt-vision-base64-invalid-image-error">GPT Vision "Invalid Image" Error</a></li>
+        <li><a href="/base64-size-calculator">Base64 Size Calculator</a></li>
+        <li><a href="/image-to-base64">Image to Base64</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need text, files, or URL-safe Base64?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var dropzone = $('dropzone'), fileInput = $('fileInput'), output = $('output'), status = $('status');
+  var maxDim = $('maxDim'), quality = $('quality'), qualityVal = $('qualityVal'), resizeBtn = $('resizeBtn');
+  var preview = $('preview'), previewImg = $('previewImg'), previewName = $('previewName'), previewDims = $('previewDims');
+  var copyBtn = $('copyBtn'), downloadBtn = $('downloadBtn');
+  var oDim = $('oDim'), oBytes = $('oBytes'), oB64 = $('oB64');
+  var nDim = $('nDim'), nBytes = $('nBytes'), nB64 = $('nB64'), reduction = $('reduction');
+
+  var LIMITS = { lcOpenAI: 5 * 1048576, lcClaude: 5 * 1048576, lcGemini: 20 * 1048576 };
+
+  var img = null, origBytes = 0, origName = '', resizedBase64 = '', resizedBlob = null;
+
+  function b64SizeOf(byteLen) { return Math.ceil(byteLen / 3) * 4; } // padded Base64 length
+
+  function setBadge(id, bytes) {
+    var el = $(id);
+    if (bytes == null) { el.className = 'lc-badge'; el.textContent = '—'; return; }
+    var ok = bytes <= LIMITS[id];
+    el.className = 'lc-badge ' + (ok ? 'pass' : 'fail');
+    el.textContent = ok ? 'PASS' : 'TOO BIG';
+  }
+
+  function checkLimits(byteLen) {
+    // Vision APIs read the (Base64) request payload; compare against encoded size.
+    var enc = byteLen == null ? null : b64SizeOf(byteLen);
+    setBadge('lcOpenAI', enc);
+    setBadge('lcClaude', enc);
+    setBadge('lcGemini', enc);
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { B64.setStatus(status, 'err', 'That file is not an image.'); return; }
+    origBytes = file.size;
+    origName = file.name;
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onload = function () {
+      img = im;
+      oDim.textContent = im.naturalWidth + ' × ' + im.naturalHeight;
+      oBytes.textContent = B64.fmtSize(origBytes);
+      oB64.textContent = B64.fmtSize(b64SizeOf(origBytes));
+      checkLimits(origBytes);
+      resizeBtn.disabled = false;
+      B64.setStatus(status, 'ok', 'Loaded ' + origName + ' — click Resize');
+      resize();
+    };
+    im.onerror = function () { B64.setStatus(status, 'err', 'Could not decode that image.'); };
+    im.src = url;
+  }
+
+  function resize() {
+    if (!img) return;
+    var max = parseInt(maxDim.value, 10);
+    var q = parseFloat(quality.value);
+    var w = img.naturalWidth, h = img.naturalHeight;
+    var scale = Math.min(1, max / Math.max(w, h)); // never upscale
+    var nw = Math.max(1, Math.round(w * scale));
+    var nh = Math.max(1, Math.round(h * scale));
+    var canvas = document.createElement('canvas');
+    canvas.width = nw; canvas.height = nh;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, nw, nh);
+    canvas.toBlob(function (blob) {
+      if (!blob) { B64.setStatus(status, 'err', 'Re-encoding failed.'); return; }
+      resizedBlob = blob;
+      blob.arrayBuffer().then(function (buf) {
+        var bytes = new Uint8Array(buf);
+        resizedBase64 = B64.bytesToBase64(bytes);
+        output.value = resizedBase64;
+        nDim.textContent = nw + ' × ' + nh;
+        nBytes.textContent = B64.fmtSize(blob.size);
+        nB64.textContent = B64.fmtSize(resizedBase64.length);
+        var pct = origBytes ? Math.round((1 - blob.size / origBytes) * 100) : 0;
+        reduction.textContent = pct > 0 ? ('▼ ' + pct + '% smaller') : (pct < 0 ? ('▲ ' + (-pct) + '% larger') : 'Same size');
+        reduction.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+        checkLimits(blob.size);
+        var pUrl = URL.createObjectURL(blob);
+        previewImg.src = pUrl;
+        previewName.textContent = (origName.replace(/\.[^.]+$/, '') || 'image') + '-resized.jpg';
+        previewDims.textContent = nw + ' × ' + nh + ' · ' + B64.fmtSize(blob.size);
+        preview.classList.add('visible');
+        B64.setStatus(status, 'ok', 'Resized to ' + nw + '×' + nh + ' JPEG (' + B64.fmtSize(blob.size) + ')');
+      });
+    }, 'image/jpeg', q);
+  }
+
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+  dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function (e) { handleFile(e.target.files[0]); });
+  document.body.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.body.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  quality.addEventListener('input', function () { qualityVal.textContent = parseFloat(quality.value).toFixed(2); });
+  quality.addEventListener('change', resize);
+  maxDim.addEventListener('change', resize);
+  resizeBtn.addEventListener('click', resize);
+
+  downloadBtn.addEventListener('click', function () {
+    if (!resizedBlob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(resizedBlob);
+    a.download = (origName.replace(/\.[^.]+$/, '') || 'image') + '-resized.jpg';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

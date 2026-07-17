@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix 'Invalid Image' Base64 Errors in GPT-4o / Claude / Gemini Vision — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="An 'invalid image' or 400 error from a vision API almost always means the wrong data: prefix, a mismatched MIME type, whitespace, truncation, or an unsupported format. Paste your Base64 to check which — runs locally, nothing uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/gpt-vision-base64-invalid-image-error">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/gpt-vision-base64-invalid-image-error">
+<meta property="og:title" content="Fix 'Invalid Image' Base64 Errors in GPT-4o / Claude / Gemini Vision">
+<meta property="og:description" content="Paste your Base64 or data URL to find out why a vision API rejects your image: wrong data: prefix, MIME mismatch, whitespace, truncation, or unsupported format. Runs locally — nothing uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fix 'Invalid Image' Base64 Errors in GPT-4o / Claude / Gemini Vision">
+<meta name="twitter:description" content="Paste your Base64 or data URL to find out why a vision API rejects your image: wrong prefix, MIME mismatch, whitespace, truncation, or unsupported format.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Vision API Base64 Image Validator",
+  "url": "https://base64.dev/gpt-vision-base64-invalid-image-error",
+  "description": "Diagnose why GPT-4o, Claude, or Gemini vision APIs reject a Base64 image. Checks the data: prefix, Base64 validity, whitespace, the detected image format, MIME match, and size — entirely in the browser.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to fix an 'invalid image' Base64 error on a vision API",
+  "description": "Diagnose and fix the Base64 image a vision API rejected with an 'invalid image' or 400 error.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Paste your Base64 or data URL", "text": "Paste the exact Base64 string or data: URL you are sending to the API into the validator box." },
+    { "@type": "HowToStep", "position": 2, "name": "Read the checks", "text": "The validator reports whether the Base64 is valid, whitespace-free, a recognized image, MIME-matched, a supported format, and within the size limit." },
+    { "@type": "HowToStep", "position": 3, "name": "Pass it the right way per provider", "text": "Send the full data URL in image_url.url for OpenAI, or raw base64 in source.data (Claude) / inline_data.data (Gemini) with a matching media_type." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why does GPT-4o say my image is invalid?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The most common cause is a malformed image_url.url. OpenAI expects a full data URL there: data:image/png;base64,iVBORw0.... If you send raw base64 with no data: prefix, or a prefix whose MIME does not match the actual bytes, or base64 containing newlines or truncated at the end, GPT-4o returns an 'invalid image' or 400 error. Paste your string into the validator on this page to see which check fails." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I include the data: prefix?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It depends on the provider. OpenAI needs the full data URL (data:image/png;base64,...) in image_url.url. Claude and Gemini need RAW base64 with no prefix — Claude in source.data with a separate media_type field, Gemini in inline_data.data with a separate mimeType field. Sending a data URL where raw base64 is expected, or vice versa, is the single most common cause of 'invalid image' errors." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Claude say it can't process my image?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Claude expects raw base64 in source.data with no data: prefix, plus a media_type field (for example image/jpeg) that matches the actual bytes. If you leave the data: prefix in source.data, or set media_type to image/png when the bytes are really a JPEG, Claude rejects the image. It must also be PNG, JPEG, GIF, or WebP and under the per-image size ceiling." }
+    },
+    {
+      "@type": "Question",
+      "name": "My base64 looks fine but still fails — why?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Three hidden culprits: whitespace or newlines inside the base64 (some SDKs reject them — strip all \\r\\n and spaces), truncation (the string was cut off, so the bytes are incomplete and decode to a broken image), or an unsupported format like SVG, BMP, or TIFF that decodes fine but is not accepted by vision APIs. The validator on this page flags all three." }
+    },
+    {
+      "@type": "Question",
+      "name": "What image formats do vision APIs accept?",
+      "acceptedAnswer": { "@type": "Answer", "text": "GPT-4o, Claude, and Gemini all accept PNG, JPEG, GIF, and WebP. Formats like SVG, BMP, TIFF, and PDF are not accepted as images even though they may be valid files — convert them to PNG or JPEG first. The declared MIME type (media_type / mimeType) must also match the actual bytes." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Fix Invalid Image Base64 Errors (Vision APIs)", "item": "https://base64.dev/gpt-vision-base64-invalid-image-error" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+  .check-list { list-style: none; padding: 0; margin: 0; }
+  .check-list li { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border, rgba(128,128,128,0.18)); font-size: 0.95rem; line-height: 1.45; }
+  .check-list li:last-child { border-bottom: none; }
+  .check-icon { flex: 0 0 auto; font-weight: 700; width: 1.3em; text-align: center; }
+  .check-pass .check-icon { color: #22c55e; }
+  .check-fail .check-icon { color: #ef4444; }
+  .check-warn .check-icon { color: #f59e0b; }
+  .check-verdict { font-weight: 600; margin: 0.4rem 0 0.8rem; }
+  .provider-notes { margin-top: 0.4rem; }
+  .provider-notes code { white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>Fix Invalid Image Base64 Errors (Vision APIs)</span>
+    </div>
+
+    <h1>Fix 'Invalid Image' Base64 Errors (Vision APIs)</h1>
+    <p class="lead">An <strong>'invalid image'</strong> or <strong>400</strong> error from a vision API almost always means one of five things: (1) the wrong <code>data:</code> prefix (OpenAI needs the full data URL in <code>image_url.url</code>; Claude and Gemini need <strong>raw</strong> base64 in <code>data</code>, no prefix), (2) a MIME type that doesn't match the actual bytes, (3) whitespace/newlines in the base64, (4) truncated/incomplete base64, or (5) an unsupported format. Paste your Base64 or data URL below to check which. Everything runs in your browser — nothing is uploaded.</p>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> BASE64 OR DATA URL</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Base64 or data URL input</label>
+        <textarea id="input" aria-label="Base64 or data URL input" placeholder="Paste the exact base64 or data:image/...;base64,... you send to the API..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="check-verdict" id="verdict"></div>
+      <ul class="check-list" id="results"></ul>
+      <div class="provider-notes" id="providers"></div>
+
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+
+    <h2>Why do I get an 'invalid image' error?</h2>
+    <p>A vision API rejects a Base64 image for one of five reasons, in rough order of frequency:</p>
+    <ol>
+      <li><strong>Wrong <code>data:</code> prefix for the provider.</strong> OpenAI wants a full data URL; Claude and Gemini want raw base64 with no prefix. This is the single most common cause — see the table below.</li>
+      <li><strong>MIME type doesn't match the bytes.</strong> You declared <code>image/png</code> but the bytes are actually a JPEG. The declared <code>media_type</code> / <code>mimeType</code> must match the real format.</li>
+      <li><strong>Whitespace or newlines inside the base64.</strong> Base64 produced by some tools is wrapped at 64 or 76 columns; several SDKs reject the embedded <code>\n</code>.</li>
+      <li><strong>Truncated or incomplete base64.</strong> The string was cut off (logging limits, copy/paste), so the bytes are incomplete and decode to a broken image.</li>
+      <li><strong>Unsupported format.</strong> SVG, BMP, TIFF, and PDF are valid files but are not accepted as images by vision APIs — convert to PNG or JPEG first.</li>
+    </ol>
+    <p>The validator above runs each of these checks locally and tells you which one is failing.</p>
+
+    <h2>The data: prefix trap (per provider)</h2>
+    <p>This is the mistake that trips up almost everyone. The three major providers disagree on whether you pass the whole <code>data:</code> URL or just the raw base64 payload:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Provider</th><th>Field</th><th>What goes in it</th><th>Separate MIME field?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>OpenAI (GPT-4o)</strong></td><td><code>image_url.url</code></td><td>Full <strong>data URL</strong>: <code>data:image/png;base64,iVBORw0…</code></td><td>No — MIME is inside the URL</td></tr>
+          <tr><td><strong>Anthropic (Claude)</strong></td><td><code>source.data</code></td><td><strong>Raw base64</strong>, no <code>data:</code> prefix</td><td>Yes — <code>media_type</code> (e.g. <code>image/jpeg</code>)</td></tr>
+          <tr><td><strong>Google (Gemini)</strong></td><td><code>inline_data.data</code></td><td><strong>Raw base64</strong>, no <code>data:</code> prefix</td><td>Yes — <code>mimeType</code> (e.g. <code>image/webp</code>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>If you paste a full <code>data:image/png;base64,…</code> string into Claude's <code>source.data</code> or Gemini's <code>inline_data.data</code>, the base64 decoder chokes on the <code>data:image/png;base64,</code> text and you get an invalid-image error. Conversely, if you send raw base64 with no prefix to OpenAI's <code>image_url.url</code>, it isn't a valid URL and the request fails.</p>
+
+    <h2>MIME type must match the bytes</h2>
+    <p>The declared type has to match what the bytes actually are. If you set Claude's <code>media_type</code> to <code>image/png</code> but hand it JPEG bytes, Claude rejects it — the header the decoder finds doesn't agree with what you promised. The safest approach is to <strong>sniff the real format from the leading bytes</strong> (the PNG, JPEG, GIF, and WebP magic numbers) rather than trusting a filename or a hardcoded string. The validator above sniffs the actual format and flags a mismatch against any declared prefix. For OpenAI, the MIME lives inside the data URL, so the same rule applies: <code>data:image/png;base64,</code> in front of JPEG bytes is wrong.</p>
+
+    <h2>Whitespace, truncation, and unsupported formats</h2>
+    <p>Three subtler failures survive a casual glance:</p>
+    <p><strong>Whitespace / newlines.</strong> Base64 emitted by <code>base64</code> (the CLI), MIME encoders, or PEM-style tools is line-wrapped. Strip every <code>\r</code>, <code>\n</code>, and space before sending — <code>base64.replace(/\s/g, '')</code> in JS, or <code>base64 -w0</code> at the CLI.</p>
+    <p><strong>Truncation.</strong> If the string was cut off — by a log truncation limit, a database column, or a bad copy/paste — the trailing bytes are missing and the image won't decode. A base64 payload whose length isn't a multiple of 4 (after removing padding) is a strong hint it was cut.</p>
+    <p><strong>Unsupported format.</strong> All three providers accept <strong>PNG, JPEG, GIF, and WebP</strong>. SVG, BMP, TIFF, HEIC, and PDF are not accepted as images even though they decode to valid bytes — convert to PNG or JPEG first.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. Every check runs fully in the browser with JavaScript — your Base64 is decoded and inspected locally, and <strong>nothing is uploaded</strong> to any server. You can confirm in DevTools → Network: pasting fires no request. That means you can safely paste image data from a production request without it leaving your machine.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>Why does GPT-4o say my image is invalid?</h3>
+    <p>The most common cause is a malformed <code>image_url.url</code>. OpenAI expects a <strong>full data URL</strong> there: <code>data:image/png;base64,iVBORw0…</code>. If you send raw base64 with no <code>data:</code> prefix, a prefix whose MIME doesn't match the actual bytes, base64 containing newlines, or a string truncated at the end, GPT-4o returns an 'invalid image' or 400 error. Paste your string into the validator above to see which check fails.</p>
+    <h3>Do I include the data: prefix?</h3>
+    <p>It depends on the provider. OpenAI needs the full data URL (<code>data:image/png;base64,…</code>) in <code>image_url.url</code>. Claude and Gemini need <strong>raw</strong> base64 with no prefix — Claude in <code>source.data</code> with a separate <code>media_type</code> field, Gemini in <code>inline_data.data</code> with a separate <code>mimeType</code> field. See the per-provider table above; mixing these up is the single most common cause of invalid-image errors.</p>
+    <h3>Why does Claude say it can't process my image?</h3>
+    <p>Claude expects <strong>raw</strong> base64 in <code>source.data</code> with no <code>data:</code> prefix, plus a <code>media_type</code> (for example <code>image/jpeg</code>) that matches the actual bytes. If you leave the <code>data:</code> prefix in <code>source.data</code>, or set <code>media_type</code> to <code>image/png</code> when the bytes are really a JPEG, Claude rejects the image. It must also be PNG, JPEG, GIF, or WebP and under the per-image size ceiling.</p>
+    <h3>My base64 looks fine but still fails — why?</h3>
+    <p>Three hidden culprits: <strong>whitespace or newlines</strong> inside the base64 (strip all <code>\r\n</code> and spaces), <strong>truncation</strong> (the string was cut off, so the bytes are incomplete and decode to a broken image), or an <strong>unsupported format</strong> like SVG, BMP, or TIFF that decodes fine but isn't accepted by vision APIs. The validator above flags all three.</p>
+    <h3>What image formats do vision APIs accept?</h3>
+    <p>GPT-4o, Claude, and Gemini all accept <strong>PNG, JPEG, GIF, and WebP</strong>. Formats like SVG, BMP, TIFF, and PDF are not accepted as images even though they may be valid files — convert them to PNG or JPEG first. The declared MIME type (<code>media_type</code> / <code>mimeType</code>) must also match the actual bytes.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/image-to-base64-for-ai-vision">Image to Base64 for AI Vision</a></li>
+        <li><a href="/claude-api-base64-image">Claude API Base64 Image</a></li>
+        <li><a href="/gemini-api-base64-image">Gemini API Base64 Image</a></li>
+        <li><a href="/base64-image-too-large-vision-api">Base64 Image Too Large for Vision API</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), results = $('results'), verdict = $('verdict'),
+      providers = $('providers'), status = $('status'), clearBtn = $('clearBtn');
+
+  var FMT_NAMES = {
+    'image/png': 'PNG', 'image/jpeg': 'JPEG', 'image/gif': 'GIF',
+    'image/webp': 'WebP', 'application/pdf': 'PDF', 'image/svg+xml': 'SVG'
+  };
+  var SUPPORTED = { 'image/png': 1, 'image/jpeg': 1, 'image/gif': 1, 'image/webp': 1 };
+  var MAX_BYTES = 5 * 1024 * 1024; // ~5MB per-image ceiling (Claude/OpenAI)
+
+  function esc(s) {
+    return String(s).replace(/[&<>]/g, function (c) {
+      return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;';
+    });
+  }
+
+  function row(kind, html) {
+    var icon = kind === 'pass' ? '✓' : kind === 'fail' ? '✕' : '!';
+    return '<li class="check-' + kind + '"><span class="check-icon">' + icon +
+           '</span><span>' + html + '</span></li>';
+  }
+
+  function run() {
+    var raw = input.value.trim();
+    if (!raw) {
+      results.innerHTML = '';
+      verdict.textContent = '';
+      providers.innerHTML = '';
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+
+    var rows = [];
+    var fatal = false;   // a FAIL that stops the image working
+    var warn = false;
+
+    // 1. Detect + strip a data: prefix.
+    var declaredMime = null, hadPrefix = false, payload = raw;
+    var m = raw.match(/^data:([^;,]*);base64,([\s\S]*)$/);
+    if (m) {
+      hadPrefix = true;
+      declaredMime = (m[1] || '').toLowerCase();
+      payload = m[2];
+      rows.push(row('pass', 'A <code>data:</code> prefix was present, declaring <code>' +
+        esc(declaredMime || '(none)') + '</code>. OpenAI wants this full URL; strip it for Claude/Gemini.'));
+    } else {
+      rows.push(row('pass', 'No <code>data:</code> prefix — this is raw base64 (correct for Claude <code>source.data</code> and Gemini <code>inline_data.data</code>; OpenAI needs the full data URL).'));
+    }
+
+    // 3. Whitespace in the payload (check before decoding).
+    if (/\s/.test(payload)) {
+      warn = true;
+      rows.push(row('warn', 'Contains whitespace/newlines — remove them; some SDKs reject them. Use <code>base64.replace(/\\s/g, \'\')</code> or <code>base64 -w0</code>.'));
+    } else {
+      rows.push(row('pass', 'No whitespace or newlines in the base64.'));
+    }
+
+    // 2. Valid base64?
+    var bytes = null;
+    try {
+      bytes = B64.base64ToBytes(payload);
+    } catch (e) {
+      bytes = null;
+    }
+    if (!bytes || bytes.length === 0) {
+      fatal = true;
+      rows.push(row('fail', 'Not valid base64 — check for stray characters or truncation.'));
+      results.innerHTML = rows.join('');
+      verdict.textContent = '✕ This will be rejected: the base64 itself is invalid.';
+      providers.innerHTML = '';
+      B64.setStatus(status, 'err', 'Invalid base64 input.');
+      return;
+    }
+    rows.push(row('pass', 'Valid base64 — decodes to ' + bytes.length + ' bytes.'));
+
+    // 4. Recognized image?
+    var sniffed = B64.sniffMime(bytes);
+    var sniffedName = sniffed ? (FMT_NAMES[sniffed] || sniffed) : 'unknown';
+    if (!sniffed) {
+      fatal = true;
+      rows.push(row('fail', 'Bytes are not a recognized image (detected: <strong>unknown</strong>). This is not a PNG/JPEG/GIF/WebP — likely truncated, corrupt, or not an image.'));
+    } else {
+      rows.push(row('pass', 'Recognized image format: <strong>' + esc(sniffedName) + '</strong>.'));
+    }
+
+    // 5. MIME match against a declared prefix.
+    if (hadPrefix && sniffed && declaredMime) {
+      if (declaredMime === sniffed) {
+        rows.push(row('pass', 'Declared MIME <code>' + esc(declaredMime) + '</code> matches the actual bytes.'));
+      } else {
+        fatal = true;
+        rows.push(row('fail', 'Declared <code>' + esc(declaredMime) + '</code> but bytes are <strong>' +
+          esc(sniffedName) + '</strong> — set the correct <code>media_type</code>/<code>mimeType</code> (<code>' +
+          esc(sniffed) + '</code>).'));
+      }
+    }
+
+    // 6. Format supported by vision APIs?
+    if (sniffed) {
+      if (SUPPORTED[sniffed]) {
+        rows.push(row('pass', 'Format <strong>' + esc(sniffedName) + '</strong> is supported by GPT-4o, Claude, and Gemini.'));
+      } else {
+        warn = true;
+        rows.push(row('warn', '<strong>' + esc(sniffedName) + '</strong> is not a supported vision format — convert to PNG or JPEG first (vision APIs accept PNG/JPEG/GIF/WebP).'));
+      }
+    }
+
+    // 7. Size.
+    var sizeStr = B64.fmtSize(bytes.length);
+    if (bytes.length > MAX_BYTES) {
+      warn = true;
+      rows.push(row('warn', 'Size is <strong>' + sizeStr + '</strong> — over the ~5MB per-image ceiling for Claude/OpenAI. See <a href="/base64-image-too-large-vision-api">Base64 image too large for vision API</a>.'));
+    } else {
+      rows.push(row('pass', 'Size is <strong>' + sizeStr + '</strong> — within the ~5MB per-image ceiling.'));
+    }
+
+    results.innerHTML = rows.join('');
+
+    // Verdict.
+    if (fatal) {
+      verdict.innerHTML = '<span style="color:#ef4444">✕ This image will be rejected.</span> Fix the failed check(s) above.';
+      B64.setStatus(status, 'err', 'Image will be rejected — see failed checks.');
+    } else if (warn) {
+      verdict.innerHTML = '<span style="color:#f59e0b">! Likely to work, with warnings.</span> Review the flagged items above.';
+      B64.setStatus(status, 'ok', 'Passes with warnings.');
+    } else {
+      verdict.innerHTML = '<span style="color:#22c55e">✓ This looks like a valid, supported image.</span> Pass it the right way per provider below.';
+      B64.setStatus(status, 'ok', 'Valid image — see per-provider notes.');
+    }
+
+    // Per-provider correct usage.
+    var mimeForNote = sniffed || (declaredMime || 'image/png');
+    providers.innerHTML =
+      '<p style="margin:0.4rem 0 0.2rem;font-weight:600">How to pass this image:</p>' +
+      '<ul style="margin:0;padding-left:1.2rem;font-size:0.92rem;line-height:1.5">' +
+      '<li><strong>OpenAI (GPT-4o):</strong> put the full data URL in <code>image_url.url</code> — <code>data:' + esc(mimeForNote) + ';base64,&lt;base64&gt;</code>.</li>' +
+      '<li><strong>Claude:</strong> put the <em>raw</em> base64 (no prefix) in <code>source.data</code>, with <code>media_type: "' + esc(mimeForNote) + '"</code>.</li>' +
+      '<li><strong>Gemini:</strong> put the <em>raw</em> base64 (no prefix) in <code>inline_data.data</code>, with <code>mimeType: "' + esc(mimeForNote) + '"</code>.</li>' +
+      '</ul>';
+  }
+
+  input.addEventListener('input', run);
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    results.innerHTML = '';
+    verdict.textContent = '';
+    providers.innerHTML = '';
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

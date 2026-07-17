@@ -55,6 +55,8 @@
 - [Image to Base64 for AI Vision](https://base64.dev/image-to-base64-for-ai-vision): Drop an image to get its Base64 data URL plus ready-to-paste request payloads for OpenAI GPT-4o (image_url data URL), Anthropic Claude (source.type base64), and Google Gemini (inline_data). Runs locally.
 - [Claude API Base64 Image](https://base64.dev/claude-api-base64-image): The exact Claude Messages API image block — raw Base64 (no data: prefix), media_type, data — with Python and TypeScript examples.
 - [Gemini API Base64 Image](https://base64.dev/gemini-api-base64-image): The exact Gemini generateContent inline_data part (mime_type + raw Base64), plus the inline_data vs inlineData (REST vs JS SDK) gotcha and the 20MB Files API limit.
+- [Fix "Invalid Image" Base64 Errors (Vision APIs)](https://base64.dev/gpt-vision-base64-invalid-image-error): Paste a base64 or data URL and validate it against every vision-API rule — valid base64, recognized image, declared vs actual MIME, whitespace/truncation, supported format, and the per-provider data: prefix trap (OpenAI data URL vs Claude/Gemini raw base64).
+- [Base64 Image Too Large for a Vision API](https://base64.dev/base64-image-too-large-vision-api): Drop an image to check its size against OpenAI/Claude (~5MB) and Gemini (20MB inline) limits, then resize + re-encode as JPEG in-browser to fit. Explains the ~33% base64 overhead.
 
 ## Encode & decode by language (live tool + code)
 
