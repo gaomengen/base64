@@ -48,6 +48,7 @@
 - [Base64 Gzip Decode](https://base64.dev/base64-gzip-decode): Decode Base64 and gunzip/inflate it in one step (auto-detects gzip/deflate), or compress+encode. For SAML, compressed API payloads, and log blobs.
 - [Base64 Certificate Decoder](https://base64.dev/base64-certificate-decoder): Decode and convert PEM / DER / raw-Base64 X.509 certificates, fix line wrapping, download DER. Full field decoding via the shown openssl command.
 - [SAML Decoder](https://base64.dev/saml-decoder): Decode a SAMLResponse or SAMLRequest — URL-decode, Base64-decode, auto-inflate the DEFLATE redirect binding, pretty-print the XML, and extract Issuer/NameID/Conditions/Audience/Attributes. 100% client-side; signature is not verified.
+- [PowerShell Encoded Command Decoder](https://base64.dev/powershell-encoded-command-decoder): Decode a PowerShell -enc / -EncodedCommand string (Base64 of UTF-16LE bytes — the reason naive UTF-8 decoders show garbled output), or encode a command. Auto-attempts gzip/deflate inflation for nested payloads. Defensive/IR tool; 100% local; decoding never runs the command.
 
 ## AI vision (image → Base64 for LLM APIs)
 
