@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dockerconfigjson Generator &amp; Decoder — Kubernetes imagePullSecret — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Generate a Kubernetes .dockerconfigjson image-pull secret from a registry and credentials, or paste one to decode it. Base64 twice over — encoding, not encryption. Runs locally; nothing is uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/dockerconfigjson">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/dockerconfigjson">
+<meta property="og:title" content="dockerconfigjson Generator &amp; Decoder">
+<meta property="og:description" content="Generate a Kubernetes .dockerconfigjson image-pull secret from a registry and credentials, or decode one. Runs locally — nothing is uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="dockerconfigjson Generator &amp; Decoder">
+<meta name="twitter:description" content="Generate a Kubernetes .dockerconfigjson image-pull secret from a registry and credentials, or decode one. Runs locally — nothing is uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "dockerconfigjson Generator & Decoder",
+  "url": "https://base64.dev/dockerconfigjson",
+  "description": "Generate a Kubernetes .dockerconfigjson image-pull secret (type kubernetes.io/dockerconfigjson) from a registry and credentials, and decode an existing one back to its registry, username, and password. Runs entirely in the browser — nothing is uploaded.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to create a Kubernetes image-pull secret",
+  "description": "Turn a container registry and credentials into a Kubernetes .dockerconfigjson image-pull secret.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Enter the registry and credentials", "text": "Type your registry URL, username, and password or token. For Docker Hub use https://index.docker.io/v1/." },
+    { "@type": "HowToStep", "position": 2, "name": "Copy the generated secret", "text": "The tool builds the Docker config.json, its Base64 .dockerconfigjson value, a ready-to-apply Secret YAML, and the equivalent kubectl command — all locally in your browser." },
+    { "@type": "HowToStep", "position": 3, "name": "Apply and reference it", "text": "Apply the Secret with kubectl, then reference it from a Pod or ServiceAccount under imagePullSecrets." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I generate a .dockerconfigjson secret?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Enter your registry URL, username, and password in the generator on this page. It builds a Docker config.json with an auths entry, Base64-encodes the whole thing into the .dockerconfigjson value, and outputs a ready-to-apply Secret YAML plus the equivalent kubectl create secret docker-registry command — all locally in your browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is the auth field Base64 inside Base64?",
+      "acceptedAnswer": { "@type": "Answer", "text": "There are two layers. The inner auth field is Base64 of username:password (the same format as HTTP Basic Auth). That sits inside the config.json, and the entire config.json is then Base64-encoded again to produce the .dockerconfigjson value stored in the Secret. So credentials are Base64-encoded twice over." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode a dockerconfigjson secret?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Switch to Decode mode on this page and paste either the raw Base64 .dockerconfigjson value or a full Secret YAML. The tool Base64-decodes it to the config.json, then for each registry decodes the inner auth field to recover the username and password. Everything runs locally in your browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "What registry URL do I use for Docker Hub?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Use https://index.docker.io/v1/ as the registry key for Docker Hub. Other registries use their host, for example ghcr.io for GitHub Container Registry, or REGION-docker.pkg.dev for Google Artifact Registry." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the password in a dockerconfigjson secret encrypted?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. It is only Base64-encoded, which is reversible with no key. Anyone who can read the Secret can recover your registry password in seconds. Treat a .dockerconfigjson secret as a real credential and protect it with encryption at rest, Sealed Secrets, SOPS, or Vault." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "dockerconfigjson Generator & Decoder", "item": "https://base64.dev/dockerconfigjson" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+.security-callout{background:var(--red-dim,rgba(220,60,60,.08));border:1px solid var(--red);border-radius:var(--radius-lg);padding:14px 16px;margin:0 0 20px;font-size:14px;line-height:1.6}
+.security-callout strong{color:var(--red)}
+.mode-row{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.mode-caption{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px}
+.field-row{display:flex;flex-direction:column;gap:6px;padding:14px 16px}
+.field-row + .field-row{border-top:1px solid var(--border)}
+.field-label{font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary)}
+.field-input{font-family:var(--font-mono);font-size:14px;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);outline:none;width:100%}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.field-note{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);margin-top:2px}
+.out-row{display:flex;flex-direction:column;gap:6px;padding:14px 16px}
+.out-row + .out-row{border-top:1px solid var(--border)}
+.out-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.out-label{font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary)}
+.out-area{font-family:var(--font-mono);font-size:13px;line-height:1.5;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);outline:none;width:100%;word-break:break-all;white-space:pre-wrap;resize:vertical}
+.secret-out{padding:0}
+.secret-empty{font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary);padding:16px}
+.secret-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px}
+.secret-table th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);padding:10px 16px;border-bottom:1px solid var(--border)}
+.secret-table td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-all;white-space:pre-wrap}
+.secret-table tr:last-child td{border-bottom:none}
+.secret-table .k-cell{color:var(--accent);font-weight:600;white-space:nowrap}
+.secret-table .v-cell{color:var(--text-primary)}
+.secret-table .invalid{color:var(--red);font-size:11px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>dockerconfigjson Generator &amp; Decoder</span>
+    </div>
+
+    <h1>dockerconfigjson Generator &amp; Decoder</h1>
+    <p class="lead">A Kubernetes image-pull secret (<code>type: kubernetes.io/dockerconfigjson</code>) holds a <strong>Base64-encoded</strong> Docker <code>config.json</code>. Inside it, each registry's <code>auth</code> field is itself Base64 of <code>username:password</code> — so it's <strong>Base64 twice over</strong>. Generate the full secret from a registry + credentials below, or paste one to decode it. All local; <strong>nothing is uploaded</strong>.</p>
+
+    <div class="security-callout">
+      <strong>Security note:</strong> This is <strong>encoding, not encryption</strong>. Anyone with the secret can recover your registry password. Treat <code>.dockerconfigjson</code> as a real credential.
+    </div>
+
+    <div class="mode-row">
+      <span class="mode-caption">Mode</span>
+      <button class="small-btn" id="modeBtn">Decode</button>
+    </div>
+
+    <div id="generateMode">
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> REGISTRY &amp; CREDENTIALS</span>
+          </div>
+          <div class="field-row">
+            <label class="field-label" for="registry">Registry</label>
+            <input class="field-input" type="text" id="registry" autocomplete="off" spellcheck="false" placeholder="https://index.docker.io/v1/ (Docker Hub) or ghcr.io, etc.">
+          </div>
+          <div class="field-row">
+            <label class="field-label" for="user">Username</label>
+            <input class="field-input" type="text" id="user" autocomplete="off" spellcheck="false" placeholder="username">
+          </div>
+          <div class="field-row">
+            <label class="field-label" for="pass">Password / token</label>
+            <input class="field-input" type="text" id="pass" autocomplete="off" spellcheck="false" placeholder="password or access token">
+          </div>
+          <div class="field-row">
+            <label class="field-label" for="email">Email <span style="text-transform:none;font-weight:400">(optional)</span></label>
+            <input class="field-input" type="text" id="email" autocomplete="off" spellcheck="false" placeholder="you@example.com">
+            <div class="field-note">Shown in plain text — everything stays in your browser, nothing is sent.</div>
+          </div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> GENERATED SECRET</span>
+          </div>
+          <div class="out-row">
+            <div class="out-head">
+              <span class="out-label">config.json</span>
+              <button class="small-btn" id="copyCfg">Copy</button>
+            </div>
+            <textarea class="out-area" id="cfgout" readonly rows="9" aria-label="Docker config.json" spellcheck="false" placeholder="config.json appears here..."></textarea>
+          </div>
+          <div class="out-row">
+            <div class="out-head">
+              <span class="out-label">.dockerconfigjson (Base64)</span>
+              <button class="small-btn" id="copyB64">Copy</button>
+            </div>
+            <textarea class="out-area" id="b64out" readonly rows="3" aria-label="Base64 .dockerconfigjson value" spellcheck="false" placeholder="Base64 value appears here..."></textarea>
+          </div>
+          <div class="out-row">
+            <div class="out-head">
+              <span class="out-label">Secret YAML</span>
+              <button class="small-btn" id="copyYaml">Copy</button>
+            </div>
+            <textarea class="out-area" id="yamlout" readonly rows="8" aria-label="Kubernetes Secret YAML" spellcheck="false" placeholder="Secret YAML appears here..."></textarea>
+          </div>
+          <div class="out-row">
+            <div class="out-head">
+              <span class="out-label">kubectl command</span>
+              <button class="small-btn" id="copyKubectl">Copy</button>
+            </div>
+            <textarea class="out-area" id="kubectlout" readonly rows="4" aria-label="kubectl create secret command" spellcheck="false" placeholder="kubectl command appears here..."></textarea>
+          </div>
+        </div>
+        <div class="tool-status" id="genStatus"><span class="status-dot"></span><span>Enter a registry, username, and password</span></div>
+      </div>
+    </div>
+
+    <div id="decodeMode" style="display:none">
+      <div class="tool-widget">
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> .dockerconfigjson OR SECRET YAML</span>
+            <div class="panel-actions">
+              <button class="small-btn" id="clearBtn">Clear</button>
+            </div>
+          </div>
+          <label for="decin" class="sr-only">Base64 .dockerconfigjson value or Secret YAML input</label>
+          <textarea id="decin" aria-label="Base64 .dockerconfigjson value or Secret YAML input" placeholder="Paste the raw Base64 .dockerconfigjson value — or a full Secret YAML..." spellcheck="false"></textarea>
+        </div>
+
+        <div class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-label"><span class="dot"></span> DECODED REGISTRIES</span>
+          </div>
+          <div id="decout" class="secret-out" aria-live="polite"></div>
+        </div>
+        <div class="tool-status" id="decStatus"><span class="status-dot"></span><span>Paste a .dockerconfigjson value or Secret YAML</span></div>
+      </div>
+    </div>
+
+    <h2>How to create a Kubernetes image-pull secret</h2>
+    <p>Enter your <strong>registry</strong>, <strong>username</strong>, and <strong>password or token</strong> in the generator above. As you type, the tool builds a Docker <code>config.json</code>, Base64-encodes it into the <code>.dockerconfigjson</code> value, and hands you a ready-to-apply <strong>Secret YAML</strong> plus the equivalent <code>kubectl</code> command. Apply it with <code>kubectl apply -f secret.yaml</code>, or run the <code>kubectl create secret docker-registry</code> one-liner directly. Everything is computed locally in your browser.</p>
+
+    <h2>What is .dockerconfigjson?</h2>
+    <p>It is the Base64-encoded contents of a Docker <code>config.json</code>, stored under the <code>data:</code> field of a Secret whose <code>type</code> is <code>kubernetes.io/dockerconfigjson</code>. The <code>config.json</code> itself looks like this:</p>
+    <p><code>{<br>&nbsp;&nbsp;"auths": {<br>&nbsp;&nbsp;&nbsp;&nbsp;"https://index.docker.io/v1/": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"username": "myuser",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"password": "mypass",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"auth": "bXl1c2VyOm15cGFzcw=="<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}<br>}</code></p>
+    <p>There are <strong>two layers of Base64</strong>. The inner <code>auth</code> field is <code>base64("username:password")</code> — exactly the HTTP Basic Auth format — so <code>myuser:mypass</code> becomes <code>bXl1c2VyOm15cGFzcw==</code>. The <strong>outer</strong> layer Base64-encodes the <em>entire</em> <code>config.json</code> to produce the <code>.dockerconfigjson</code> value that Kubernetes actually stores. That is why credentials in an image-pull secret are Base64-encoded twice over.</p>
+
+    <h2>Using it with imagePullSecrets</h2>
+    <p>Once the Secret (say, <code>regcred</code>) exists, reference it so the kubelet can pull private images. Per Pod:</p>
+    <p><code>spec:<br>&nbsp;&nbsp;imagePullSecrets:<br>&nbsp;&nbsp;- name: regcred</code></p>
+    <p>Or attach it to a <strong>ServiceAccount</strong> so every Pod using that account inherits it automatically:</p>
+    <p><code>kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "regcred"}]}'</code></p>
+
+    <h2>Is base64 in the secret encryption?</h2>
+    <p><strong>No.</strong> Both layers are just Base64 — a reversible encoding with no key. Anyone who can read the Secret can decode the <code>.dockerconfigjson</code> value, read the <code>config.json</code>, and decode the <code>auth</code> field back to your registry username and password in seconds. For a fuller explanation, see <a href="/articles/is-base64-encryption">Is Base64 encryption?</a>. To actually protect an image-pull secret, use <strong>encryption at rest</strong> (KMS), <strong>Sealed Secrets</strong>, <strong>SOPS</strong>, or an external store like <strong>Vault</strong>.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes. Both generating and decoding run entirely in your browser with JavaScript — the registry, credentials, and any secret you paste are processed <strong>locally</strong> and <strong>nothing is uploaded</strong> to any server. This matters here because these are real registry credentials: you can confirm in DevTools → Network that neither generating nor decoding fires a request. Close the tab and the data is gone.</p>
+
+    <h2>Worked example</h2>
+    <p>For Docker Hub with username <code>myuser</code> and password <code>mypass</code>, the inner <code>auth</code> field is <code>base64("myuser:mypass")</code> = <code>bXl1c2VyOm15cGFzcw==</code>. That goes into the <code>config.json</code> shown above, and the whole document is Base64-encoded once more to become the <code>.dockerconfigjson</code> value in the Secret. Decoding reverses both layers: Base64-decode the value to get the <code>config.json</code>, then Base64-decode the <code>auth</code> field and split on the first colon to recover <code>myuser</code> and <code>mypass</code>.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I generate a .dockerconfigjson secret?</h3>
+    <p>Enter your registry URL, username, and password in the generator above. It builds a Docker <code>config.json</code> with an <code>auths</code> entry, Base64-encodes the whole thing into the <code>.dockerconfigjson</code> value, and outputs a ready-to-apply Secret YAML plus the equivalent <code>kubectl create secret docker-registry</code> command — all locally.</p>
+    <h3>Why is the auth field Base64 inside Base64?</h3>
+    <p>Two layers. The inner <code>auth</code> field is <code>base64("username:password")</code> (the same format as HTTP Basic Auth). That sits inside the <code>config.json</code>, and the entire <code>config.json</code> is then Base64-encoded again to produce the <code>.dockerconfigjson</code> value stored in the Secret. So credentials are Base64-encoded twice over.</p>
+    <h3>How do I decode a dockerconfigjson secret?</h3>
+    <p>Switch to <strong>Decode</strong> mode above and paste either the raw Base64 <code>.dockerconfigjson</code> value or a full Secret YAML. The tool Base64-decodes it to the <code>config.json</code>, then for each registry decodes the inner <code>auth</code> field to recover the username and password.</p>
+    <h3>What registry URL do I use for Docker Hub?</h3>
+    <p>Use <code>https://index.docker.io/v1/</code> as the registry key for Docker Hub. Other registries use their host — for example <code>ghcr.io</code> for GitHub Container Registry, or <code>REGION-docker.pkg.dev</code> for Google Artifact Registry.</p>
+    <h3>Is the password in a dockerconfigjson secret encrypted?</h3>
+    <p>No — it is only Base64-encoded, which is reversible with no key. Anyone who can read the Secret can recover your registry password in seconds. Treat a <code>.dockerconfigjson</code> secret as a real credential and protect it with encryption at rest, Sealed Secrets, SOPS, or Vault.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/kubernetes-secret-decoder">Kubernetes Secret Decoder</a></li>
+        <li><a href="/basic-auth-header-generator">Basic Auth Header Generator</a></li>
+        <li><a href="/articles/base64-basic-auth">Base64 and HTTP Basic Auth</a></li>
+        <li><a href="/articles/is-base64-encryption">Is Base64 Encryption?</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var registry = $('registry'), user = $('user'), pass = $('pass'), email = $('email');
+  var cfgout = $('cfgout'), b64out = $('b64out'), yamlout = $('yamlout'), kubectlout = $('kubectlout');
+  var genStatus = $('genStatus');
+  var decin = $('decin'), decout = $('decout'), decStatus = $('decStatus');
+  var modeBtn = $('modeBtn'), generateMode = $('generateMode'), decodeMode = $('decodeMode');
+  var mode = 'generate';
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  // --- Generate ---
+  function gen() {
+    var reg = registry.value.trim();
+    var u = user.value, p = pass.value, e = email.value.trim();
+    if (!reg || !u || !p) {
+      cfgout.value = ''; b64out.value = ''; yamlout.value = ''; kubectlout.value = '';
+      B64.setStatus(genStatus, '', 'Enter a registry, username, and password');
+      return;
+    }
+    var auth = B64.encodeText(u + ':' + p, false);
+    var entry = { username: u, password: p };
+    if (e) entry.email = e;
+    entry.auth = auth;
+    var config = { auths: {} };
+    config.auths[reg] = entry;
+    var pretty = JSON.stringify(config, null, 2);
+    cfgout.value = pretty;
+    var b64 = B64.encodeText(JSON.stringify(config), false);
+    b64out.value = b64;
+    yamlout.value =
+      'apiVersion: v1\n' +
+      'kind: Secret\n' +
+      'metadata:\n' +
+      '  name: regcred\n' +
+      'type: kubernetes.io/dockerconfigjson\n' +
+      'data:\n' +
+      '  .dockerconfigjson: ' + b64;
+    var cmd =
+      'kubectl create secret docker-registry regcred \\\n' +
+      '  --docker-server=' + reg + ' --docker-username=' + u + ' \\\n' +
+      '  --docker-password=' + p;
+    if (e) cmd += ' --docker-email=' + e;
+    kubectlout.value = cmd;
+    B64.setStatus(genStatus, 'ok', 'Secret generated');
+  }
+
+  registry.addEventListener('input', gen);
+  user.addEventListener('input', gen);
+  pass.addEventListener('input', gen);
+  email.addEventListener('input', gen);
+  B64.wireCopy($('copyCfg'), function () { return cfgout.value; });
+  B64.wireCopy($('copyB64'), function () { return b64out.value; });
+  B64.wireCopy($('copyYaml'), function () { return yamlout.value; });
+  B64.wireCopy($('copyKubectl'), function () { return kubectlout.value; });
+
+  // --- Decode ---
+  // Extract the .dockerconfigjson value from a Secret YAML if present; otherwise
+  // return the trimmed input as a raw Base64 value.
+  function extractValue(text) {
+    var m = text.match(/\.dockerconfigjson:\s*([A-Za-z0-9+/=_-]+)/);
+    if (m) return m[1];
+    return text.trim().replace(/\s/g, '');
+  }
+
+  function decodeRun() {
+    var raw = decin.value;
+    if (!raw.trim()) {
+      decout.innerHTML = '';
+      B64.setStatus(decStatus, '', 'Paste a .dockerconfigjson value or Secret YAML');
+      return;
+    }
+    var value = extractValue(raw);
+    var json;
+    try {
+      json = B64.decodeText(value);
+    } catch (err) {
+      decout.innerHTML = '<div class="secret-empty">Could not Base64-decode the input.</div>';
+      B64.setStatus(decStatus, 'err', 'Invalid Base64 .dockerconfigjson value');
+      return;
+    }
+    var config;
+    try {
+      config = JSON.parse(json);
+    } catch (err) {
+      decout.innerHTML = '<div class="secret-empty">Decoded, but the result is not valid JSON.</div>';
+      B64.setStatus(decStatus, 'err', 'Decoded value is not JSON');
+      return;
+    }
+    var auths = config && config.auths;
+    if (!auths || typeof auths !== 'object' || !Object.keys(auths).length) {
+      decout.innerHTML = '<div class="secret-empty">No <code>auths</code> entries found in the config.json.</div>';
+      B64.setStatus(decStatus, 'err', 'No registries found');
+      return;
+    }
+    var html = '<table class="secret-table"><thead><tr><th>Registry</th><th>Username</th><th>Password</th></tr></thead><tbody>';
+    var regs = Object.keys(auths);
+    for (var i = 0; i < regs.length; i++) {
+      var reg = regs[i], a = auths[reg] || {};
+      var uname = a.username, pword = a.password, note = '';
+      // Prefer decoding the auth field, since JSON sometimes only has `auth`.
+      if (a.auth) {
+        try {
+          var creds = B64.decodeText(a.auth);
+          var idx = creds.indexOf(':');
+          if (idx >= 0) {
+            uname = creds.slice(0, idx);
+            pword = creds.slice(idx + 1);
+          } else {
+            uname = creds;
+          }
+        } catch (err) {
+          note = ' <span class="invalid">(invalid auth)</span>';
+        }
+      }
+      html += '<tr><td class="k-cell">' + esc(reg) + '</td><td class="v-cell">' +
+        esc(uname == null ? '' : uname) + '</td><td class="v-cell">' +
+        esc(pword == null ? '' : pword) + note + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    decout.innerHTML = html;
+    B64.setStatus(decStatus, 'ok', regs.length + ' registr' + (regs.length === 1 ? 'y' : 'ies') + ' decoded');
+  }
+
+  decin.addEventListener('input', decodeRun);
+  $('clearBtn').addEventListener('click', function () {
+    decin.value = ''; decout.innerHTML = '';
+    B64.setStatus(decStatus, '', 'Paste a .dockerconfigjson value or Secret YAML');
+    decin.focus();
+  });
+
+  modeBtn.addEventListener('click', function () {
+    if (mode === 'generate') {
+      mode = 'decode';
+      generateMode.style.display = 'none';
+      decodeMode.style.display = '';
+      modeBtn.textContent = 'Generate';
+      decin.focus();
+    } else {
+      mode = 'generate';
+      decodeMode.style.display = 'none';
+      generateMode.style.display = '';
+      modeBtn.textContent = 'Decode';
+      registry.focus();
+    }
+  });
+
+  gen();
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
