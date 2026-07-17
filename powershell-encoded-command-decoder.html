@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PowerShell Encoded Command Decoder (-enc / -EncodedCommand) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Decode a PowerShell -EncodedCommand (-enc) string back to the original command. -enc is Base64 of UTF-16LE bytes, so naive decoders show garbled text. Runs locally — safe for analyzing suspicious commands; nothing is uploaded.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/powershell-encoded-command-decoder">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://base64.dev/powershell-encoded-command-decoder">
+<meta property="og:title" content="PowerShell Encoded Command Decoder">
+<meta property="og:description" content="Decode a PowerShell -EncodedCommand (-enc) string back to the original command. -enc is Base64 of UTF-16LE bytes. Runs locally — nothing is uploaded.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PowerShell Encoded Command Decoder">
+<meta name="twitter:description" content="Decode a PowerShell -EncodedCommand (-enc) string back to the original command. -enc is Base64 of UTF-16LE bytes. Runs locally — nothing is uploaded.">
+<meta name="twitter:image" content="https://base64.dev/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "PowerShell Encoded Command Decoder",
+  "url": "https://base64.dev/powershell-encoded-command-decoder",
+  "description": "Decode a PowerShell -EncodedCommand (-enc) string back to the original command, or encode a command into the -enc form. -enc is Base64 of UTF-16LE bytes. Runs entirely in the browser — nothing is uploaded.",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to decode a PowerShell encoded command",
+  "description": "Turn a PowerShell -EncodedCommand (-enc) Base64 string back into the original PowerShell command.",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Copy the encoded string", "text": "Copy the Base64 value that follows -enc or -EncodedCommand in the command line you are analyzing." },
+    { "@type": "HowToStep", "position": 2, "name": "Paste it into the decoder", "text": "Paste the string into the input box. Keep the tool in Decode mode. It Base64-decodes to bytes and interprets them as UTF-16LE." },
+    { "@type": "HowToStep", "position": 3, "name": "Read the original command", "text": "The original PowerShell command appears instantly, locally in your browser. Decoding never runs the command. Click Copy to grab it." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I decode a PowerShell -enc / -EncodedCommand string?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Paste the Base64 value that follows -enc or -EncodedCommand into the decoder on this page and keep it in Decode mode. It Base64-decodes the string to bytes and interprets them as UTF-16LE (Unicode) — the encoding PowerShell actually uses — to recover the original command, locally in your browser. Decoding does not run the command." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my decoded command look garbled or spaced out?",
+      "acceptedAnswer": { "@type": "Answer", "text": "You almost certainly decoded it as UTF-8. PowerShell's -EncodedCommand is Base64 of the command's UTF-16LE (Unicode) bytes, where each ASCII character is followed by a 0x00 byte. A UTF-8 decoder renders those null bytes as spaces or control characters, so you see spaced-out or garbled text. Decode as UTF-16LE — which this tool does — and it reads cleanly." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I encode a command for -EncodedCommand?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Switch this tool to Encode mode and type your command. It encodes the text as UTF-16LE bytes and Base64s the result — the exact form PowerShell expects after -enc. You can then run powershell -enc <output>. Admins use this to pass a multi-line script through a single command-line argument without quoting headaches." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to decode a malicious PowerShell command here?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Decoding is 100% local — the string is Base64-decoded and interpreted in your browser and nothing is sent to any server. Decoding a command only reveals its text; it never executes it. That makes this safe for analyzing suspicious or malicious samples during incident response." }
+    },
+    {
+      "@type": "Question",
+      "name": "What if the decoded output is still gibberish?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The payload may be compressed or multi-layered. Attackers often gzip or deflate a script, Base64 it, and decompress it at runtime with a MemoryStream. This tool automatically attempts gzip/deflate decompression when the UTF-16LE result looks binary. For deeper nesting, feed the inner Base64 into the Base64 Gzip decoder and repeat." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "PowerShell Encoded Command Decoder", "item": "https://base64.dev/powershell-encoded-command-decoder" }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+<link rel="stylesheet" href="/tools.css">
+<style>
+.security-callout{background:var(--accent-dim,rgba(80,140,255,.08));border:1px solid var(--accent);border-radius:var(--radius-lg);padding:14px 16px;margin:0 0 20px;font-size:14px;line-height:1.6}
+.security-callout strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <span>PowerShell Encoded Command Decoder</span>
+    </div>
+
+    <h1>PowerShell Encoded Command Decoder</h1>
+    <p class="lead">PowerShell's <code>-EncodedCommand</code> (<code>-enc</code>) is <strong>Base64 of the command's UTF-16LE (Unicode) bytes</strong> — not UTF-8, which is why naive Base64 decoders show garbled, space-separated text. Paste the encoded string below to decode it back to the original PowerShell, or encode a command into the <code>-enc</code> form. Everything runs locally; nothing is uploaded.</p>
+
+    <div class="security-callout">
+      <strong>Defensive note:</strong> <code>-enc</code> is common in malware and red-team tooling as well as legitimate automation. This decoder runs <strong>100% in your browser</strong> — safe for analyzing suspicious commands; nothing is sent anywhere. <strong>Decoding a command does not run it.</strong>
+    </div>
+
+    <div class="tool-widget">
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> INPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <label for="input" class="sr-only">Input</label>
+        <textarea id="input" aria-label="Input" placeholder="Paste the Base64 that follows -enc / -EncodedCommand here..." spellcheck="false"></textarea>
+      </div>
+
+      <div class="tool-actions">
+        <button class="small-btn" id="modeBtn">Decode</button>
+      </div>
+
+      <div class="tool-panel">
+        <div class="panel-header">
+          <span class="panel-label"><span class="dot"></span> OUTPUT</span>
+          <div class="panel-actions">
+            <button class="small-btn" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <label for="output" class="sr-only">Output</label>
+        <textarea id="output" readonly aria-label="Output" placeholder="Decoded PowerShell appears here..." spellcheck="false"></textarea>
+      </div>
+      <div class="tool-status" id="status"><span class="status-dot"></span><span>Waiting for input</span></div>
+    </div>
+
+    <h2>How to decode a PowerShell encoded command</h2>
+    <p>When you see <code>powershell -enc &lt;long-base64&gt;</code>, that Base64 blob is the whole command in disguise. To read it, copy the value that follows <code>-enc</code> or <code>-EncodedCommand</code>, paste it into the box above, and keep the toggle on <strong>Decode</strong>. The tool <strong>Base64-decodes</strong> the string to raw bytes and interprets them as <strong>UTF-16LE</strong> — the encoding PowerShell actually uses — to recover the original command. It all happens locally, and <strong>decoding never executes the command</strong>. Click <strong>Copy</strong> to grab the result.</p>
+
+    <h2>Why UTF-16LE, not UTF-8?</h2>
+    <p>This is the number-one gotcha. PowerShell's <code>-EncodedCommand</code> does not Base64 the command text as UTF-8 — it Base64s the command's <strong>UTF-16LE (Unicode) bytes</strong>, where every ASCII character is followed by a <code>0x00</code> byte. If you paste the string into a generic Base64 decoder that assumes UTF-8, those null bytes render as spaces or invisible control characters, and you get output that looks like <code>W r i t e - H o s t</code> — spaced out and garbled. Decode the same bytes as UTF-16LE and it reads cleanly as <code>Write-Host</code>. The classic obfuscated invocation looks like this:</p>
+    <p><code>powershell.exe -nop -w hidden -enc &lt;base64&gt;</code></p>
+    <p>Here <code>-nop</code> skips the profile, <code>-w hidden</code> hides the window, and <code>-enc</code> hides the actual command inside Base64. Decoding the trailing blob as UTF-16LE is what turns it back into readable PowerShell.</p>
+
+    <h2>Decoding for malware analysis and incident response</h2>
+    <p>Attackers lean on <code>-enc</code> because a single Base64 argument dodges naive command-line filters and hides intent from a casual glance. As a defender you want to see exactly what a suspicious process was told to do — <strong>without running it</strong>. Decoding here is purely a read operation: the bytes are transformed into text in your browser and never executed, so it is safe to paste command lines pulled from EDR alerts, Sysmon event ID 1, or Windows <code>4688</code> process-creation logs.</p>
+    <p>Sometimes one decode is not enough. A common second layer wraps a <strong>gzip- or deflate-compressed</strong> script that the malware decompresses at runtime with a <code>MemoryStream</code> and <code>GzipStream</code>. When the UTF-16LE result looks binary rather than text, this tool automatically retries with gzip/deflate decompression and shows the inflated payload, noting <em>decoded + decompressed (nested payload)</em> in the status. Even then, you are only reading it — nothing runs.</p>
+
+    <h2>How to create an encoded command</h2>
+    <p>Switch the toggle to <strong>Encode</strong> and type a command to get its <code>-enc</code> form. The tool encodes your text as <strong>UTF-16LE</strong> bytes and Base64s the result — exactly what PowerShell expects — so you can run <code>powershell -enc &lt;output&gt;</code>. This is a legitimate, everyday technique: admins use <code>-enc</code> to pass a <strong>multi-line script through a single command-line argument</strong> without wrestling with nested quotes and escaping, for example inside a scheduled task, a Group Policy startup script, or a remote management call. Encoding does not add any security — anyone can decode it back, exactly as this page does.</p>
+
+    <h2>Is this private?</h2>
+    <p>Yes, and it matters here. Because people paste command lines from real, possibly hostile samples, everything runs <strong>entirely in your browser</strong> with JavaScript — the string is Base64-decoded and interpreted <strong>locally</strong> and <strong>nothing is uploaded</strong> to any server. You can confirm in DevTools → Network that decoding fires no request. Close the tab and the pasted data is gone. Decoding also never executes the command; it only reveals its text.</p>
+
+    <h2>Frequently asked questions</h2>
+    <h3>How do I decode a PowerShell -enc / -EncodedCommand string?</h3>
+    <p>Paste the Base64 value that follows <code>-enc</code> or <code>-EncodedCommand</code> into the decoder above and keep it in <strong>Decode</strong> mode. It Base64-decodes the string to bytes and interprets them as <strong>UTF-16LE</strong> (Unicode) — the encoding PowerShell actually uses — to recover the original command, locally. Decoding does not run the command.</p>
+    <h3>Why does my decoded command look garbled or spaced out?</h3>
+    <p>You almost certainly decoded it as <strong>UTF-8</strong>. <code>-EncodedCommand</code> is Base64 of the command's <strong>UTF-16LE</strong> bytes, where each ASCII character is followed by a <code>0x00</code> byte. A UTF-8 decoder renders those null bytes as spaces or control characters, so the text looks spaced-out. Decode as UTF-16LE — which this tool does — and it reads cleanly.</p>
+    <h3>How do I encode a command for -EncodedCommand?</h3>
+    <p>Switch to <strong>Encode</strong> mode and type your command. It encodes the text as UTF-16LE bytes and Base64s the result — the exact form PowerShell expects — so you can run <code>powershell -enc &lt;output&gt;</code>. Admins use this to pass a multi-line script through a single argument without quoting headaches.</p>
+    <h3>Is it safe to decode a malicious PowerShell command here?</h3>
+    <p>Yes. Decoding is <strong>100% local</strong> — the string is decoded in your browser and nothing is sent anywhere. Decoding only reveals a command's text; it <strong>never executes it</strong>. That makes this safe for analyzing suspicious or malicious samples during incident response.</p>
+    <h3>What if the decoded output is still gibberish?</h3>
+    <p>The payload may be <strong>gzip/deflate-compressed</strong> or multi-layered — attackers often compress a script, Base64 it, and decompress it at runtime. This tool automatically attempts decompression when the UTF-16LE result looks binary. For deeper nesting, feed the inner Base64 into the <a href="/base64-gzip-decode">Base64 Gzip decoder</a> and repeat.</p>
+
+    <div class="related-articles">
+      <div class="section-heading">Related</div>
+      <ul>
+        <li><a href="/base64-gzip-decode">Base64 Gzip Decode</a></li>
+        <li><a href="/utf-8-decode">UTF-8 Decode</a></li>
+        <li><a href="/articles/base64-powershell">Base64 in PowerShell</a></li>
+        <li><a href="/articles/what-is-base64">What is Base64?</a></li>
+      </ul>
+    </div>
+
+    <div class="cta-box">
+      <h3>Need plain Base64 encode/decode?</h3>
+      <p>The main base64.dev tool handles text, files, and URL-safe mode with auto-detect.</p>
+      <a href="/" class="cta-btn">Open base64.dev →</a>
+    </div>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $('input'), output = $('output'), status = $('status');
+  var copyBtn = $('copyBtn'), clearBtn = $('clearBtn'), modeBtn = $('modeBtn');
+  var mode = 'decode'; // 'decode' = -enc → command, 'encode' = command → -enc
+
+  // Try gzip/deflate/raw-deflate on raw bytes; return inflated text or null.
+  async function tryInflate(bytes) {
+    if (typeof DecompressionStream === 'undefined') return null;
+    var fmts = ['gzip', 'deflate', 'deflate-raw'];
+    for (var i = 0; i < fmts.length; i++) {
+      try {
+        var ds = new DecompressionStream(fmts[i]);
+        var stream = new Blob([bytes]).stream().pipeThrough(ds);
+        var buf = await new Response(stream).arrayBuffer();
+        var t = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+        if (t) return t;
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  async function convert() {
+    var value = input.value.trim();
+    if (!value) {
+      output.value = '';
+      B64.setStatus(status, '', 'Waiting for input');
+      return;
+    }
+    if (mode === 'decode') {
+      var bytes;
+      try {
+        bytes = B64.base64ToBytes(value);
+      } catch (e) {
+        output.value = '';
+        B64.setStatus(status, 'err', 'Invalid Base64 input.');
+        return;
+      }
+      // Primary path: PowerShell -enc is Base64 of UTF-16LE bytes.
+      var text = new TextDecoder('utf-16le').decode(bytes);
+      // Heuristic: if it decoded to mostly non-printable, it may be a compressed
+      // (gzip/deflate) nested payload. Try to inflate the raw bytes and show that.
+      if (/[\x00-\x08\x0e-\x1f]/.test(text) && bytes.length > 4) {
+        try {
+          var inflated = await tryInflate(bytes);
+          if (inflated) {
+            output.value = inflated;
+            B64.setStatus(status, 'ok', 'decoded + decompressed (nested payload)');
+            return;
+          }
+        } catch (e) {}
+      }
+      output.value = text;
+      B64.setStatus(status, 'ok', 'Decoded (UTF-16LE)');
+    } else {
+      // Encode: UTF-16LE encode the string manually (TextEncoder only does UTF-8).
+      var s = input.value;
+      var buf = new Uint8Array(s.length * 2);
+      for (var i = 0; i < s.length; i++) {
+        var c = s.charCodeAt(i);
+        buf[i * 2] = c & 0xff;
+        buf[i * 2 + 1] = c >> 8;
+      }
+      output.value = B64.bytesToBase64(buf);
+      B64.setStatus(status, 'ok', 'Encoded (UTF-16LE → Base64) — use: powershell -enc <output>');
+    }
+  }
+
+  input.addEventListener('input', convert);
+
+  modeBtn.addEventListener('click', function () {
+    mode = (mode === 'decode') ? 'encode' : 'decode';
+    modeBtn.textContent = (mode === 'decode') ? 'Decode' : 'Encode';
+    modeBtn.classList.toggle('copied', mode === 'encode');
+    input.placeholder = (mode === 'decode')
+      ? 'Paste the Base64 that follows -enc / -EncodedCommand here...'
+      : 'Type a PowerShell command to encode...';
+    output.placeholder = (mode === 'decode')
+      ? 'Decoded PowerShell appears here...'
+      : 'Base64 for -enc appears here...';
+    convert();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    output.value = '';
+    B64.setStatus(status, '', 'Waiting for input');
+    input.focus();
+  });
+
+  B64.wireCopy(copyBtn, function () { return output.value; });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
