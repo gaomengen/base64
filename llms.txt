@@ -59,6 +59,7 @@
 - [Flutter Base64 Decode Error](https://base64.dev/flutter-base64-decode-error): Fix Dart `FormatException: Invalid character` from base64Decode — usually an unstripped `data:` prefix, missing padding, or a URL-safe string. Paste-to-diagnose tool + Image.memory guidance.
 - [React Native atob/btoa Polyfill](https://base64.dev/react-native-atob-btoa-polyfill): Fix `atob is not defined` in React Native (Hermes/JSC lack it) — polyfill with the base-64 package or Buffer at startup. Working encoder/decoder to verify expected output.
 - [Android Base64 NO_WRAP](https://base64.dev/android-base64-no-wrap): Fix newlines that Base64.encodeToString inserts by default (breaks JSON/headers/URLs) — use Base64.NO_WRAP, and match flags when decoding. Encode tool shows the DEFAULT-vs-NO_WRAP difference.
+- [Image to ZPL (^GFA) Converter](https://base64.dev/zpl-base64-image-converter): Convert an image to a Zebra-printer ZPL `^GFA` graphic command — 1-bit monochrome bitmap packed to hex, with threshold/width/invert controls and a print preview. Explains why base64 data URIs don't print and how ^GFA works. Local (canvas).
 
 ## AI vision (image → Base64 for LLM APIs)
 
