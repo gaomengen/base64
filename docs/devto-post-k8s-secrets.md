@@ -3,7 +3,7 @@ title: "Kubernetes Secrets Are Just Base64 — Not Encryption. Here's What That 
 published: false
 description: A Kubernetes Secret's data is Base64-encoded, not encrypted. Anyone who can read the object can read the value. Here's why, how to verify it, and how to actually protect secrets.
 tags: kubernetes, security, devops, base64
-canonical_url:
+canonical_url: https://base64.dev/articles/kubernetes-secrets-base64
 ---
 
 > **Paste-into-Dev.to note (delete this blockquote before publishing):** Dev.to renders the front-matter above as the post's title/tags. Set `published: true` when you're ready, or leave `false` to save a draft first. Everything below is the post.

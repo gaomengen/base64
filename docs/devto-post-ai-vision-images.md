@@ -3,7 +3,7 @@ title: "Sending Images to GPT-4o, Claude, and Gemini: The Base64 Payload Each On
 published: false
 description: Every major vision model takes images as Base64 — but GPT-4o, Claude, and Gemini each expect a different payload shape. Here are the exact, correct formats and why "invalid image" keeps biting you.
 tags: ai, machinelearning, python, webdev
-canonical_url:
+canonical_url: https://base64.dev/articles/base64-images-ai-vision
 ---
 
 > **Paste-into-Dev.to note (delete this blockquote before publishing):** Dev.to renders the front-matter above as the post's title/tags. Set `published: true` when you're ready, or leave `false` to save a draft first. Everything below is the post.

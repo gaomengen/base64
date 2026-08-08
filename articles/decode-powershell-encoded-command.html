@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decode a PowerShell -EncodedCommand (the UTF-16 Gotcha) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="A powershell -enc / -EncodedCommand blob is Base64 of UTF-16LE bytes, not UTF-8 — that's why naive decoders show a space between every character. Here's how to decode it correctly and safely.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/decode-powershell-encoded-command">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/decode-powershell-encoded-command">
+<meta property="og:title" content="Decode a PowerShell -EncodedCommand (the UTF-16 Gotcha)">
+<meta property="og:description" content="A powershell -enc blob is Base64 of UTF-16LE bytes, not UTF-8. Here's how to decode it correctly, spot nested gzip, and analyze suspicious samples safely.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "headline": "Decoding a PowerShell -EncodedCommand",
+  "description": "A powershell -enc / -EncodedCommand blob is Base64 of UTF-16LE bytes, not UTF-8 — that's why naive decoders show a space between every character. Here's how to decode it correctly, spot nested gzip, and analyze suspicious samples safely.",
+  "url": "https://base64.dev/articles/decode-powershell-encoded-command",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Decode a PowerShell -EncodedCommand", "item": "https://base64.dev/articles/decode-powershell-encoded-command" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why does my decoded PowerShell -EncodedCommand have a space between every character?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because you decoded it as UTF-8. A powershell -enc / -EncodedCommand blob is Base64 of UTF-16LE bytes, where every ASCII character is stored as the character followed by a 0x00 null byte. When you read those bytes as UTF-8, each null renders as a space or an invisible control character. Decode it as UTF-16LE instead and the nulls disappear." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode a PowerShell -EncodedCommand correctly?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Base64-decode the blob, then read the bytes as UTF-16LE. In PowerShell: [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($enc)). In Python: base64.b64decode(enc).decode('utf-16-le'). In CyberChef: From Base64 then Decode text (UTF-16LE). The .NET encoding named Unicode means UTF-16LE." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to decode a suspicious -EncodedCommand sample?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Decoding is not executing. Converting Base64 back to text and inflating gzip are pure data transformations — no powershell.exe runs, nothing touches the script block, and nothing hits the network. The danger only exists if you run the decoded command, so decode freely and read it; just don't pipe the result into a shell." }
+    },
+    {
+      "@type": "Question",
+      "name": "The decoded command is still binary garbage. Why?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The real script is often gzip-compressed and then Base64-encoded, with the outer PowerShell acting as a tiny loader that inflates it in memory. The tell is an inner Base64 string starting with H4sI, which is the gzip magic number (1f 8b) in Base64. When you see it, Base64-decode again and gunzip to reach the actual script. Payloads can nest two or three layers deep." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the -enc flag mean in PowerShell?",
+      "acceptedAnswer": { "@type": "Answer", "text": "-enc is short for -EncodedCommand. It lets you pass a whole script to powershell.exe as a single Base64 argument, avoiding quoting problems with multi-line commands. PowerShell requires that Base64 to be of UTF-16LE bytes. Legitimate automation uses it constantly, which is exactly why malware hides in the same crowd." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Decode a PowerShell -EncodedCommand</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Security</span>
+        <span class="article-read-time">6 min read</span>
+        <span class="article-read-time">Updated Aug 8, 2026</span>
+      </div>
+      <h1>Decoding a PowerShell -EncodedCommand</h1>
+      <p class="lead">A <code>powershell -enc &lt;base64&gt;</code> blob is Base64 of <strong>UTF-16LE</strong> bytes, not UTF-8 — that is why a naive decoder returns garbled, space-separated text with a null between every character. Decode it as UTF-16LE and the mess turns back into readable PowerShell. It takes ten seconds once you know the trick.</p>
+
+      <h2>The scenario</h2>
+      <p>You are triaging an alert. A scheduled task, a weird parent process, and a command line that looks like this:</p>
+      <pre>powershell.exe -nop -w hidden -enc JABjACAAPQAg...</pre>
+      <p>You know the drill: grab the Base64 blob, decode it, read the script. So you paste it into a decoder and get back this:</p>
+      <pre>$ c   =   " h t t p : / / ...</pre>
+      <p>Garbage — a space (or a null) between every single character. The first instinct is that the payload is doubly-encoded or encrypted. It isn't. This is the single most common gotcha with <code>-EncodedCommand</code>, and once you know it, the fix is trivial.</p>
+
+      <h2>Why it looks garbled</h2>
+      <p><code>powershell.exe -enc</code> (short for <code>-EncodedCommand</code>) expects Base64 of <strong>UTF-16LE</strong> (little-endian Unicode) bytes — not UTF-8. That is mandated by PowerShell itself, not a choice the attacker made.</p>
+      <p>In UTF-16LE, every ASCII character is stored as <strong>two bytes</strong>: the character followed by a <code>0x00</code> null byte. So the letter <code>c</code> isn't <code>0x63</code>, it's <code>0x63 0x00</code>. When you Base64-decode the blob and then read it as UTF-8, every one of those null bytes renders as a space or an invisible control character. Hence the <code>h t t p</code> spacing.</p>
+      <pre>Text:       c        =        "
+UTF-16LE:   63 00    3D 00    22 00
+UTF-8 view: c  ␀     =  ␀     "  ␀     &lt;- the null shows up as a "space"</pre>
+      <p>Decode it as UTF-16LE instead and the nulls disappear, because that is exactly what they were: the high byte of each 16-bit code unit.</p>
+
+      <h2>Decode it correctly</h2>
+      <p><strong>In PowerShell itself</strong> — the encoding is literally called <code>Unicode</code> in .NET, which means UTF-16LE:</p>
+      <pre>$enc = 'JABjACAAPQAg...'
+[System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($enc))</pre>
+      <p><strong>In Python</strong> — decode the bytes, then read them as <code>utf-16-le</code>:</p>
+      <pre>import base64
+enc = "JABjACAAPQAg..."
+print(base64.b64decode(enc).decode("utf-16-le"))</pre>
+      <p><strong>In CyberChef</strong> — build the recipe <code>From Base64</code> → <code>Decode text (UTF-16LE)</code>. Or <code>From Base64</code> then <code>Remove null bytes</code> for a quick-and-dirty look.</p>
+      <p>Any of these turns the spaced-out mess back into readable PowerShell. If you prefer not to leave the browser, the <a href="/powershell-encoded-command-decoder">PowerShell Encoded Command Decoder</a> handles the UTF-16LE conversion for you.</p>
+
+      <h2>The encode direction (for building test cases)</h2>
+      <p>If you are writing detections or a lab sample, this is how the blob is produced — the same <code>Unicode</code>/UTF-16LE contract in reverse:</p>
+      <pre>$cmd = 'Write-Host "hello from encoded command"'
+[System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($cmd))</pre>
+      <p>Feed that output back to <code>powershell -enc</code> and it runs. Legitimate automation uses this all the time — it is a clean way to pass a multi-line script through a single argument without quoting nightmares. That is exactly why malware hides in the same crowd. For the encode side and the UTF-16 trap in general, see <a href="/articles/base64-powershell">Base64 in PowerShell</a>.</p>
+
+      <h2>The second layer: it's often gzip too</h2>
+      <p>Sometimes you decode correctly and <em>still</em> get binary garbage. That is the next common trick: the real script is <strong>gzip-compressed</strong>, then Base64'd. The outer PowerShell you just decoded is a tiny loader whose whole job is to inflate the inner payload in memory:</p>
+      <pre># telltale pattern inside the decoded stub
+$s = New-Object IO.MemoryStream(,[Convert]::FromBase64String("H4sIA..."))
+IO.StreamReader(New-Object IO.Compression.GzipStream($s,[IO.Compression.CompressionMode]::Decompress)).ReadToEnd()</pre>
+      <p>The tell is the inner Base64 starting with <code>H4sI</code> — that is the gzip magic number (<code>1f 8b</code>) in Base64. When you see it, decode Base64 again and gunzip to reach the actual script. Payloads can nest two or three layers deep this way. The <a href="/base64-gzip-decode">Base64 gzip decoder</a> inflates these in one step.</p>
+
+      <h2>Is it safe to decode a suspicious sample?</h2>
+      <p>Yes. <strong>Decoding is not executing.</strong> Converting Base64 back to text and inflating gzip are pure data transformations — no <code>powershell.exe</code> runs, nothing touches the script block, nothing hits the network. The danger is only if you <em>run</em> the decoded command. So decode freely and read; just don't pipe the result into a shell.</p>
+      <div class="tip"><p>For fast triage, the <a href="/powershell-encoded-command-decoder">PowerShell Encoded Command Decoder</a> handles the UTF-16LE conversion and auto-inflates nested gzip layers. It runs entirely client-side, so nothing is uploaded — safe to paste suspicious samples into. When you don't yet know how a blob is encoded, <a href="/magic-decode">Magic Decode</a> detects the layers for you.</p></div>
+
+      <h2>Analyst checklist vs. the layers</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>What you see after decoding</th><th>What it means</th><th>Next step</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Space between every char</td><td>You decoded as UTF-8</td><td>Re-decode as <strong>UTF-16LE</strong></td></tr>
+          <tr><td>Clean, readable PowerShell</td><td>Done</td><td>Read it, extract IOCs</td></tr>
+          <tr><td>Binary garbage, starts <code>H4sI</code></td><td>Inner <strong>gzip</strong> payload</td><td>Base64-decode again, then gunzip</td></tr>
+          <tr><td>Another <code>-enc</code> / <code>FromBase64String</code></td><td>Nested loader</td><td>Repeat the whole process on the inner blob</td></tr>
+        </tbody>
+      </table>
+
+      <h2>TL;DR</h2>
+      <ul>
+        <li><code>powershell -enc &lt;base64&gt;</code> is Base64 of <strong>UTF-16LE</strong>, not UTF-8 — that is why naive decoding shows a space/null between every character.</li>
+        <li>Decode it right with <code>[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($enc))</code>, or in Python with <code>base64.b64decode(enc).decode("utf-16-le")</code>.</li>
+        <li>If the result is still binary and starts with <code>H4sI</code>, it is <strong>gzip inside Base64</strong> — inflate it to reach the real script.</li>
+        <li><strong>Decoding never executes</strong> the command, so it is safe to analyze suspicious samples locally.</li>
+      </ul>
+
+      <h2>Frequently Asked Questions</h2>
+      <h3>Why does my decoded PowerShell -EncodedCommand have a space between every character?</h3>
+      <p>Because you decoded it as UTF-8. A <code>powershell -enc</code> / <code>-EncodedCommand</code> blob is Base64 of UTF-16LE bytes, where every ASCII character is stored as the character followed by a <code>0x00</code> null byte. When you read those bytes as UTF-8, each null renders as a space or an invisible control character. Decode it as UTF-16LE instead and the nulls disappear.</p>
+      <h3>How do I decode a PowerShell -EncodedCommand correctly?</h3>
+      <p>Base64-decode the blob, then read the bytes as UTF-16LE. In PowerShell: <code>[System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($enc))</code>. In Python: <code>base64.b64decode(enc).decode("utf-16-le")</code>. In CyberChef: <code>From Base64</code> then <code>Decode text (UTF-16LE)</code>. The .NET encoding named <code>Unicode</code> means UTF-16LE.</p>
+      <h3>Is it safe to decode a suspicious -EncodedCommand sample?</h3>
+      <p>Yes. Decoding is not executing. Converting Base64 back to text and inflating gzip are pure data transformations — no <code>powershell.exe</code> runs, nothing touches the script block, and nothing hits the network. The danger only exists if you <em>run</em> the decoded command, so decode freely and read it; just don't pipe the result into a shell.</p>
+      <h3>The decoded command is still binary garbage. Why?</h3>
+      <p>The real script is often gzip-compressed and then Base64-encoded, with the outer PowerShell acting as a tiny loader that inflates it in memory. The tell is an inner Base64 string starting with <code>H4sI</code>, which is the gzip magic number (<code>1f 8b</code>) in Base64. When you see it, Base64-decode again and gunzip to reach the actual script. Payloads can nest two or three layers deep.</p>
+      <h3>What does the -enc flag mean in PowerShell?</h3>
+      <p><code>-enc</code> is short for <code>-EncodedCommand</code>. It lets you pass a whole script to <code>powershell.exe</code> as a single Base64 argument, avoiding quoting problems with multi-line commands. PowerShell requires that Base64 to be of UTF-16LE bytes. Legitimate automation uses it constantly, which is exactly why malware hides in the same crowd.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/powershell-encoded-command-decoder">PowerShell Encoded Command Decoder</a></li>
+    <li><a href="/articles/base64-powershell">Base64 in PowerShell</a></li>
+    <li><a href="/base64-gzip-decode">Base64 Gzip Decoder</a></li>
+    <li><a href="/magic-decode">Magic Decode</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Decode a -EncodedCommand safely in your browser</h3>
+        <p>Paste a <code>powershell -enc</code> blob and get readable PowerShell back — UTF-16LE handled, nested gzip auto-inflated, nothing uploaded.</p>
+        <a href="/powershell-encoded-command-decoder" class="cta-btn">Open the decoder →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

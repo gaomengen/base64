@@ -3,7 +3,7 @@ title: "Debugging SAML SSO: How to Decode a SAMLResponse (and Why It's Sometimes
 published: false
 description: Decoding a SAMLResponse sometimes gives you clean XML and sometimes binary garbage. The reason is the two SAML bindings. Here's how to decode both, what to read in the assertion, and how to fix the common Base64 errors.
 tags: security, sso, webdev, devops
-canonical_url:
+canonical_url: https://base64.dev/articles/decode-saml-response
 ---
 
 > **Paste-into-Dev.to note (delete this blockquote before publishing):** Dev.to renders the front-matter above as the post's title/tags. Set `published: true` when you're ready, or leave `false` to save a draft first. Everything below is the post.

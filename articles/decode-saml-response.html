@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decode a SAMLResponse (and Why It's Sometimes Not XML) — base64.dev</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="description" content="Base64-decoding a SAMLResponse gives clean XML on the POST binding but binary on the Redirect binding, because the latter is Base64(DEFLATE(XML)). Here's how to decode both, what to read in the assertion, and how to fix common Base64 errors.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://base64.dev/articles/decode-saml-response">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://base64.dev/articles/decode-saml-response">
+<meta property="og:title" content="Decode a SAMLResponse (and Why It's Sometimes Not XML)">
+<meta property="og:description" content="A SAMLResponse decodes to XML on the POST binding and to binary on the Redirect binding, because the redirect value is Base64(DEFLATE(XML)). Here's how to decode both and read the assertion.">
+<meta property="og:image" content="https://base64.dev/og-image.png">
+<meta property="og:site_name" content="base64.dev">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "headline": "Decoding a SAMLResponse",
+  "description": "Base64-decoding a SAMLResponse gives XML on the POST binding but binary on the Redirect binding, because the latter is Base64(DEFLATE(XML)). Here's how to decode both and read the assertion.",
+  "url": "https://base64.dev/articles/decode-saml-response",
+  "speakable": { "@type": "SpeakableSpecification", "cssSelector": ["h1", ".lead"] },
+  "author": { "@type": "Organization", "name": "base64.dev" },
+  "publisher": { "@type": "Organization", "name": "base64.dev", "url": "https://base64.dev" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://base64.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": "https://base64.dev/articles/" },
+    { "@type": "ListItem", "position": 3, "name": "Decoding a SAMLResponse", "item": "https://base64.dev/articles/decode-saml-response" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why does my SAMLResponse decode to binary instead of XML?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because it uses the HTTP-Redirect binding, where the value is Base64(DEFLATE(XML)). Base64-decoding alone leaves you with the raw output of a DEFLATE compressor — the binary you are seeing. You must also raw-inflate it. A SAMLResponse that decodes straight to XML uses the HTTP-POST binding, which is just Base64(XML) with no compression." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I decode the HTTP-Redirect binding?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Three steps in order: URL-decode the value, Base64-decode it, then raw-inflate the result with raw DEFLATE (no zlib header). In Python that is zlib.decompress(data, -15) — the negative wbits tells zlib the data is raw DEFLATE with no header or checksum. A normal zlib or gzip inflate will fail on the missing header." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does zlib fail to inflate my SAMLRequest?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The SAML Redirect binding uses raw DEFLATE (RFC 1951) with no zlib header and no checksum. A standard zlib or gzip inflate expects that header and errors out. Pass wbits = -15 (for example zlib.decompress(data, -15) in Python) to request a raw inflate, and it decompresses correctly." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does AADSTS750056 mean?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It is an Azure AD / Entra error saying the SAMLResponse must be properly formed and Base64-encoded. The assertion itself is usually fine — something mangled the transport. Common causes are a proxy or WAF turning the significant + characters in Base64 into spaces, or 76-character MIME-style line wrapping that a strict decoder rejects. The fix is to preserve the exact bytes end-to-end." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to decode a SAMLResponse in an online tool?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Only if the decoding happens entirely client-side. A SAML assertion is a credential — for its short validity window, whoever holds it can often impersonate the user. Never paste a production assertion into a decoder that sends it to a server. Use a browser-based tool that URL-decodes, Base64-decodes, and inflates locally with nothing transmitted." }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/articles/style.v2.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-row">
+      <a href="/" class="logo" aria-label="base64.dev home"><span class="logo-name">base64<span class="logo-tld">.dev</span></span></a>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="breadcrumb">
+      <a href="/">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="/articles">Articles</a><span class="breadcrumb-sep">/</span>
+      <span>Decoding a SAMLResponse</span>
+    </div>
+    <article class="article">
+      <div class="article-meta">
+        <span class="article-tag">Security</span>
+        <span class="article-read-time">7 min read</span>
+        <span class="article-read-time">Updated Aug 8, 2026</span>
+      </div>
+      <h1>Decoding a SAMLResponse</h1>
+      <p class="lead">Base64-decoding a <code>SAMLResponse</code> gives you clean XML on the HTTP-POST binding but binary garbage on the HTTP-Redirect binding. That is not corruption — the redirect value is <code>Base64(DEFLATE(XML))</code>, so you also have to raw-inflate it. Once you know the two encoding chains, SAML debugging stops being guesswork.</p>
+
+      <h2>Why the same decode gives two different results</h2>
+      <p>You're debugging a broken SSO login. The identity provider (IdP) redirects back to your app, and somewhere in the request is a big blob called <code>SAMLResponse</code>. You grab it, Base64-decode it, and expect to see clean XML.</p>
+      <p>Sometimes you do. Sometimes you get binary garbage that starts with bytes like <code>0x78 0x9c</code> and looks nothing like markup. Both outcomes are correct. The difference is which <strong>SAML binding</strong> the IdP used, and once you know the two encoding chains, the mystery disappears.</p>
+
+      <h2>The two bindings, and their two encodings</h2>
+      <p>SAML sends its messages (<code>SAMLResponse</code>, <code>SAMLRequest</code>) using one of two HTTP bindings, and they encode the payload differently.</p>
+      <p><strong>HTTP-POST binding</strong> — the message rides in a hidden form field that auto-submits via POST. The value is simply:</p>
+      <pre>Base64(XML)</pre>
+      <p>Decode the Base64 and you get the assertion XML directly. This is the common case for the response coming back from the IdP.</p>
+      <p><strong>HTTP-Redirect binding</strong> — the message rides in a URL query string, so it has to be small and URL-safe. The value is:</p>
+      <pre>URLEncode( Base64( DEFLATE( XML ) ) )</pre>
+      <p>That's three layers. If you only Base64-decode it, you're staring at the raw output of a DEFLATE compressor — which is exactly the binary garbage people report. This binding is typically used for <code>SAMLRequest</code> (the AuthnRequest your app sends <em>to</em> the IdP) and for Single Logout.</p>
+      <p>Critically, the redirect binding uses <strong>raw DEFLATE</strong> (RFC 1951) with <strong>no zlib header and no checksum</strong>. That's the single most common thing people get wrong — they reach for a normal zlib/gzip inflate, it chokes on the missing header, and they conclude the blob is corrupt. It isn't; it just needs a raw inflate.</p>
+
+      <h2>Decoding both in Python</h2>
+      <pre><code>import base64
+import zlib
+from urllib.parse import unquote
+
+# --- HTTP-POST binding: Base64(XML) ---
+def decode_post(saml_response: str) -&gt; str:
+    return base64.b64decode(saml_response).decode("utf-8")
+
+# --- HTTP-Redirect binding: URLEncode(Base64(DEFLATE(XML))) ---
+def decode_redirect(saml_param: str) -&gt; str:
+    url_decoded = unquote(saml_param)          # 1. undo URL-encoding
+    raw = base64.b64decode(url_decoded)        # 2. undo Base64
+    # 3. RAW inflate: wbits = -15 =&gt; no zlib header, no checksum
+    return zlib.decompress(raw, -15).decode("utf-8")</code></pre>
+      <p>The magic number is that <code>-15</code> passed as <code>wbits</code>. The negative sign tells zlib "this is raw DEFLATE, don't expect a header." Use <code>zlib.decompress(data, -15)</code> for the redirect binding, plain <code>base64.b64decode</code> for POST.</p>
+      <p>Not sure which binding you're holding? A quick heuristic: if Base64-decoding gives you text starting with <code>&lt;?xml</code> or <code>&lt;saml</code>, it's POST. If it gives you bytes, try a raw inflate — it's almost certainly Redirect.</p>
+
+      <h2>What to actually read in the decoded assertion</h2>
+      <p>Once you have XML, don't just admire it — the debugging clues are in specific fields:</p>
+      <ul>
+        <li><strong><code>Issuer</code></strong> — is this really from the IdP you configured? A mismatch means metadata drift.</li>
+        <li><strong><code>Destination</code></strong> — must match your Assertion Consumer Service (ACS) URL. A trailing slash or <code>http</code> vs <code>https</code> mismatch here breaks validation.</li>
+        <li><strong><code>&lt;samlp:Status&gt;</code> <code>StatusCode</code></strong> — <code>Success</code> vs something like <code>Responder</code> or <code>AuthnFailed</code>. This is the IdP telling you <em>why</em> it said no.</li>
+        <li><strong><code>NameID</code> + its <code>Format</code></strong> — is the user identifier what your app expects (email vs persistent vs transient)? A format mismatch is a classic "logged in but no account found" bug.</li>
+        <li><strong><code>Conditions</code> <code>NotBefore</code> / <code>NotOnOrAfter</code></strong> — these are usually a tight window (a few minutes). If the server clocks between IdP and SP drift, validation fails with a confusing "assertion expired" even though the login just happened. <strong>Clock skew is one of the most common SAML failures</strong>, and you can only see it by reading these timestamps.</li>
+        <li><strong><code>AudienceRestriction</code> <code>Audience</code></strong> — must equal your SP entity ID. If it doesn't, the IdP issued the assertion for a different application.</li>
+        <li><strong>Signature</strong> — check whether a <code>&lt;ds:Signature&gt;</code> is present. But note the trap: <strong>a signature being present is not the same as it being verified.</strong> Presence tells you the IdP signed something; only your SP validating it against the right certificate tells you it's trustworthy.</li>
+      </ul>
+
+      <h2>The Base64 errors you'll actually hit</h2>
+      <p>If your IdP is Azure AD / Entra, you'll eventually meet <strong><code>AADSTS750056: SAMLResponse must be a properly formed and encoded ... Base64</code></strong>. Despite the wording, the assertion is usually fine — something mangled the transport:</p>
+      <ul>
+        <li>A <strong>proxy or WAF stripping <code>+</code> characters</strong> (turning them into spaces), because <code>+</code> is significant in Base64 but also means "space" in some URL contexts. Result: an invalid Base64 string.</li>
+        <li><strong>76-character line wrapping</strong> (MIME-style Base64) that a strict decoder rejects. Standard SAML Base64 should be one continuous string.</li>
+      </ul>
+      <p>Both come down to the same fix: preserve the exact bytes end-to-end and don't let middleware "helpfully" rewrite the payload.</p>
+
+      <h2>A security warning worth repeating</h2>
+      <p>A SAML assertion <strong>is a credential.</strong> For its short validity window, whoever holds it can often impersonate the user. So when you decode one for debugging, decode it in something that runs <strong>client-side</strong> — never paste a production assertion into a random server-side online decoder, because you've just handed a live credential to a third-party server.</p>
+      <p>For quick local decoding there's a free browser-based <a href="/saml-decoder">SAML decoder</a> that auto-detects the binding — it'll URL-decode, Base64-decode, and auto-inflate raw DEFLATE, pretty-print the XML, and pull out the claims for you, all <strong>100% client-side</strong> with nothing sent to a server.</p>
+
+      <h2>POST vs Redirect at a glance</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th></th><th>HTTP-POST binding</th><th>HTTP-Redirect binding</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Encoding chain</td><td><code>Base64(XML)</code></td><td><code>URLEncode(Base64(DEFLATE(XML)))</code></td></tr>
+          <tr><td>Decode steps</td><td>Base64-decode</td><td>URL-decode → Base64-decode → <strong>raw</strong> inflate (<code>wbits=-15</code>)</td></tr>
+          <tr><td>Compression</td><td>None</td><td>Raw DEFLATE (no zlib header)</td></tr>
+          <tr><td>Typically used for</td><td><code>SAMLResponse</code> from IdP</td><td><code>SAMLRequest</code>, Single Logout</td></tr>
+          <tr><td>Base64-decode alone gives</td><td>Clean XML</td><td>Binary garbage (DEFLATE bytes)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>TL;DR</h2>
+      <ul>
+        <li>A <code>SAMLResponse</code> that decodes to clean XML is the <strong>POST binding</strong> (<code>Base64(XML)</code>). One that decodes to binary is the <strong>Redirect binding</strong> (<code>Base64(DEFLATE(XML))</code>, URL-encoded).</li>
+        <li>For the redirect binding you must <strong>URL-decode, Base64-decode, then RAW-inflate</strong> — <code>zlib.decompress(data, -15)</code>. Regular zlib/gzip inflate will fail on the missing header.</li>
+        <li>When reading the assertion, check <code>Status</code>, <code>Destination</code>, <code>Audience</code>, and especially the <code>Conditions</code> timestamps — <strong>clock skew</strong> is a top cause of "it authenticated but still failed."</li>
+        <li>Treat assertions as live credentials: decode them <strong>client-side</strong>, never on someone else's server.</li>
+        <li><code>AADSTS750056</code> usually means a proxy mangled <code>+</code> or line-wrapped the Base64, not a malformed assertion.</li>
+      </ul>
+
+      <h2>Frequently Asked Questions</h2>
+      <h3>Why does my SAMLResponse decode to binary instead of XML?</h3>
+      <p>Because it uses the HTTP-Redirect binding, where the value is <code>Base64(DEFLATE(XML))</code>. Base64-decoding alone leaves you with the raw output of a DEFLATE compressor — the binary you are seeing. You must also raw-inflate it. A <code>SAMLResponse</code> that decodes straight to XML uses the HTTP-POST binding, which is just <code>Base64(XML)</code> with no compression.</p>
+      <h3>How do I decode the HTTP-Redirect binding?</h3>
+      <p>Three steps in order: URL-decode the value, Base64-decode it, then raw-inflate the result with raw DEFLATE (no zlib header). In Python that is <code>zlib.decompress(data, -15)</code> — the negative <code>wbits</code> tells zlib the data is raw DEFLATE with no header or checksum. A normal zlib or gzip inflate will fail on the missing header.</p>
+      <h3>Why does zlib fail to inflate my SAMLRequest?</h3>
+      <p>The SAML Redirect binding uses raw DEFLATE (RFC 1951) with no zlib header and no checksum. A standard zlib or gzip inflate expects that header and errors out. Pass <code>wbits = -15</code> (for example <code>zlib.decompress(data, -15)</code> in Python) to request a raw inflate, and it decompresses correctly.</p>
+      <h3>What does AADSTS750056 mean?</h3>
+      <p>It is an Azure AD / Entra error saying the <code>SAMLResponse</code> must be properly formed and Base64-encoded. The assertion itself is usually fine — something mangled the transport. Common causes are a proxy or WAF turning the significant <code>+</code> characters in Base64 into spaces, or 76-character MIME-style line wrapping that a strict decoder rejects. The fix is to preserve the exact bytes end-to-end.</p>
+      <h3>Is it safe to decode a SAMLResponse in an online tool?</h3>
+      <p>Only if the decoding happens entirely client-side. A SAML assertion is a credential — for its short validity window, whoever holds it can often impersonate the user. Never paste a production assertion into a decoder that sends it to a server. Use a browser-based tool that URL-decodes, Base64-decodes, and inflates locally with nothing transmitted.</p>
+
+      <div class="related-articles">
+        <div class="section-heading">Related Articles</div>
+        <ul>
+    <li><a href="/saml-decoder">SAML Response Decoder</a></li>
+    <li><a href="/jwt-decoder">JWT Decoder</a></li>
+    <li><a href="/base64-gzip-decode">Base64 Gzip Decode</a></li>
+    <li><a href="/articles/url-safe-base64">URL-Safe Base64</a></li>
+        </ul>
+      </div>
+      <div class="cta-box">
+        <h3>Decode a SAMLResponse in your browser</h3>
+        <p>Paste a SAMLResponse or SAMLRequest into the SAML decoder — it auto-detects the binding, raw-inflates the redirect binding, and pretty-prints the XML, all client-side.</p>
+        <a href="/saml-decoder" class="cta-btn">Open SAML Decoder →</a>
+      </div>
+    </article>
+  </main>
+</div>
+<footer>
+  <div class="container">
+    <div class="footer-row">
+      <span>© 2026 base64.dev</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="/">Tool</a>
+        <a href="/tools">Tools</a>
+        <a href="/articles">Articles</a>
+        <a href="/about">About</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+<script>
+try { if (localStorage.getItem('base64dev-theme') === 'light') document.documentElement.classList.add('light'); } catch(e) {}
+document.getElementById('themeBtn').addEventListener('click', function() {
+  document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('base64dev-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
