@@ -3,7 +3,7 @@ title: "Decoding a PowerShell -EncodedCommand During Incident Response (the UTF-
 published: false
 description: A powershell -enc <base64> command decodes to garbled, space-separated text if you treat it as UTF-8. It's actually Base64 of UTF-16LE bytes. Here's how to decode it correctly and safely.
 tags: powershell, security, infosec, devops
-canonical_url:
+canonical_url: https://base64.dev/articles/decode-powershell-encoded-command
 ---
 
 > **Paste-into-Dev.to note (delete this blockquote before publishing):** Dev.to renders the front-matter above as the post's title/tags. Set `published: true` when you're ready, or leave `false` to save a draft first. Everything below is the post.

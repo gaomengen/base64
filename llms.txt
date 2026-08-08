@@ -103,6 +103,10 @@ Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Bas
 - [Base64 vs Hex Encoding](https://base64.dev/articles/base64-vs-hex): Size comparison, use case breakdown, and when to choose each format.
 - [Base64 vs Base64URL](https://base64.dev/articles/base64-vs-base64url): The +/ vs -_ character swap, padding differences, and when to use the URL-safe variant (JWTs, URLs, filenames).
 - [Is Base64 Encryption?](https://base64.dev/articles/is-base64-encryption): No — Base64 is encoding, not encryption. Encoding vs encryption vs hashing, why Base64 hides nothing, and how to actually protect data.
+- [Kubernetes Secrets Are Base64, Not Encryption](https://base64.dev/articles/kubernetes-secrets-base64): A Kubernetes Secret's `data` is Base64, not encrypted — decode it with one `base64 -d`. How to actually protect Secrets (encryption at rest/KMS, Sealed Secrets, SOPS, Vault, RBAC).
+- [Base64 Images for AI Vision APIs](https://base64.dev/articles/base64-images-ai-vision): The exact Base64 image payload each vision API wants — OpenAI GPT-4o (data URL in image_url), Claude (raw base64 in source.data + media_type), Gemini (inline_data + mime_type) — plus the "invalid image" causes.
+- [Decode a PowerShell -EncodedCommand](https://base64.dev/articles/decode-powershell-encoded-command): PowerShell -enc is Base64 of UTF-16LE bytes (not UTF-8), which is why naive decoders show garbled text. How to decode it correctly in PowerShell/Python/CyberChef, and the nested-gzip case.
+- [Decode a SAMLResponse](https://base64.dev/articles/decode-saml-response): Why Base64-decoding a SAMLResponse gives XML on the POST binding but binary on the Redirect binding (Base64 of DEFLATE'd XML). How to decode both, what to read in the assertion, and the AADSTS750056 cause.
 - [Base64 Data URIs Explained](https://base64.dev/articles/base64-data-uri): The data: URI scheme in depth — syntax, MIME types, browser limits, and performance.
 
 ## Language Guides
