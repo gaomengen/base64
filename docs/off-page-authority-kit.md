@@ -5,7 +5,7 @@ _2026-08-08. Bing Webmaster's single recommendation is "not enough inbound links
 ## Rules (read first)
 - **Earn, don't buy.** Paid links / link exchanges / PBNs are discounted and risk penalty. Never.
 - **Only where genuinely helpful.** Every placement must add real value to that thread/list, or it's spam (and gets removed + hurts you).
-- **Disclose ownership** when relevant ("I built this" / "disclosure: my tool"). Communities punish stealth self-promo; they reward honest useful tools.
+- **Link low-key, not salesy.** Mention tools/articles as neutral resources ("there's a free tool that does this"), not "I built this / check out my tool" — a natural link reads more credibly and converts better. **One hard exception: Stack Overflow's rules REQUIRE disclosing affiliation** when you link your own site — undisclosed self-promo there gets deleted and can suspend you. So on SO (only) keep one brief line like "full disclosure, I help maintain this." On your own Dev.to/blog and directories, a natural low-key link is fine.
 - **Cadence:** 2–4 quality placements/month beats 40 spammy ones. Quality domains compound; volume of junk does nothing.
 - **Bonus:** these same placements (Reddit, GitHub, Stack Overflow) are *heavily* weighted by the AI answer engines — so each good link also grows your 11.4K AI citations.
 
@@ -38,9 +38,9 @@ Find questions your tools genuinely solve, write a real answer, and link the too
 - "decode SAML response", "base64 gzip decode" → `/saml-decoder`, `/base64-gzip-decode`.
 
 **Answer template** (adapt, never paste identically):
-> Base64 in [X] is [the actual explanation + code]. If you want to eyeball it without writing code, I built a free in-browser decoder for this exact case: [link] (runs locally, nothing uploaded). Disclosure: it's my tool.
+> Base64 in [X] is [the actual explanation + code]. To eyeball it without writing code, this free in-browser decoder handles that exact case (runs locally, nothing uploaded): [link]. Full disclosure: I help maintain it.
 
-Answer the *code* first; the link is a footnote. 3–5 genuinely helpful answers > 50 link-drops (which get flagged).
+Answer the *code* first; the link is a footnote. On Stack Overflow the affiliation line is **required** — keep it to that one sentence, never salesy. 3–5 genuinely helpful answers > 50 link-drops (which get flagged).
 
 ## 4. Reddit (authentic, community-matched)
 Each ecosystem tool has a natural subreddit. Don't post "check out my site" — answer a real question or share in a "what tools do you use" thread:

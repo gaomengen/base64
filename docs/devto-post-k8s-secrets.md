@@ -34,7 +34,7 @@ kubectl get secret db-credentials -o jsonpath='{.data.password}' | base64 --deco
 
 No key. No password. No "decryption." Base64 is a **binary-to-text encoding** — its entire job is to represent arbitrary bytes using a safe 64-character alphabet so they survive transport and storage in text-based systems (etcd, YAML, JSON, HTTP headers). Kubernetes encodes Secret `data` values purely so binary values (certs, keys, gzip blobs) can live inside a YAML/JSON object. That's it. Security was never the point.
 
-If you want to eyeball a whole Secret at once instead of decoding fields one by one, I built a small in-browser tool for exactly this — paste the YAML and it decodes every `data:` value locally (nothing is uploaded): **[Kubernetes Secret Decoder](https://base64.dev/kubernetes-secret-decoder)**. *(Disclosure: it's my free, no-ads tool.)*
+If you'd rather eyeball a whole Secret at once instead of decoding fields one by one, there's a free browser-based tool that does it locally — paste the YAML and it decodes every `data:` value client-side (nothing is uploaded): **[Kubernetes Secret Decoder](https://base64.dev/kubernetes-secret-decoder)**.
 
 ## `data` vs `stringData`
 
@@ -66,7 +66,7 @@ Base64 gets you nothing here. Real protection is layered:
 | Reversible? | Yes, trivially | Yes, with the key | No (one-way) |
 | Hides data? | **No** | Yes | N/A |
 
-Base64 is in the left column. Kubernetes Secrets, out of the box, are in the left column. If you want to go deeper on that distinction, I wrote it up here: **[Is Base64 Encryption?](https://base64.dev/articles/is-base64-encryption)**
+Base64 is in the left column. Kubernetes Secrets, out of the box, are in the left column. More on that distinction: **[Is Base64 Encryption?](https://base64.dev/articles/is-base64-encryption)**
 
 ## TL;DR
 
