@@ -11,8 +11,8 @@ _2026-08-08. Bing Webmaster's single recommendation is "not enough inbound links
 
 ---
 
-## 1. GitHub awesome-lists (highest ROI, lowest effort — do these first)
-Submit a one-line PR adding base64.dev to relevant curated lists. These are high-authority domains (github.com) and get scraped by LLMs constantly. Target lists (search "awesome <topic>" + `site:github.com`):
+## 1. GitHub awesome-lists — DEFERRED (gated on GitHub stars, see warning)
+> ⚠️ **Reality check (verified 2026-08-08):** most quality awesome-lists have hard submission criteria that a new solo tool-site does NOT meet. Example: **awesome-kubernetes requires 25+ GitHub stars AND 3+ contributors** (or org-hosting) — `gaomengen/base64` currently has 0 stars / 1 contributor, so a PR is auto-rejected. free-for.dev and most others gate the same way, on purpose, to filter out new tools. **Opening these PRs now just gets them closed and adds low-value rejected PRs to your account.** Do the un-gated channels below first; the traffic they drive earns organic repo stars, and *then* the awesome-lists open up (revisit in a few months). When they do, one-line PR entries to the niche lists below are the target:
 - **awesome-dev-tools / awesome-web-tools / awesome-developer-tools** — general dev utilities.
 - **free-for.dev** (free-for-dev/free-for-dev) — huge, high-authority; add under "Tools / Design and UI" or "Development".
 - **awesome-devops**, **awesome-kubernetes** — for `/kubernetes-secret-decoder` + `/dockerconfigjson`.
@@ -64,12 +64,13 @@ Legit directories that pass real signal: **AlternativeTo**, **Slant**, **SaaSHub
 ---
 
 ## Priority order (do in this sequence)
-1. **5 awesome-list PRs** (1 hour, permanent high-authority links) — biggest bang.
-2. **README pass** on your public repos (30 min).
-3. **3 Stack Overflow answers** on the k8s / powershell / pdf questions (real answers).
-4. **1 Dev.to post** (the "secrets aren't encryption" one — proven citation topic).
+_Awesome-lists are DEFERRED (§1) — they gate on repo stars a new site doesn't have yet. Lead with the un-gated, higher-yield channels:_
+1. **1 Dev.to post** — the "Kubernetes secrets are Base64, not encryption" one (proven highest-citation topic). Fully drafted for you at `docs/devto-post-k8s-secrets.md` — paste + publish.
+2. **3 Stack Overflow answers** on the k8s / powershell / base64-to-pdf questions (real answers, tool as a footnote).
+3. **README pass** on your public repos (30 min) — and it doubles as star-bait, which unlocks §1 later.
+4. **Directories** — AlternativeTo / Slant / SaaSHub (these accept new tools, no star gate).
 5. **Reddit**, opportunistically, when a matching question appears.
-6. Directories (submit-and-forget).
+6. **Awesome-list PRs** — LATER, once the repo has 25+ stars (§1).
 
 Ten quality placements over a month should move the "high-quality inbound links" needle enough to start lifting the head terms off position 8 — where 12,000+ monthly impressions are waiting. Re-check Bing Webmaster → Backlinks in ~3 weeks to see referring domains climb.
 
