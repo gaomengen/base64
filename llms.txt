@@ -29,6 +29,8 @@
 - [Data URI Generator](https://base64.dev/data-uri-generator): Turn text (with a MIME type) or any dropped file into a data: URI for inlining in HTML/CSS.
 - [Base64 to QR Code](https://base64.dev/base64-to-qr): Generate a scannable QR code from any text or Base64 string; download as SVG or PNG. Runs locally.
 - [Base64 to Excel](https://base64.dev/base64-to-excel): Decode a Base64 string into a downloadable .xlsx file, or encode a spreadsheet to Base64. Includes the Excel VBA snippet.
+- [Base64 to Word](https://base64.dev/base64-to-word): Decode a Base64 string into a downloadable Word .docx file, or encode a document to Base64. Validates the OOXML/ZIP (PK) header.
+- [Base64 to PowerPoint](https://base64.dev/base64-to-powerpoint): Decode a Base64 string into a downloadable PowerPoint .pptx file, or encode a deck to Base64. Validates the OOXML/ZIP (PK) header.
 
 ## Calculators & utilities
 
