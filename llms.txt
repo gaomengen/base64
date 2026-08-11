@@ -31,6 +31,11 @@
 - [Base64 to Excel](https://base64.dev/base64-to-excel): Decode a Base64 string into a downloadable .xlsx file, or encode a spreadsheet to Base64. Includes the Excel VBA snippet.
 - [Base64 to Word](https://base64.dev/base64-to-word): Decode a Base64 string into a downloadable Word .docx file, or encode a document to Base64. Validates the OOXML/ZIP (PK) header.
 - [Base64 to PowerPoint](https://base64.dev/base64-to-powerpoint): Decode a Base64 string into a downloadable PowerPoint .pptx file, or encode a deck to Base64. Validates the OOXML/ZIP (PK) header.
+- [Base64 to BMP](https://base64.dev/base64-to-bmp) / [BMP to Base64](https://base64.dev/bmp-to-base64): Decode Base64 to a .bmp image (with preview) or encode a BMP to a Base64 data URI.
+- [Base64 to WebP](https://base64.dev/base64-to-webp) / [WebP to Base64](https://base64.dev/webp-to-base64): Decode Base64 to a .webp image or encode a WebP to a Base64 data URI.
+- [CSS to Base64](https://base64.dev/css-to-base64): Encode a CSS stylesheet (text or file) to a data:text/css;base64 URI for inlining via a link/@import.
+- [Base64 Validator](https://base64.dev/base64-validator): Check whether a string is valid Base64 — reports the variant (standard vs URL-safe), padding, length, invalid characters, and decoded byte length.
+- [Base64 Repair](https://base64.dev/base64-repair): Fix broken Base64 — strips whitespace and a data: prefix, converts URL-safe -_ to +/, drops stray characters, and re-adds correct = padding, then confirms it decodes.
 
 ## Calculators & utilities
 
