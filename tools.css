@@ -51,3 +51,9 @@
 .lang-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .lang-grid a{font-family:var(--font-mono);font-size:12.5px;padding:5px 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);text-decoration:none;transition:all .15s}
 .lang-grid a:hover{border-color:var(--accent);color:var(--accent)}
+/* document & file conversion cluster mesh */
+.conv-cluster{margin:34px 0 8px}
+.conv-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.conv-grid a,.conv-grid .is-current{font-family:var(--font-mono);font-size:12.5px;padding:5px 11px;border-radius:7px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);text-decoration:none;transition:all .15s}
+.conv-grid a:hover{border-color:var(--accent);color:var(--accent)}
+.conv-grid .is-current{border-color:var(--accent);color:var(--accent);background:var(--bg-tertiary,var(--bg-secondary));font-weight:600;cursor:default}
