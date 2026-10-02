@@ -152,7 +152,9 @@ function render(data, campaign) {
       </a>`;
   }).join('\n');
 
-  const total = Number(data.totalJobs).toLocaleString('en-US');
+  /* Rounded down to the nearest thousand: a baked exact count is stale the
+   * moment it ships, and "29,326" reads scraped where "29,000+" reads true. */
+  const total = (Math.floor(Number(data.totalJobs) / 1000) * 1000).toLocaleString('en-US') + '+';
   const foot = esc(utm(data.boardUrl, campaign, 'footer'));
   const head = esc(utm(data.boardUrl, campaign, 'header'));
 
