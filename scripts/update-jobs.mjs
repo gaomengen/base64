@@ -24,11 +24,26 @@ const API = 'https://api.jobdatalake.com/v1/jobs';
 const BOARD = 'https://echojobs.io';
 const SLOTS = 3;
 
-/* Salaries are in thousands USD. The bounds drop two kinds of junk: listings
- * that are really hourly/monthly/another currency (Algoworks posts "$2400k"),
- * and real-but-outlandish numbers that read as fake on a promo unit. */
+/* Salaries are in thousands USD. Sorting by pay surfaces almost nothing but
+ * Netflix plus broken data, so the feed is sorted by recency and quality is
+ * enforced here instead. Each rule earns its place against the live data:
+ *
+ *   bounds        — below 150k reads as weak, above 600k as fake
+ *   flat bands    — lo === hi is a single posted number, not a range, and is
+ *                   wrong far more often than not (Coinbase "$685k-685k" for a
+ *                   Senior SWE; Remoteworld "$540k-540k" for a mid-level FE)
+ *   spread cap    — Netflix posts "$90k-600k"; a 6x band is a parsing artifact
+ *   IC seniority  — this audience is mid-debug engineers, not VPs
+ *   aggregators   — reposters, not employers; nobody recognises the brand
+ */
 const PAY_FLOOR = 150;
 const PAY_CEIL = 600;
+const MAX_SPREAD = 2.5;
+const IC_LEVELS = new Set(['Entry', 'Mid Level', 'Senior', 'Staff', 'Principal', 'Lead']);
+const LEADERSHIP = /\b(director|vp|vice president|head of|chief|manager)\b/i;
+const AGGREGATORS = new Set([
+  'jobgether', 'jobs for humanity', 'remoteworld', 'g2i', 'crossover', 'turing', 'toptal',
+]);
 
 const TARGETS = [
   { file: 'index.html',           campaign: 'home',            anchor: /^[ \t]*<article class="seo-content">/m },
@@ -53,6 +68,10 @@ const utm = (url, campaign, content) => {
  * meta line, and some carry a trailing location clause. */
 const cleanTitle = (t) => t.replace(/\s*\((?:remote|hybrid|us|usa|onsite)\)\s*$/i, '').trim();
 
+/* ATS exports carry entity suffixes nobody says out loud ("Talkspace Corporate"). */
+const cleanCompany = (c) =>
+  c.replace(/[,]?\s+(corporate|corp\.?|inc\.?|llc|ltd\.?|limited|gmbh|plc)$/i, '').trim();
+
 async function fetchJobs() {
   const key = process.env.JDL_API_KEY;
   if (!key) {
@@ -63,7 +82,7 @@ async function fetchJobs() {
     q: '*',
     job_function: 'eng',
     remote_type: 'fully_remote',
-    sort_by: 'salary_max_usd:desc',
+    sort_by: 'posted_at:desc',
     per_page: '100',
   });
 
@@ -77,15 +96,24 @@ async function fetchJobs() {
   for (const j of data.jobs || []) {
     if (picked.length === SLOTS) break;
 
+    if (!j.company_name || !j.job_handle || !j.title) continue;
+
     const lo = Number(j.salary_min_usd);
     const hi = Number(j.salary_max_usd);
     if (!Number.isFinite(lo) || !Number.isFinite(hi)) continue;
+    if (lo === hi) continue;
     if (lo < PAY_FLOOR || hi > PAY_CEIL || hi < lo) continue;
+    if (hi / lo > MAX_SPREAD) continue;
 
-    if (!j.company_name || !j.job_handle || !j.title) continue;
+    /* seniority is multi-valued and leaky — "Senior Director" carries both —
+     * so the title gets a second look. */
+    if (!(j.seniority || []).some((s) => IC_LEVELS.has(s))) continue;
+    if (LEADERSHIP.test(j.title)) continue;
+
+    const company = cleanCompany(j.company_name);
+    if (AGGREGATORS.has(company.toLowerCase())) continue;
 
     /* One slot per company, or the rail turns into a Netflix careers page. */
-    const company = j.company_name.trim();
     if (seen.has(company.toLowerCase())) continue;
     seen.add(company.toLowerCase());
 
