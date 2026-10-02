@@ -1,6 +1,6 @@
 # base64.dev
 
-> base64.dev is a fast, privacy-first Base64 encoder and decoder for developers. No ads, no tracking, no sign-up. All encoding happens locally in the browser.
+> base64.dev is a fast, privacy-first Base64 encoder and decoder for developers. No tracking, no pop-ups, no sign-up. All encoding happens locally in the browser.
 
 ## Tool
 

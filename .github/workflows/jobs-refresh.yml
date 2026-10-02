@@ -1,0 +1,57 @@
+name: Refresh jobs rail
+
+# Daily pull of live listings from JobDataLake into the EchoJobs rail on the
+# five highest-traffic pages. The rail is baked into the HTML at build time, so
+# visitors never pay for a fetch and crawlers see the real markup — this job is
+# what keeps the baked copy current.
+#
+# Commits only when the rendered output actually changed, so quiet days produce
+# no deploy. A push to main triggers the usual Vercel deploy.
+#
+# Activate once by adding the key as a repo secret:
+#   gh secret set JDL_API_KEY
+
+on:
+  schedule:
+    - cron: '0 5 * * *'    # daily 05:00 UTC, an hour before the IndexNow cron
+  workflow_dispatch: {}      # allow manual runs from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jobs-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pull listings and render the rail
+        env:
+          JDL_API_KEY: ${{ secrets.JDL_API_KEY }}
+        run: |
+          if [ -z "$JDL_API_KEY" ]; then
+            echo "JDL_API_KEY secret is not set — skipping refresh." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node scripts/update-jobs.mjs | tee /tmp/jobs.log
+          { echo '```'; cat /tmp/jobs.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit if the rail changed
+        run: |
+          if git diff --quiet; then
+            echo "No change — listings are the same as yesterday." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add jobs.json index.html base64-to-pdf.html base64-to-image.html pdf-to-base64.html base64-to-excel.html
+          git commit -m "chore(jobs): refresh EchoJobs rail listings"
+          git push
