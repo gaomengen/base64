@@ -20,6 +20,15 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const START = '<!-- jobs-rail:start -->';
 const END = '<!-- jobs-rail:end -->';
 
+/* index.html is self-contained — it links no external CSS at all — so the rail
+ * styles have to live inside its <style> block. Rather than keep a hand-copied
+ * second copy (which silently went unstyled in production the first time), the
+ * block is lifted out of tools.css on every run. tools.css stays the only place
+ * these rules are edited. */
+const CSS_START = '/* jobs-rail-css:start';
+const CSS_END = '/* jobs-rail-css:end */';
+const INLINE_CSS_HOST = 'index.html';
+
 const API = 'https://api.jobdatalake.com/v1/jobs';
 const BOARD = 'https://echojobs.io';
 const SLOTS = 3;
@@ -186,7 +195,36 @@ if (offline) {
   for (const j of data.jobs) console.log(`  · ${j.company} — ${j.title} (${j.salary})`);
 }
 
+/* Keep index.html's inline copy of the rail CSS identical to tools.css. */
+function syncInlineCss() {
+  const css = readFileSync(join(ROOT, 'tools.css'), 'utf8');
+  const from = css.indexOf(CSS_START);
+  const to = css.indexOf(CSS_END);
+  if (from === -1 || to === -1) throw new Error('jobs-rail-css markers missing from tools.css');
+  const block = css.slice(from, to + CSS_END.length);
+
+  const path = join(ROOT, INLINE_CSS_HOST);
+  const src = readFileSync(path, 'utf8');
+  let out;
+
+  if (src.includes(CSS_START) && src.includes(CSS_END)) {
+    const a = src.indexOf(CSS_START);
+    const b = src.indexOf(CSS_END) + CSS_END.length;
+    out = src.slice(0, a) + block + src.slice(b);
+  } else {
+    const close = src.indexOf('</style>');
+    if (close === -1) throw new Error(`no <style> block in ${INLINE_CSS_HOST}`);
+    out = src.slice(0, close) + block + '\n' + src.slice(close);
+  }
+
+  if (out === src) return false;
+  writeFileSync(path, out);
+  return true;
+}
+
 let changed = 0;
+if (syncInlineCss()) { changed++; console.log(`  ✓ ${INLINE_CSS_HOST} (inline rail CSS synced from tools.css)`); }
+
 for (const { file, campaign, anchor } of TARGETS) {
   const path = join(ROOT, file);
   const src = readFileSync(path, 'utf8');

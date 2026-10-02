@@ -58,6 +58,7 @@
 .conv-grid a:hover{border-color:var(--accent);color:var(--accent)}
 .conv-grid .is-current{border-color:var(--accent);color:var(--accent);background:var(--bg-tertiary,var(--bg-secondary));font-weight:600;cursor:default}
 
+/* jobs-rail-css:start — synced into index.html by scripts/update-jobs.mjs; edit here only */
 /* ---- Remote jobs rail (first-party cross-promo to echojobs.io) ---- */
 .jobs-rail{margin:28px 0 8px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-secondary);overflow:hidden}
 .jobs-rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
@@ -80,3 +81,4 @@
   .jobs-title{white-space:normal}
   .jobs-meta{white-space:normal}
 }
+/* jobs-rail-css:end */
