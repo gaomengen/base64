@@ -1,0 +1,29 @@
+{
+  "_comment": "Data for the EchoJobs cross-promo rail. Regenerate with: node scripts/update-jobs.mjs",
+  "updated": "2026-10-01",
+  "totalJobs": 29325,
+  "boardUrl": "https://echojobs.io/",
+  "jobs": [
+    {
+      "title": "Senior Software Engineer, Design Systems",
+      "company": "Netflix",
+      "salary": "$388k–558k",
+      "tags": "React · TypeScript · GraphQL",
+      "url": "https://echojobs.io/"
+    },
+    {
+      "title": "Senior Staff Engineer, Agentic AI",
+      "company": "NVIDIA",
+      "salary": "$224k–431k",
+      "tags": "Python · TypeScript · LLM",
+      "url": "https://echojobs.io/"
+    },
+    {
+      "title": "Principal Engineer, Developer Platforms",
+      "company": "Cisco",
+      "salary": "$241k–417k",
+      "tags": "Go · CI/CD · Infrastructure",
+      "url": "https://echojobs.io/"
+    }
+  ]
+}
