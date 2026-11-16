@@ -4,7 +4,7 @@
  * the same way scripts/update-jobs.mjs bakes the jobs rail:
  *
  *   - /paid-ai-work      the full list, generated whole (paid-ai-work.html)
- *   - a gigs rail        three coding gigs under the jobs rail on the top five pages
+ *   - a gigs rail        three coding gigs above the jobs rail on the top five pages
  *
  *   node scripts/update-gigs.mjs            # fetch live, snapshot to gigs.json, render
  *   node scripts/update-gigs.mjs --offline  # re-render from the existing gigs.json
@@ -25,7 +25,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const START = '<!-- gigs-rail:start -->';
 const END = '<!-- gigs-rail:end -->';
-const AFTER = '<!-- jobs-rail:end -->';
+/* The gigs rail sits ABOVE the jobs rail: it is the one that earns. */
+const BEFORE = '<!-- jobs-rail:start -->';
 
 const API = 'https://api.jobdatalake.com/v1/jobs';
 const REDIRECT = 'https://echojobs.io/go/j/';
@@ -40,7 +41,7 @@ const PARTNERS = [
   { domain: 'work.mercor.com', name: 'Mercor' },
 ];
 
-/* Pages that carry the jobs rail; the gigs rail goes right under it. */
+/* Pages that carry the jobs rail; the gigs rail goes right above it. */
 const RAIL_PAGES = [
   { file: 'index.html', campaign: 'home' },
   { file: 'base64-to-pdf.html', campaign: 'base64-to-pdf' },
@@ -162,7 +163,7 @@ function renderRail(data, campaign) {
     <section class="jobs-rail" aria-label="Paid AI training work">
       <div class="jobs-rail-head">
         <span class="jobs-rail-label">Paid AI coding work</span>
-        <span class="jobs-rail-by">referral links</span>
+        <span class="jobs-rail-by">Remote · hourly</span>
       </div>
       <div class="jobs-list">
 ${picks.map((g) => item(g)).join('\n')}
@@ -317,15 +318,13 @@ for (const { file, campaign } of RAIL_PAGES) {
   const path = join(ROOT, file);
   const src = readFileSync(path, 'utf8');
   const block = renderRail(data, campaign);
-  let out;
-  if (src.includes(START) && src.includes(END)) {
-    out = src.replace(new RegExp(`[ \\t]*${START}[\\s\\S]*?${END}`), block);
-  } else {
-    const at = src.indexOf(AFTER);
-    if (at === -1) { console.error(`  !! ${file}: no jobs rail to sit under, skipped`); continue; }
-    const cut = at + AFTER.length;
-    out = src.slice(0, cut) + '\n' + block + src.slice(cut);
-  }
+  /* Drop any existing block, then insert above the jobs rail, so the position is
+   * always the same however the page looked before. */
+  const bare = src.replace(new RegExp(`[ \\t]*${START}[\\s\\S]*?${END}\\n?`), '');
+  const at = bare.indexOf(BEFORE);
+  if (at === -1) { console.error(`  !! ${file}: no jobs rail to sit above, skipped`); continue; }
+  const lineStart = bare.lastIndexOf('\n', at) + 1;
+  const out = bare.slice(0, lineStart) + block + '\n' + bare.slice(lineStart);
   if (out !== src) { writeFileSync(path, out); changed++; console.log(`  ✓ ${file}`); }
 }
 
