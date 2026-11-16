@@ -152,3 +152,7 @@ Each page pairs an in-browser encoder/decoder with the canonical, copy-paste Bas
 ## About
 
 - [About base64.dev](https://base64.dev/about): How and why base64.dev was built. Tech stack: vanilla HTML/CSS/JS, no frameworks, deployed on Vercel.
+
+## Paid AI work
+
+- [Paid AI Training Work for Developers](https://base64.dev/paid-ai-work): Open remote AI training gigs (code review, evaluations, expert data work) at micro1 and Mercor, refreshed daily. Links are referral links.

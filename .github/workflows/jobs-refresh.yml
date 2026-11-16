@@ -42,6 +42,9 @@ jobs:
             exit 0
           fi
           node scripts/update-jobs.mjs | tee /tmp/jobs.log
+          # Paid AI gigs (micro1, Mercor referral listings): /paid-ai-work plus the
+          # gigs rail under the jobs rail. Its own failure must not block the jobs rail.
+          node scripts/update-gigs.mjs | tee -a /tmp/jobs.log || echo "gigs refresh failed — keeping yesterday's page" | tee -a /tmp/jobs.log
           { echo '```'; cat /tmp/jobs.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit if the rail changed
@@ -52,6 +55,6 @@ jobs:
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add jobs.json index.html base64-to-pdf.html base64-to-image.html pdf-to-base64.html base64-to-excel.html
-          git commit -m "chore(jobs): refresh EchoJobs rail listings"
+          git add jobs.json gigs.json paid-ai-work.html index.html base64-to-pdf.html base64-to-image.html pdf-to-base64.html base64-to-excel.html
+          git commit -m "chore(jobs): refresh EchoJobs rail and paid AI gigs"
           git push
