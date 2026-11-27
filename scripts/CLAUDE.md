@@ -15,7 +15,8 @@ commit is a production deploy. Read the header comment of each script before edi
 - `update-gigs.mjs`: paid AI training gigs (micro1, Mercor). Writes `gigs.json`, the whole of
   `paid-ai-work.html`, and a 3-gig rail directly above the jobs rail on the pages in `RAIL_PAGES`.
 - `bing-rank.mjs`: Bing Webmaster rank and traffic, top queries, top pages for a site URL. Reads
-  `BING_WEBMASTER_API_KEY` from the environment or `.env.local`. Read-only.
+  `BING_WEBMASTER_API_KEY` from the environment or `.env.local`. Read-only. Weekly in `seo-stats.yml`, which
+  does nothing until that repo secret exists (not set on 2026-11-27).
 
 ## Rules
 
@@ -34,11 +35,12 @@ commit is a production deploy. Read the header comment of each script before edi
 
 ## Gotchas
 
-- The workflow pipes each script through `tee` and does not set `shell: bash`, so there is no `pipefail`: a
-  script's non-zero exit is masked and the commit step still runs **[check]**. The scripts throw before
-  writing, so a failed run leaves its files unchanged rather than empty.
+- The workflow pipes each script through `tee` and does not set `shell: bash`, so the default shell has no
+  `pipefail`: a script's non-zero exit is hidden by `tee` (and the gigs line adds `|| echo` on purpose), so the
+  step passes and the commit step still runs (verified 2026-11-27). The scripts throw before writing, so a
+  failed run leaves its files unchanged rather than empty; read the Step Summary log to see a failure.
 - A page without a jobs rail is skipped by `update-gigs` with a warning, not an error.
-- Pay labels: salaries come as yearly thousands USD, and hourly rates are stored as rate × 2080. A gig is shown
+- Pay labels: salaries come as yearly thousands USD, and the API stores an hourly rate as rate × 2080. A gig is shown
   as hourly when it is Mercor or not `full_time`. Show no number the data does not carry; an empty label is fine.
 
 ## Tests
